@@ -1,0 +1,41 @@
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Personal editor / AI tooling ─────────────────────────
+.claude/
+
+# ── Logs & temp files ────────────────────────────────────
+*.log
+*.err
+tmp_pages/
+
+# ── Raw datasets (too large for GitHub) ──────────────────
+data/*.zip
+data/s1/
+data/alignments/
+data/alignments_extracted/
+
+# ── Generated / processed datasets (recreatable) ─────────
+dataset/
+synthetic_dataset/
+alphabet_dataset/
+alphabet_dataset_smoke/
+
+# ── Test artifacts ───────────────────────────────────────
+test_capture_*.png
+
+# ── Frontend (build & deps) ──────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+frontend/npm-install.log
+frontend/npm-install.err
+
+# ── OS ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

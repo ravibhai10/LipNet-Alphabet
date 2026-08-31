@@ -1,0 +1,234 @@
+# Alphabet Dataset Configuration
+# All configurable values for dataset creation, preprocessing, and validation
+
+# Root directory for the dataset
+dataset_root: "alphabet_dataset"
+
+# Version of this configuration schema (recorded in metadata.json and manifest)
+config_version: "1.0"
+
+# Video input settings
+video:
+  # Target FPS for recording and processing
+  fps: 30
+  # Maximum sequence length in frames (≈ 2.5 seconds at 30fps)
+  max_sequence_length: 76
+  # Minimum sequence length in frames
+  min_sequence_length: 15
+  # Video codec for output
+  codec: "mp4v"
+  # Resolution for input video (width, height)
+  input_resolution: [1280, 720]
+  # Webcam device index
+  webcam_device: 0
+
+# Face tracking settings
+face_tracking:
+  # MediaPipe FaceMesh confidence thresholds
+  detection_confidence: 0.5
+  tracking_confidence: 0.5
+  # Maximum number of faces to track
+  max_num_faces: 1
+  # Refine landmarks around lips/eyes
+  refine_landmarks: true
+  # Minimum frames with face to consider recording valid
+  min_frames_with_face: 10
+  # Maximum consecutive frames without face before rejecting
+  max_missing_face_gap: 5
+
+# Mouth alignment and normalization
+mouth_alignment:
+  # Mouth-centered coordinate frame scale = inner mouth width
+  normalization_scale: "inner_mouth_width"
+  # Margin multiplier for crop around mouth (2.2x as per DESIGN.md)
+  crop_margin_multiplier: 2.2
+  # Output crop resolution for appearance stream
+  appearance_crop_size: [64, 64]
+  # Full face crop resolution for context stream
+  context_crop_size: [112, 112]
+  # Canonical 20-point mouth landmark set (REAL MediaPipe FaceMesh indices).
+  # Order (fixed contract consumed by repr/geometry.py):
+  #   0-3   inner upper lip:      78, 74, 81, 13
+  #   4-7   inner lower lip:     312, 308, 402, 14
+  #   8     left corner (inner):  61
+  #   9     right corner (inner): 291
+  #   10-15 outer upper lip:      39, 37, 0, 267, 269, 391
+  #   16    left corner (outer):  61
+  #   17    upper lip center:      0
+  #   18    lower lip center:     17
+  #   19    right corner (outer): 291
+  mouth_landmark_indices: [78, 74, 81, 13, 312, 308, 402, 14, 61, 291, 39, 37, 0, 267, 269, 391, 61, 0, 17, 291]
+  # Number of landmarks for mouth (canonical subset of the 478 FaceMesh points)
+  num_mouth_landmarks: 20
+
+# Appearance stream settings
+appearance:
+  # Color space for crops (RGB or BGR)
+  color_space: "RGB"
+  # Normalization: mean and std for [0,1] normalized images
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+
+# Geometry stream settings
+geometry:
+  # Number of canonical geometry scalars to derive
+  num_scalars: 20
+  # Geometry MLP output dimension
+  mlp_output_dim: 64
+  # Savitzky-Golay window for smoothing derivatives
+  savgol_window: 5
+  # Savitzky-Golay polynomial order
+  savgol_polyorder: 2
+
+# Motion stream settings
+motion:
+  # Optical flow settings (Farnebäck)
+  optical_flow:
+    enabled: true
+    pyr_scale: 0.5
+    levels: 3
+    winsize: 15
+    iterations: 3
+    poly_n: 5
+    poly_sigma: 1.2
+    flags: 0
+  # Motion MLP output dimension
+  mlp_output_dim: 64
+  # Optical flow patch size
+  flow_patch_size: [16, 16]
+
+# Quality thresholds
+quality:
+  # Blur threshold (Laplacian variance) - below this is blurry
+  blur_threshold: 100.0
+  # Brightness range [min, max] for valid frames
+  brightness_range: [20, 235]
+  # Minimum mouth size in pixels (width * height)
+  min_mouth_size: 400
+  # Maximum pose angle (degrees) for yaw/pitch/roll
+  max_pose_angle: 30.0
+  # Duplicate frame detection threshold (structural similarity)
+  duplicate_ssim_threshold: 0.98
+
+# Preprocessing settings
+preprocessing:
+  # Version string for tracking preprocessing pipeline changes
+  version: "1.0"
+  # Whether to save intermediate frames (for debugging/storage tradeoff)
+  save_frames: false
+  # Whether to save landmark arrays as .npz
+  save_landmarks_npz: true
+  # Whether to save crops as images
+  # REQUIRED true: the Phase 3 representation cache (alphabet/cache.py) and
+  # Phase 5 training need appearance crops on disk; the appearance stream
+  # cannot be recomputed from embeddings alone.
+  save_crops: true
+  # Batch size for processing
+  batch_size: 32
+  # Number of worker processes
+  num_workers: 4
+  # Resume from existing processed data
+  resume: true
+
+# Speaker split settings
+splits:
+  # Train/validation/test split ratios by speaker
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  # Random seed for reproducible splits
+  random_seed: 42
+  # Minimum speakers per split
+  min_speakers_per_split: 3
+
+# Manifest settings
+manifest:
+  # Output manifest file path (relative to dataset_root)
+  path: "manifest.jsonl"
+  # Schema version
+  schema_version: "1.0"
+
+# Temporal encoder (Phase 4) - Conformer over the Phase 3 fused sequence
+temporal:
+  # Only 'conformer' is supported (DESIGN.md L2 letter-scale context)
+  encoder_type: "conformer"
+  # Must equal the Phase 3 gated-fusion output dimension; validated by loader
+  input_dim: 192
+  d_model: 192
+  num_layers: 4
+  num_heads: 4
+  ffn_dim: 768
+  conv_kernel: 7
+  dropout: 0.1
+  attention_dropout: 0.1
+  positional_encoding: "sinusoidal_learned"
+  max_sequence_length: 512
+
+# Recording metadata defaults
+recording:
+  # Schema version for metadata.json
+  schema_version: "1.0"
+  # Supported letters
+  letters: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+  # Speaker ID prefix
+  speaker_prefix: "speaker_"
+  # Session ID prefix
+  session_prefix: "session_"
+  # Recording ID prefix
+  recording_prefix: "recording_"
+
+# =============================================================================
+# Phase 5 — letter sequence decoder (CTC) over the Phase 4 Conformer output.
+# Parsed ONLY by alphabet/config.py; ignored by every Phase 2-4 parser.
+# The vocabulary itself is canonical in alphabet/vocab.py (blank + A-Z = 27);
+# UNKNOWN/AMBIGUOUS are post-processing states, not trained classes.
+# =============================================================================
+decoder:
+  # Dataset root override (defaults to top-level dataset_root)
+  # dataset_root: "alphabet_dataset"
+  # Root directory for the Phase 3 fused-representation caches.
+  # Layout: <repr_cache_dir>/<ablation>/<cache_key>/fused.npy (+ provenance).
+  repr_cache_dir: "runs/repr_cache"
+  # Phase 3 stream ablation for THIS run (§22). One of:
+  #   all | appearance_only | geometry_only | motion_only |
+  #   appearance_geometry | appearance_motion | geometry_motion
+  ablation: "all"
+
+  # Auxiliary phonetic/viseme heads — DERIVED supervision (letter-name
+  # ARPABET v1.0 / viseme map v1.0, see alphabet/phonetics.py).
+  # DISABLED by default: never contaminate the primary letter-CTC experiment.
+  auxiliary:
+    phone_enabled: false
+    viseme_enabled: false
+    lambda_phone: 0.3
+    lambda_viseme: 0.3
+
+  training:
+    seed: 42
+    batch_size: 8
+    epochs: 60
+    lr: 0.0003
+    weight_decay: 0.01
+    warmup_ratio: 0.1          # fraction of total steps
+    min_lr_ratio: 0.05
+    grad_clip: 1.0
+    amp: false                 # mixed precision (CUDA only; loss stays fp32)
+    num_workers: 0
+    early_stopping_patience: 10
+    checkpoint_dir: "runs/letter_decoder"
+    # Balanced sampling decided from MEASURED letter counts (§18):
+    #   auto -> enable when imbalance ratio >= auto_imbalance_ratio
+    balanced_sampling: "auto"
+    auto_imbalance_ratio: 1.5
+    augment: true              # train-time temporal augmentation only
+    # null -> linear 192->27 letter head (DESIGN.md §6)
+    letter_head_hidden: null
+
+  # Calibration (§14): thresholds are fit on VALIDATION data only.
+  uncertainty:
+    temperature: null          # null -> fit by NLL on validation
+    n_bins: 15
+    coverage_target: 0.90
+    confidence_threshold: null # null -> selected on validation
+    margin_threshold: null     # null -> selected on validation

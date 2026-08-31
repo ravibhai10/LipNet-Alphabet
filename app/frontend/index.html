@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lip Alphabet — Dataset Explorer</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222632;
+      --accent: #6c5ce7;
+      --accent2: #a29bfe;
+      --text: #e8e8f0;
+      --muted: #8888a0;
+      --success: #00cec9;
+      --border: #2e3348;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo {
+      font-size: 1.25rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+    }
+    .logo span { font-weight: 400; opacity: 0.7; }
+    .header-stats {
+      display: flex; gap: 1.5rem; margin-left: auto;
+    }
+    .stat-badge {
+      font-size: 0.78rem; color: var(--muted);
+      background: var(--surface2); padding: 0.3rem 0.7rem;
+      border-radius: 20px; border: 1px solid var(--border);
+    }
+    .stat-badge strong { color: var(--accent2); }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* Sidebar - Letter Grid */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1rem;
+      overflow-y: auto;
+      max-height: calc(100vh - 56px);
+      position: sticky; top: 56px;
+    }
+    .sidebar h3 {
+      font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .letter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .letter-btn {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 1rem; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .letter-btn:hover { border-color: var(--accent); background: rgba(108,92,231,0.1); }
+    .letter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .letter-count {
+      font-size: 0.55rem; color: var(--muted);
+      text-align: center; margin-top: 2px;
+    }
+
+    /* Main content */
+    .main {
+      padding: 1.5rem;
+      overflow-y: auto;
+      max-height: calc(100vh - 56px);
+    }
+
+    /* Overview cards */
+    .overview-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+    }
+    .card .num {
+      font-size: 1.8rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent2), var(--success));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .card .label {
+      font-size: 0.75rem; color: var(--muted);
+      margin-top: 0.3rem; text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Video Section */
+    .video-section {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+    .video-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .video-panel-header {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem; font-weight: 600;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .video-panel-header .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--success);
+    }
+    .video-wrap {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: #000;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .video-wrap video {
+      width: 100%; height: 100%; object-fit: contain;
+    }
+    .frame-annotation {
+      position: absolute; bottom: 10px; left: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 0.75rem; color: var(--muted);
+    }
+    .scrubber {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .scrubber-row {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .scrubber input[type=range] {
+      flex: 1; accent-color: var(--accent);
+      height: 4px; cursor: pointer;
+    }
+    .scrubber label {
+      font-size: 0.72rem; color: var(--muted);
+      min-width: 60px;
+    }
+    .scrubber .time-display {
+      font-size: 0.78rem; font-variant-numeric: tabular-nums;
+      color: var(--text); min-width: 55px; text-align: right;
+    }
+    .play-btn {
+      background: var(--accent); border: none;
+      color: white; width: 32px; height: 32px;
+      border-radius: 8px; cursor: pointer;
+      font-size: 0.85rem; transition: background 0.15s;
+    }
+    .play-btn:hover { background: var(--accent2); }
+
+    /* Recording list */
+    .rec-list {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .rec-list-header {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem; font-weight: 600;
+    }
+    .rec-item {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+      font-size: 0.8rem;
+    }
+    .rec-item:hover { background: var(--surface2); }
+    .rec-item.active { background: rgba(108,92,231,0.15); border-left: 3px solid var(--accent); }
+    .rec-item:last-child { border-bottom: none; }
+    .rec-item .rec-top {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 2px;
+    }
+    .rec-item .rec-letter {
+      font-weight: 700; color: var(--accent2); font-size: 1rem;
+    }
+    .rec-item .rec-spk { color: var(--muted); font-size: 0.72rem; }
+    .rec-item .rec-dur { color: var(--muted); font-size: 0.7rem; }
+
+    /* Metadata panel */
+    .meta-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-size: 0.78rem;
+    }
+    .meta-panel h3 {
+      font-size: 0.85rem; font-weight: 600;
+      margin-bottom: 0.8rem; padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .meta-row {
+      display: flex; justify-content: space-between;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(46,51,72,0.5);
+    }
+    .meta-row:last-child { border-bottom: none; }
+    .meta-key { color: var(--muted); }
+    .meta-val { color: var(--text); font-weight: 500; }
+    .meta-section {
+      margin-top: 0.8rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--border);
+    }
+    .meta-section h4 {
+      font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 4rem 2rem;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state h2 { color: var(--text); margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 0.9rem; max-width: 400px; line-height: 1.6; }
+
+    /* Loading */
+    .loading { display: flex; justify-content: center; padding: 3rem; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Quality indicator */
+    .quality-bar {
+      display: flex; gap: 3px; align-items: center;
+    }
+    .q-seg {
+      width: 20px; height: 6px; border-radius: 3px;
+      background: var(--border);
+    }
+    .q-seg.ok { background: var(--success); }
+    .q-seg.warn { background: #fdcb6e; }
+    .q-seg.bad { background: #e17055; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .video-section { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">👄 LipAlphabet <span>Explorer</span></div>
+    <div class="header-stats">
+      <div class="stat-badge">
+        <strong id="hdr-total">—</strong> recordings
+      </div>
+      <div class="stat-badge">
+        <strong id="hdr-spk">—</strong> speakers
+      </div>
+      <div class="stat-badge">
+        <strong id="hdr-letters">26</strong> letters
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h3>Alphabet</h3>
+      <div class="letter-grid" id="letterGrid"></div>
+    </aside>
+
+    <main class="main" id="mainContent">
+      <div id="overview-cards" class="overview-cards"></div>
+      <div id="video-section"></div>
+    </main>
+  </div>
+
+<script>
+const API = '';
+
+let state = {
+  overview: null,
+  selectedLetter: null,
+  selectedRec: null,
+  recordings: [],
+};
+
+// ── API helpers ──────────────────────────────────────
+async function api(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(`${r.status} ${path}`);
+  return r.json();
+}
+
+// ── Overview ─────────────────────────────────────────
+async function loadOverview() {
+  try {
+    state.overview = await api('/api/overview');
+    updateHeader();
+    renderOverviewCards();
+    renderLetterGrid();
+    selectLetter('A');
+  } catch(e) {
+    document.getElementById('mainContent').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⚠️</div>
+        <h2>Could not load dataset</h2>
+        <p>${e.message}<br>Make sure the FastAPI server is running: <code>python -m app.main</code></p>
+      </div>`;
+  }
+}
+
+function updateHeader() {
+  if (!state.overview) return;
+  document.getElementById('hdr-total').textContent = state.overview.total_recordings;
+  document.getElementById('hdr-spk').textContent = state.overview.total_speakers;
+}
+
+function renderOverviewCards() {
+  const ov = state.overview;
+  const el = document.getElementById('overview-cards');
+  if (!el) return;
+  const cards = [
+    { num: ov.total_recordings, label: 'Total Recordings' },
+    { num: ov.total_speakers, label: 'Speakers' },
+    { num: ov.total_sessions, label: 'Sessions' },
+    { num: ov.letters.length, label: 'Letters' },
+  ];
+  el.innerHTML = cards.map(c => `
+    <div class="card">
+      <div class="num">${c.num.toLocaleString()}</div>
+      <div class="label">${c.label}</div>
+    </div>
+  `).join('');
+}
+
+function renderLetterGrid() {
+  const grid = document.getElementById('letterGrid');
+  grid.innerHTML = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => {
+    const stat = state.overview.letters.find(x => x.letter === l);
+    const count = stat ? stat.total_recordings : 0;
+    return `<button class="letter-btn ${state.selectedLetter === l ? 'active' : ''}"
+      onclick="selectLetter('${l}')" title="${count} recordings">
+      ${l}
+    </button>`;
+  }).join('');
+}
+
+// ── Letter selection ─────────────────────────────────
+async function selectLetter(letter) {
+  state.selectedLetter = letter;
+  renderLetterGrid();
+
+  try {
+    const data = await api(`/api/recordings/${letter}`);
+    state.recordings = data.recordings;
+    renderVideoSection(letter, data.recordings);
+  } catch(e) {
+    const vs = document.getElementById('video-section');
+    if (vs) vs.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+  }
+}
+
+// ── Video section ────────────────────────────────────
+function renderVideoSection(letter, recordings) {
+  const vs = document.getElementById('video-section');
+  if (!vs) return;
+  vs.innerHTML = `
+    <div class="video-section">
+      <div class="video-panel">
+        <div class="video-panel-header">
+          <span class="dot"></span>
+          Letter <strong>${letter}</strong> — ${recordings.length} recordings
+        </div>
+        <div class="video-wrap">
+          <video id="mainVideo" preload="metadata">
+            <source src="" type="video/mp4">
+          </video>
+          <div class="frame-annotation" id="frameAnn">—</div>
+        </div>
+        <div class="scrubber">
+          <div class="scrubber-row">
+            <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+            <input type="range" id="scrubber" min="0" max="100" value="0" step="0.1">
+            <span class="time-display" id="timeDisp">0:00 / 0:00</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="rec-list">
+          <div class="rec-list-header">Recordings</div>
+          <div id="recList"></div>
+        </div>
+        <div class="meta-panel" id="metaPanel" style="margin-top:1rem">
+          <h3>Metadata</h3>
+          <p style="color:var(--muted);font-size:0.75rem">Select a recording to view details</p>
+        </div>
+      </div>
+    </div>`;
+
+  // Populate recording list
+  const recList = document.getElementById('recList');
+  recList.innerHTML = recordings.map((r, i) => `
+    <div class="rec-item" data-idx="${i}" onclick="selectRecording(${i})">
+      <div class="rec-top">
+        <span class="rec-letter">${r.speaker_id || ''}</span>
+        <span class="rec-dur">${fmtMs(r.duration_ms || 0)}</span>
+      </div>
+      <div class="rec-spk">${r.session_id} · ${r.recording_id}</div>
+    </div>
+  `).join('');
+
+  // Auto-select first
+  if (recordings.length > 0) selectRecording(0);
+
+  // Scrubber
+  const video = document.getElementById('mainVideo');
+  const scrubber = document.getElementById('scrubber');
+  const timeDisp = document.getElementById('timeDisp');
+  const frameAnn = document.getElementById('frameAnn');
+
+  video.addEventListener('loadedmetadata', () => {
+    scrubber.max = video.duration || 1;
+    timeDisp.textContent = `0:00 / ${fmtDur(video.duration)}`;
+  });
+  video.addEventListener('timeupdate', () => {
+    const pct = (video.currentTime / (video.duration || 1)) * 100;
+    scrubber.value = pct;
+    const totalFrames = Math.round(pct / 100 * (video.duration * 30));
+    timeDisp.textContent = `${fmtSec(video.currentTime)} / ${fmtDur(video.duration)}`;
+    frameAnn.textContent = `frame ~${totalFrames}`;
+  });
+  scrubber.addEventListener('input', () => {
+    video.currentTime = (scrubber.value / 100) * (video.duration || 1);
+  });
+}
+
+async function selectRecording(idx) {
+  const r = state.recordings[idx];
+  if (!r) return;
+  state.selectedRec = r;
+
+  // Highlight active
+  document.querySelectorAll('.rec-item').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+
+  // Load video
+  const video = document.getElementById('mainVideo');
+  const path = r.path.replace(/\\/g, '/');
+  video.src = `/api/video/${path}`;
+  video.load();
+
+  // Load metadata
+  loadMetadata(r);
+}
+
+async function loadMetadata(r) {
+  try {
+    const meta = await api(`/api/recording/${r.path.split('/')[0]}/${r.speaker_id}/${r.session_id}/${r.recording_id}`);
+    const panel = document.getElementById('metaPanel');
+    panel.innerHTML = `
+      <h3>Metadata</h3>
+      <div class="meta-row"><span class="meta-key">Letter</span><span class="meta-val">${meta.letter}</span></div>
+      <div class="meta-row"><span class="meta-key">Speaker</span><span class="meta-val">${meta.speaker_id}</span></div>
+      <div class="meta-row"><span class="meta-key">Session</span><span class="meta-val">${meta.session_id}</span></div>
+      <div class="meta-row"><span class="meta-key">Recording</span><span class="meta-val">${meta.recording_id}</span></div>
+      <div class="meta-row"><span class="meta-key">FPS</span><span class="meta-val">${meta.fps}</span></div>
+      <div class="meta-row"><span class="meta-key">Frames</span><span class="meta-val">${meta.frame_count}</span></div>
+      <div class="meta-row"><span class="meta-key">Duration</span><span class="meta-val">${fmtMs(meta.duration_ms)}</span></div>
+      <div class="meta-row"><span class="meta-key">Resolution</span><span class="meta-val">${meta.width}×${meta.height}</span></div>
+      <div class="meta-row"><span class="meta-key">Source</span><span class="meta-val">${meta.source}</span></div>
+      <div class="meta-row"><span class="meta-key">Landmark Src</span><span class="meta-val">${meta.landmark_source || '—'}</span></div>
+      <div class="meta-section">
+        <h4>Face Tracking</h4>
+        <div class="meta-row"><span class="meta-key">Frames with face</span><span class="meta-val">${meta.face_tracking?.frames_with_face || 0}</span></div>
+        <div class="meta-row"><span class="meta-key">Confidence (mean)</span><span class="meta-val">${(meta.face_tracking?.mean_confidence ?? 0).toFixed(3)}</span></div>
+      </div>
+      <div class="meta-section">
+        <h4>Mouth</h4>
+        <div class="meta-row"><span class="meta-key">Frames with mouth</span><span class="meta-val">${meta.mouth?.frames_with_mouth || 0}</span></div>
+        <div class="meta-row"><span class="meta-key">Avg width</span><span class="meta-val">${(meta.mouth?.mean_mouth_width ?? 0).toFixed(1)} px</span></div>
+        <div class="meta-row"><span class="meta-key">Avg height</span><span class="meta-val">${(meta.mouth?.mean_mouth_height ?? 0).toFixed(1)} px</span></div>
+      </div>
+      <div class="meta-section">
+        <h4>Quality</h4>
+        <div class="meta-row"><span class="meta-key">Brightness</span><span class="meta-val">${(meta.quality?.mean_brightness ?? 0).toFixed(1)}</span></div>
+        <div class="meta-row"><span class="meta-key">Blur</span><span class="meta-val">${(meta.quality?.mean_blur ?? 0).toFixed(1)}</span></div>
+      </div>
+      <div class="meta-section">
+        <h4>Config</h4>
+        <div class="meta-row"><span class="meta-key">Version</span><span class="meta-val">${meta.config_version}</span></div>
+        <div class="meta-row"><span class="meta-key">Hash</span><span class="meta-val" style="font-size:0.65rem;word-break:break-all">${meta.config_hash?.slice(0,20)}…</span></div>
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById('metaPanel').innerHTML = '<h3>Metadata</h3><p style="color:var(--muted)">Could not load</p>';
+  }
+}
+
+function togglePlay() {
+  const v = document.getElementById('mainVideo');
+  const btn = document.getElementById('playBtn');
+  if (!v) return;
+  if (v.paused) { v.play(); btn.textContent = '⏸'; }
+  else { v.pause(); btn.textContent = '▶'; }
+}
+
+// ── Helpers ──────────────────────────────────────────
+function fmtMs(ms) { return (ms / 1000).toFixed(2) + 's'; }
+function fmtDur(s) {
+  if (!s || s === Infinity) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+function fmtSec(s) {
+  if (!s) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+// ── Init ─────────────────────────────────────────────
+loadOverview();
+</script>
+</body>
+</html>

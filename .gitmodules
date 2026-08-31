@@ -1,0 +1,4 @@
+[submodule "lipreading"]
+	path = lipreading
+	url = https://github.com/tamnguyenvan/lipreading
+	branch = master
