@@ -1,4 +1,4 @@
-# ── Python ────────────────────────────────────────────────
+﻿# ΓöÇΓöÇ Python ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -6,36 +6,55 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# ── Personal editor / AI tooling ─────────────────────────
+# ΓöÇΓöÇ Personal editor / AI tooling ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 .claude/
 
-# ── Logs & temp files ────────────────────────────────────
+# ΓöÇΓöÇ Logs & temp files ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 *.log
 *.err
 tmp_pages/
 
-# ── Raw datasets (too large for GitHub) ──────────────────
+# ΓöÇΓöÇ Raw datasets (too large for GitHub) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 data/*.zip
 data/s1/
 data/alignments/
 data/alignments_extracted/
 
-# ── Generated / processed datasets (recreatable) ─────────
+# ΓöÇΓöÇ Generated / processed datasets (recreatable) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 dataset/
 synthetic_dataset/
 alphabet_dataset/
 alphabet_dataset_smoke/
 
-# ── Test artifacts ───────────────────────────────────────
+# ΓöÇΓöÇ Test artifacts ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 test_capture_*.png
 
-# ── Frontend (build & deps) ──────────────────────────────
+# ΓöÇΓöÇ Frontend (build & deps) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 frontend/node_modules/
 frontend/dist/
 frontend/*.tsbuildinfo
 frontend/npm-install.log
 frontend/npm-install.err
 
-# ── OS ───────────────────────────────────────────────────
+# ΓöÇΓöÇ OS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 .DS_Store
 Thumbs.db
+# My additions for GRID/AV-HuBERT workstreams (keep .venv, model binaries, and downloaded corpora out of git)
+.venv/
+.venv-avhubert/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Model checkpoints (large, per-model)
+models/alphabet_classifier.pt
+models/external/avhubert/avhubert_base.pt
+models/external/*/
+
+# Datasets & raw inputs (large / per-license)
+data/external/
+data/grid/
+data/grid_raw/
+scripts/wget-logs/
+
