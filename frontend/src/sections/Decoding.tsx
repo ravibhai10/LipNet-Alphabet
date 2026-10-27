@@ -18,7 +18,7 @@ export function Decoding() {
       <div className="container">
         <SectionHead
           id="decoding-title"
-          kicker="07 — Decoding"
+          kicker="06 — Decoding"
           title={
             <>
               From movement <em>to meaning.</em>

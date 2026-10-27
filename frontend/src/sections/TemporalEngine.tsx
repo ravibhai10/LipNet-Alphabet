@@ -24,7 +24,7 @@ export function TemporalEngine() {
       <div className="container">
         <SectionHead
           id="engine-title"
-          kicker="06 — The Temporal Engine"
+          kicker="05 — The Temporal Engine"
           title={
             <>
               Context, computed <em>in time.</em>

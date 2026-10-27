@@ -37,7 +37,7 @@ export function Uncertainty() {
       <div className="container">
         <SectionHead
           id="uncertainty-title"
-          kicker="08 — Uncertainty"
+          kicker="07 — Uncertainty"
           title={
             <>
               Knowing when <em>not to guess.</em>

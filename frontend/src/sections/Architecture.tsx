@@ -29,7 +29,7 @@ export function Architecture() {
       <div className="container">
         <SectionHead
           id="arch-title"
-          kicker="12 — Architecture Overview"
+          kicker="11 — Architecture Overview"
           title={
             <>
               The whole system, <em>one interactive canvas.</em>

@@ -12,7 +12,7 @@ export function ResearchPipeline() {
       <div className="container">
         <SectionHead
           id="rp-title"
-          kicker="09 — Research Pipeline"
+          kicker="08 — Research Pipeline"
           title={
             <>
               Real video, real landmarks,

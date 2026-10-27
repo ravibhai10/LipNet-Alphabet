@@ -5,7 +5,7 @@ import { Phenomenon } from "./sections/Phenomenon"
 import { Pipeline } from "./sections/Pipeline"
 import { Streams } from "./sections/Streams"
 import { Fusion } from "./sections/Fusion"
-import { TimeMatters } from "./sections/TimeMatters"
+
 import { TemporalEngine } from "./sections/TemporalEngine"
 import { Decoding } from "./sections/Decoding"
 import { Uncertainty } from "./sections/Uncertainty"
@@ -35,7 +35,7 @@ export function App() {
         <Streams />
         <Fusion />
         <ConformerExplorer />
-        <TimeMatters />
+
         <TemporalEngine />
         <Decoding />
         <Uncertainty />

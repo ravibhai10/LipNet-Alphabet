@@ -19,7 +19,7 @@ export function LiveDemoSection() {
       <div className="container">
         <SectionHead
           id="demo-title"
-          kicker="13 — Live Visual Speech"
+          kicker="12 — Live Visual Speech"
           title={
             <>
               See what <em>the model sees.</em>

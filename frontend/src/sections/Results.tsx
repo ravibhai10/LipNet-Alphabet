@@ -19,7 +19,7 @@ export function Results() {
       <div className="container">
         <SectionHead
           id="results-title"
-          kicker="11 — Research Results"
+          kicker="10 — Research Results"
           title={
             <>
               Numbers, <em>when earned.</em>

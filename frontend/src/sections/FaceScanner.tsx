@@ -48,7 +48,7 @@ export function FaceScanner() {
     <section id="face-scanner" className="section research-detail" aria-label="Visual Signal Analysis">
       <div className="container">
         <SectionHead
-          kicker="01 · THE OPTICAL KINEMATIC SIGNAL"
+          kicker="OPTICAL KINEMATIC SIGNAL"
           title={
             <>
               A face is full of <em>dynamic motion.</em>

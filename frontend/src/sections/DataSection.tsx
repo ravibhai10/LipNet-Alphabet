@@ -19,7 +19,7 @@ export function DataSection() {
       <div className="container">
         <SectionHead
           id="data-title"
-          kicker="10 — Data"
+          kicker="09 — Data"
           title={
             <>
               The model learns from sequences,
