@@ -49,10 +49,10 @@ function ProjectRouteLayout() {
 
 export const router = createBrowserRouter([{ element: <ProjectRouteLayout />, children: [
   { path: '/science', element: <Suspense fallback={<p className="mono-note" style={{ padding: '3rem' }}>Loading Science Lab…</p>}><SciencePage /></Suspense> },
-  { path: '/research', element: <Suspense fallback={<p className="mono-note" style={{padding:'3rem'}}>Loading research exhibits…</p>}><ResearchApp /></Suspense> },
+  { path: '/research', element: <Suspense fallback={<p className="mono-note" style={{padding:'3rem'}}>Loading Visual Speech AI Story…</p>}><App /></Suspense> },
   {
     path: '/',
-    element: <Suspense fallback={<p className="mono-note" style={{ padding: '3rem' }}>Loading Visual Speech AI…</p>}><App /></Suspense>,
+    element: <Suspense fallback={<p className="mono-note" style={{ padding: '3rem' }}>Loading Visual Speech AI…</p>}><ResearchApp /></Suspense>,
   },
   {
     path: '/demo',

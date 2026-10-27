@@ -4,10 +4,10 @@ import { BrandMark, Icon } from '../workspace/Icon'
 
 const PAGE_GROUPS = [
   { title: 'Experience', pages: [
-    { to: '/', label: 'The story', note: 'From a silent face to meaning', icon: 'book' },
+    { to: '/', label: 'Research exhibits', note: 'The main research presentation', icon: 'activity' },
     { to: '/demo/live', label: 'Live demo', note: 'Open the full camera studio', icon: 'camera' },
     { to: '/science', label: 'Science Lab', note: 'Explore the science interactively', icon: 'flask' },
-    { to: '/research', label: 'Animated research', note: 'The original research exhibits', icon: 'activity' },
+    { to: '/research', label: 'The story', note: 'From a silent face to meaning', icon: 'book' },
   ]},
   { title: 'Research tools', pages: [
     { to: '/demo/dataset', label: 'Dataset explorer', note: 'Recordings and data quality', icon: 'database' },
@@ -45,7 +45,7 @@ export function StoryNavigation() {
     <a href="#top" className="story-brand" aria-label="LipNet AI home"><BrandMark/><strong>LIPNET<span> / AI</span></strong></a>
     <nav aria-label="Story navigation">
       <a href="#method" className="story-nav-secondary">The method</a>
-      <Link to="/research" className="story-nav-secondary">Research</Link>
+      <Link to="/" className="story-nav-secondary">Research</Link>
       <Link to="/science" className="story-nav-science"><Icon name="flask" size={15}/><span>Science<span className="story-nav-lab"> Lab</span></span></Link>
       <Link to="/demo/live" className="story-nav-demo">Live demo <Icon name="arrow" size={15}/></Link>
       <button ref={trigger} type="button" className={'story-pages-toggle' + (open ? ' is-open' : '')}
