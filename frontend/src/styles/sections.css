@@ -400,3 +400,41 @@
   .tf-track { width: auto; overflow-x: auto; transform: none !important; }
 }
 
+
+/* ---------- Interactive Diagram & Signal Animations ---------- */
+@keyframes pulseDown {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+@keyframes laserGlow {
+  0%, 100% { filter: drop-shadow(0 0 4px var(--accent)); }
+  50% { filter: drop-shadow(0 0 12px var(--accent)); }
+}
+
+.pipe-connector .pipe-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.pipe-connector .pipe-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, transparent, var(--accent, #8fdfcb));
+  animation: pulseDown 1.8s ease-in-out infinite;
+}
+
+.node {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.node:hover {
+  transform: translateY(-2px);
+  border-color: rgba(143, 223, 203, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px rgba(143, 223, 203, 0.15);
+}
