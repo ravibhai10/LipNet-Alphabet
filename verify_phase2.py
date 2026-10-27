@@ -8,7 +8,10 @@ import json
 import numpy as np
 from pathlib import Path
 
-sys.path.insert(0, r'C:\Users\ravik\OneDrive\Desktop\lip alphabet')
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT))
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 print("=" * 60)
 print("PHASE 2 VERIFICATION")
@@ -19,7 +22,7 @@ print("=" * 60)
 # ============================================================
 print("\n1. Testing data/schema.py...")
 
-from data.schema import (, DATA_SOURCE_SYNTHETIC_TEST
+from data.schema import (DATA_SOURCE_SYNTHETIC_TEST,
     RecordingMetadata, FaceTrackingInfo, MouthInfo, QualityMetrics,
     ManifestEntry, FrameData, Letter, Split, QualityFlag,
     validate_metadata, validate_manifest_entry, validate_frame_ordering,
@@ -113,7 +116,38 @@ with tempfile.TemporaryDirectory() as tmpdir:
                 rec_dir = recordings_root / letter / speaker / session / "recording_001"
                 rec_dir.mkdir(parents=True)
 
-                metadata.save(rec_dir / "metadata.json")
+                entry_meta = RecordingMetadata(
+                    letter=letter,
+                    speaker_id=speaker,
+                    session_id=session,
+                    recording_id="recording_001",
+                    data_source=DATA_SOURCE_SYNTHETIC_TEST,
+                    source="webcam",
+                    created_at="2026-01-01T00:00:00Z",
+                    fps=30.0,
+                    frame_count=60,
+                    width=1280,
+                    height=720,
+                    duration_ms=2000.0,
+                    face_tracking=FaceTrackingInfo(
+                        frames_with_face=55, frames_without_face=5,
+                        max_consecutive_missing=2, mean_confidence=0.9, min_confidence=0.7
+                    ),
+                    mouth=MouthInfo(
+                        frames_with_mouth=50, missing_frames=10,
+                        mean_mouth_width=100.0, mean_mouth_height=50.0,
+                        min_mouth_area=2000.0, max_mouth_area=8000.0
+                    ),
+                    quality=QualityMetrics(
+                        mean_brightness=128.0, std_brightness=20.0,
+                        mean_blur=150.0, mean_mouth_size=5000.0,
+                        mean_pose_yaw=0.0, mean_pose_pitch=0.0, mean_pose_roll=0.0,
+                        duplicate_frame_count=0, quality_flags=[]
+                    ),
+                    preprocessing_version="1.0",
+                    schema_version="1.0"
+                )
+                entry_meta.save(rec_dir / "metadata.json")
                 (rec_dir / "video.mp4").write_bytes(b"dummy")
 
     manifest_path = dataset_root / "manifest.jsonl"
@@ -203,7 +237,7 @@ pipeline = TrackingPipeline(config)
 print("  Γ£ô TrackingPipeline creation")
 
 # Test landmark indices
-assert len(MOUTH_LANDMARK_INDICES) == 28  # Total mouth landmarks
+assert len(MOUTH_LANDMARK_INDICES) == 20  # Total mouth landmarks (MediaPipe 478-face-mesh mouth contour)
 print(f"  Γ£ô Mouth landmark indices: {len(MOUTH_LANDMARK_INDICES)} points")
 
 print("Γ£ô Tracking module: BASIC TESTS PASSED (MediaPipe tests skipped)")
@@ -619,4 +653,3 @@ print('=' * 60)
 
 # My workstream note: pipeline/grid + pipeline/avhubert are importable and
 # covered by 	est_pipeline_modules above.
-

@@ -1,0 +1,15 @@
+.git
+.venv
+.venv-avhubert
+__pycache__
+*.pyc
+.pytest_cache
+frontend/node_modules
+frontend/dist
+data/external
+test_recordings
+runs
+*.pt
+*.ckpt
+*.tar
+*.zip

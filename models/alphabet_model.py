@@ -33,9 +33,12 @@ class AlphabetCNNBiLSTM(nn.Module):
                  dropout: float = 0.5) -> None:
         super().__init__()
         self.t, self.h, self.w = T, H, W
-        self.conv1 = nn.Conv2d(1, c1, 3, padding=1);   self.bn1 = nn.BatchNorm2d(c1)
-        self.conv2 = nn.Conv2d(c1, c2, 3, padding=1); self.bn2 = nn.BatchNorm2d(c2)
-        self.conv3 = nn.Conv2d(c2, c3, 3, padding=1); self.bn3 = nn.BatchNorm2d(c3)
+        self.conv1 = nn.Conv2d(1, c1, 3, padding=1)
+        self.bn1 = nn.BatchNorm2d(c1)
+        self.conv2 = nn.Conv2d(c1, c2, 3, padding=1)
+        self.bn2 = nn.BatchNorm2d(c2)
+        self.conv3 = nn.Conv2d(c2, c3, 3, padding=1)
+        self.bn3 = nn.BatchNorm2d(c3)
         self.pool  = nn.AdaptiveAvgPool2d((4, 4))
         frame_feat = c3 * 4 * 4
         self.lstm  = nn.LSTM(frame_feat, lstm_hidden, lstm_layers,
@@ -51,14 +54,17 @@ class AlphabetCNNBiLSTM(nn.Module):
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
             elif isinstance(m, nn.BatchNorm2d):
-                nn.init.ones_(m.weight); nn.init.zeros_(m.bias)
+                nn.init.ones_(m.weight)
+                nn.init.zeros_(m.bias)
             elif isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight); nn.init.zeros_(m.bias)
+                nn.init.kaiming_normal_(m.weight)
+                nn.init.zeros_(m.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, T_, C, H_, W_ = x.shape
-        assert C == 1 and H_ == self.h and W_ == self.w
-        x = x.view(B * T_, 1, H_, W_)
+        if C != 1 or H_ != self.h or W_ != self.w:
+            raise ValueError(f"Expected input shape (B, T, 1, {self.h}, {self.w}), got {tuple(x.shape)}")
+        x = x.contiguous().view(B * T_, 1, H_, W_)
         x = self.pool(F.relu(self.bn1(self.conv1(x))))
         x = F.max_pool2d(F.relu(self.bn2(self.conv2(x))), 2)
         x = F.max_pool2d(F.relu(self.bn3(self.conv3(x))), 2)

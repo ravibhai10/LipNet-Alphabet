@@ -49,8 +49,8 @@ export function Results() {
 
         <p className={`illustrative-note ${online ? '' : ''}`} role="note">
           {online
-            ? 'Backend connected — evaluation endpoints will populate this section when available'
-            : 'No evaluation metrics exist yet — no accuracy is claimed or shown'}
+            ? 'Backend connected — this research evaluation awaits a verified speaker-independent report. Saved alphabet metrics are available in the workspace Experiments page.'
+            : 'Connect the backend to inspect available saved reports. This section awaits a verified speaker-independent research evaluation.'}
         </p>
       </div>
     </section>

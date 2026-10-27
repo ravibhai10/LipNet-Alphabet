@@ -22,4 +22,4 @@ if sys.stderr is not None and hasattr(sys.stderr, "reconfigure"):
 from alphabet.cli import main
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

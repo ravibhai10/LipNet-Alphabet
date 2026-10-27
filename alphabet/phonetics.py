@@ -129,7 +129,7 @@ VISEME_MAP_SOURCE = (
 )
 
 #: Phone -> viseme name, per DESIGN.md Table 3 (+ documented AH extension).
-_PHONE_TO_VISVHEME_NAME: Dict[str, str] = {
+_PHONE_TO_VISEME_NAME: Dict[str, str] = {
     "B": "V1", "P": "V1", "M": "V1",          # bilabial
     "F": "V2", "V": "V2",                     # labiodental
     "TH": "V3", "DH": "V3",                   # (not in letter names; kept for completeness)
@@ -146,7 +146,8 @@ _PHONE_TO_VISVHEME_NAME: Dict[str, str] = {
 }
 
 #: Ordered viseme names (V1..V13) so ids are stable.
-VISemes = tuple(f"V{i}" for i in range(1, 14))
+VISEMES = tuple(f"V{i}" for i in range(1, 14))
+VISemes = VISEMES  # Backwards compatibility alias
 
 
 class VisemeVocabulary:
@@ -154,7 +155,7 @@ class VisemeVocabulary:
 
     def __init__(self, version: str = VISEME_MAP_VERSION):
         self.version = version
-        self.visemes = VISemes
+        self.visemes = VISEMES
         self.sil_index = len(self.visemes) + 1
         self._to_index = {v: i + 1 for i, v in enumerate(self.visemes)}
 
@@ -221,6 +222,6 @@ def text_to_viseme_sequence(text: str) -> List[str]:
     phone_seq = text_to_phone_sequence(text)
     out: List[str] = []
     for p in phone_seq:
-        out.append(SIL if p == SIL else _PHONE_TO_VISVHEME_NAME[p])
+        out.append(SIL if p == SIL else _PHONE_TO_VISEME_NAME[p])
     return out
 

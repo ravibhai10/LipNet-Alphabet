@@ -173,10 +173,11 @@ def _validate(cfg: DecoderConfig) -> None:
         raise ValueError(f"decoder.ablation must be one of {sorted(ABLATION_MODES)}")
     if cfg.training.batch_size <= 0 or cfg.training.epochs <= 0:
         raise ValueError("decoder.training batch_size/epochs must be positive")
+    if cfg.training.num_workers < 0:
+        raise ValueError("decoder.training.num_workers must be non-negative")
     if cfg.training.lr <= 0:
         raise ValueError("decoder.training.lr must be positive")
     if not (0 < cfg.uncertainty.coverage_target <= 1):
         raise ValueError("decoder.uncertainty.coverage_target must be in (0, 1]")
     if cfg.auxiliary.lambda_phone < 0 or cfg.auxiliary.lambda_viseme < 0:
         raise ValueError("auxiliary loss weights must be >= 0")
-

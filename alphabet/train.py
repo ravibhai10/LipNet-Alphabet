@@ -40,6 +40,7 @@ from alphabet.phonetics import (
     PhoneVocabulary, VisemeVocabulary, text_to_phone_sequence,
     text_to_viseme_sequence,
 )
+from alphabet.runtime import configure_cpu_runtime
 from alphabet.targets import TargetType, classify_target
 from alphabet.vocab import DEFAULT_VOCABULARY, LetterVocabulary
 
@@ -323,6 +324,13 @@ def train_decoder(dec_cfg, phase2_cfg,
 
     set_seed(dec_cfg.training.seed)
     dev = resolve_device(device)
+    if dev.type == "cpu":
+        runtime = configure_cpu_runtime()
+        logger.info(
+            "CPU runtime: threads=%d interop_threads=%d",
+            runtime.threads,
+            runtime.interop_threads,
+        )
     vocab = DEFAULT_VOCABULARY
     ckpt_dir = Path(dec_cfg.training.checkpoint_dir)
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -481,4 +489,3 @@ def _jsonable(obj):
     if isinstance(obj, _np.ndarray):
         return obj.tolist()
     return obj
-

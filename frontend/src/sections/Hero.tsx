@@ -57,7 +57,7 @@ export function Hero() {
             <a className="btn btn-solid" href="#research">
               Explore the system <Arrow />
             </a>
-            <a className="btn btn-ghost" href="#demo">
+            <a className="btn btn-ghost" href="/demo/live">
               Try live demo
             </a>
           </div>

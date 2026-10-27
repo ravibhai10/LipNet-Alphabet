@@ -36,6 +36,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import shutil
 import json
 import sys
 from dataclasses import replace
@@ -384,7 +385,6 @@ def generate(root: Path, letters, n_speakers, n_sessions, recs_per_session,
                     total += 1
     # tidy
     try:
-        import shutil
         shutil.rmtree(tmp, ignore_errors=True)
     except Exception:
         pass

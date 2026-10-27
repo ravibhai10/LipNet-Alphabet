@@ -10,6 +10,7 @@ import logging
 import threading
 import time
 import queue
+from collections import deque
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -59,7 +60,7 @@ class CameraService:
         self._running = threading.Event()
         self._state = CameraState.STOPPED
         self._state_lock = threading.Lock()
-        self._fps_history: list[float] = []
+        self._fps_history: deque[float] = deque(maxlen=self.FPS_SAMPLE_SIZE)
         self._last_ts = 0.0
         self._frame_id = 0
         self._error_msg: Optional[str] = None
@@ -231,8 +232,6 @@ class CameraService:
                 dt = ts - ts_prev
                 if 0 < dt < 5.0:          # sanity guard against wild values
                     self._fps_history.append(dt)
-                    if len(self._fps_history) > self.FPS_SAMPLE_SIZE:
-                        self._fps_history.pop(0)
             ts_prev = ts
             fid += 1
 
@@ -251,8 +250,8 @@ class CameraService:
                 except queue.Full:
                     pass
 
-        # Drain remaining frames before exit
-        while True:
+        # Drain remaining frames before exit with safety counter
+        for _ in range(10):
             ret, _ = cap.read()
             if not ret:
                 break

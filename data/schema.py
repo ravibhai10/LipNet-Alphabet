@@ -13,6 +13,71 @@ import json
 from pathlib import Path
 
 
+# ---------------------------------------------------------------------------
+# Dynamic Vocabulary Loading from data/vocab.txt
+# ---------------------------------------------------------------------------
+_DEFAULT_VOCAB_PATH = Path(__file__).resolve().parent.parent / "data" / "vocab.txt"
+VOCAB_PATH = Path("data/vocab.txt") if Path("data/vocab.txt").exists() else _DEFAULT_VOCAB_PATH
+
+if VOCAB_PATH.exists():
+    with open(VOCAB_PATH, "r", encoding="utf-8") as f:
+        VOCABULARY = [line.strip().upper() for line in f if line.strip()]
+else:
+    # Fallback: original A-Z alphabet
+    VOCABULARY = [chr(ord("A") + i) for i in range(26)]
+
+NUM_CLASSES = len(VOCABULARY)
+WORD_TO_IDX = {word: i for i, word in enumerate(VOCABULARY)}
+IDX_TO_WORD = {i: word for i, word in enumerate(VOCABULARY)}
+
+
+def get_word_idx(word: str) -> int:
+    """Get class index for a word from vocabulary."""
+    upper_word = word.upper()
+    if upper_word in WORD_TO_IDX:
+        return WORD_TO_IDX[upper_word]
+    raise ValueError(f"Word '{word}' not in vocabulary ({NUM_CLASSES} classes)")
+
+
+def get_word(idx: int) -> str:
+    """Get word from class index."""
+    if 0 <= idx < NUM_CLASSES:
+        return IDX_TO_WORD[idx]
+    raise IndexError(f"Index {idx} out of range [0, {NUM_CLASSES})")
+
+
+def is_valid_word(word: str) -> bool:
+    """Check if a word exists in the vocabulary."""
+    return word.upper() in WORD_TO_IDX
+
+
+def get_vocabulary() -> list:
+    """Return the full vocabulary list."""
+    return VOCABULARY.copy()
+
+
+def get_num_classes() -> int:
+    """Return the number of classes (26 for A-Z, 500 for LRW)."""
+    return NUM_CLASSES
+
+
+# ---------------------------------------------------------------------------
+# Backward Compatibility: Single-Letter Mapping
+# ---------------------------------------------------------------------------
+LETTER_TO_IDX = {chr(ord("A") + i): i for i in range(26)}
+IDX_TO_LETTER = {i: chr(ord("A") + i) for i in range(26)}
+
+
+def letter_to_idx(letter: str) -> int:
+    """Convert single letter A-Z to index 0-25 (backward compatibility)."""
+    return LETTER_TO_IDX.get(letter.upper(), -1)
+
+
+def idx_to_letter(idx: int) -> str:
+    """Convert index 0-25 to single letter A-Z (backward compatibility)."""
+    return IDX_TO_LETTER.get(idx, "?")
+
+
 class Letter(str, Enum):
     """Supported alphabet letters."""
     A = "A"

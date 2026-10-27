@@ -54,7 +54,7 @@ const FLOWS = [
   'M 600 597 C 600 660, 640 720, 730 760 S 870 800, 920 780',
 ]
 
-export function HeroVisual() {
+export function HeroVisual({ paused = false }: { paused?: boolean } = {}) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const reduced = useReducedMotion()
@@ -62,12 +62,15 @@ export function HeroVisual() {
   useEffect(() => {
     const canvas = canvasRef.current
     const wrap = wrapRef.current
-    if (!canvas || !wrap || reduced) return
+    if (!canvas || !wrap) return
+    wrap.dataset.motion = 'paused'
+    if (reduced || paused) return
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
     let raf = 0
+    let visible = false
     let w = 0
     let h = 0
     let ax = 0
@@ -104,6 +107,8 @@ export function HeroVisual() {
     resize()
 
     const step = () => {
+      raf = 0
+      if (!visible || document.hidden) return
       ctx.clearRect(0, 0, w, h)
       ctx.fillStyle = 'rgba(143, 223, 203, 0.5)'
       for (const p of parts) {
@@ -131,27 +136,35 @@ export function HeroVisual() {
 
     const ro = new ResizeObserver(resize)
     ro.observe(wrap)
-    raf = requestAnimationFrame(step)
+    const sync = () => {
+      const active = visible && !document.hidden
+      wrap.dataset.motion = active ? 'running' : 'paused'
+      if (active && !raf) raf = requestAnimationFrame(step)
+      else if (!active) { cancelAnimationFrame(raf); raf = 0 }
+    }
+    document.addEventListener('visibilitychange', sync)
 
     // Pause when offscreen using IntersectionObserver
     let io: IntersectionObserver | null = null
     if (typeof IntersectionObserver !== 'undefined') {
       io = new IntersectionObserver((entries) => {
-        if (entries[0]?.isIntersecting) {
-          raf = requestAnimationFrame(step)
-        } else {
-          cancelAnimationFrame(raf)
-        }
+        visible = !!entries[0]?.isIntersecting
+        sync()
       }, { threshold: 0.02 })
       io.observe(wrap)
+    } else {
+      visible = true
+      sync()
     }
 
     return () => {
       cancelAnimationFrame(raf)
+      wrap.dataset.motion = 'paused'
+      document.removeEventListener('visibilitychange', sync)
       ro.disconnect()
       io?.disconnect()
     }
-  }, [reduced])
+  }, [reduced, paused])
 
   const contour = faceContourPoints()
   const features = sparseFeaturePoints()

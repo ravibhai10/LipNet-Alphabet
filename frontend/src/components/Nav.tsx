@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 const LINKS = [
+  { label: 'Science Lab', href: '/science' },
   { label: 'Research', href: '#research' },
   { label: 'Architecture', href: '#architecture' },
   { label: 'Data', href: '#data' },
@@ -62,7 +63,7 @@ export function Nav() {
           ))}
         </nav>
 
-        <a className="btn btn-ghost nav-cta" href="/demo" onClick={() => setOpen(false)}>
+        <a className="btn btn-ghost nav-cta" href="/demo/live" onClick={() => setOpen(false)}>
           Try Live Demo
         </a>
 
@@ -86,7 +87,7 @@ export function Nav() {
             </a>
           ))}
         </nav>
-        <a className="btn btn-solid" href="/demo" onClick={() => setOpen(false)}>
+        <a className="btn btn-solid" href="/demo/live" onClick={() => setOpen(false)}>
           Try Live Demo
         </a>
       </div>

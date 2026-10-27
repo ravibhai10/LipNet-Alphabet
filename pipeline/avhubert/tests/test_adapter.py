@@ -28,7 +28,8 @@ def _make_adapter(d_out: int = 768, n_frames: int = 63):
             buf = np.arange(self.n_frames * 64, dtype=np.float32).reshape(self.n_frames, 64)
             return buf.astype(np.float32)
 
-    return AVHubertFeatureAdapter(loader=FakeLoader()), FakeLoader()
+    projection = np.ones((192, 768), dtype=np.float32)
+    return AVHubertFeatureAdapter(loader=FakeLoader(), projection=projection), FakeLoader()
 
 
 def test_adapter_encode_contract():
@@ -48,7 +49,9 @@ def test_adapter_project_contract():
 
 
 def test_projection_preserves_rank():
-    adapter, _ = _make_adapter()
+    adapter = AVHubertFeatureAdapter(
+        projection=np.eye(192, dtype=np.float32),
+    )
     batch = np.random.default_rng(1).normal(size=(10, 192)).astype(np.float32)
     out = adapter.project(batch, to_dim=192)
     assert out.shape == (10, 192)
@@ -64,3 +67,16 @@ def test_model_unavailable_when_not_loaded():
     adapter = AVHubertFeatureAdapter()
     with pytest.raises(ModelUnavailableError):
         adapter.encode("dummy.mp4")
+
+
+def test_projection_requires_explicit_trained_matrix():
+    adapter = AVHubertFeatureAdapter()
+    with pytest.raises(ModelUnavailableError, match="untrained fallback"):
+        adapter.project(np.zeros((2, 64), dtype=np.float32), to_dim=192)
+
+
+def test_loader_uses_project_level_checkpoint_directory():
+    loader = AVHubertLoader()
+    assert loader._models_root == (
+        loader._models_root.parents[2] / "models" / "external" / "avhubert"
+    )

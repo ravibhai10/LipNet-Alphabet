@@ -1,284 +1,201 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useWebcam, type CamStatus } from './useWebcam'
+﻿import { useCallback, useEffect, useRef, useState } from 'react'
+import { useWebcam } from './useWebcam'
 import { useLandmarker } from './useLandmarker'
-import { MOUTH_LANDMARK_INDICES, mouthOpenness, mouthCropRegion, type Pt } from './mouthUtils'
+import { MOUTH_LANDMARK_INDICES, mouthOpenness, mouthAlignment } from './mouthUtils'
 import { useBackend } from '../hooks/useBackend'
-import { SEQUENCE } from '../data/architecture'
-
-export interface Top3Entry {
-  letter: string
-  prob: number
-}
-
+import { LIVE_SEQUENCE, PredictionStabilizer, VisualActivityDetector } from './stabilization'
+export interface Top3Entry { letter: string; prob: number }
 export interface DemoReadout {
-  frames: number
-  faceOk: boolean
-  detected: string | null
-  confidence: number | null
-  top3: Top3Entry[] | null
-  uncertaintyState: string | null
-  fps: number
+  frames: number; faceOk: boolean; cropOk: boolean; detected: string | null; confidence: number | null
+  top3: Top3Entry[] | null; uncertaintyState: string | null; fps: number; latencyMs: number | null
+  openness: number | null; motionEnergy: number | null; predictedAt: number | null; elapsedSeconds: number
+  speaking: boolean; vadEnergy: number; stabilizing: boolean; smoothed: boolean
 }
-
-const DETECT_INTERVAL_MS = 66 // ≈ 15 Hz landmark inference
-const BUFFER_INTERVAL_MS = 130 // ≈ 7.7 Hz frame capture
-const READOUT_INTERVAL_MS = 250 // UI state sync at 4 Hz — never per frame
-const PREDICT_INTERVAL_MS = 2500
-
-/** Minimal polyline sparkline on a canvas. */
-function drawSparkline(
-  canvas: HTMLCanvasElement | null,
-  values: number[],
-  min: number,
-  max: number,
-) {
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-  const { width: w, height: h } = canvas
-  ctx.clearRect(0, 0, w, h)
+export interface SessionResult { id: number; letter: string; confidence: number; at: number; latencyMs: number }
+const empty = (): DemoReadout => ({ frames: 0, faceOk: false, cropOk: false, detected: null, confidence: null, top3: null, uncertaintyState: null, fps: 0, latencyMs: null, openness: null, motionEnergy: null, predictedAt: null, elapsedSeconds: 0, speaking: false, vadEnergy: 0, stabilizing: false, smoothed: false })
+function spark(canvas: HTMLCanvasElement | null, values: number[], maximum: number) {
+  const ctx = canvas?.getContext('2d'); if (!canvas || !ctx) return
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
   if (values.length < 2) return
   ctx.beginPath()
-  const n = values.length
-  for (let i = 0; i < n; i++) {
-    const x = (i / (n - 1)) * w
-    const y = h - ((values[i] - min) / (max - min || 1)) * (h - 6) - 3
-    if (i === 0) ctx.moveTo(x, y)
-    else ctx.lineTo(x, y)
-  }
-  ctx.strokeStyle = 'rgba(143, 223, 203, 0.85)'
-  ctx.lineWidth = 1.5
-  ctx.stroke()
+  values.forEach((v, i) => { const x = i / (values.length - 1) * canvas.width; const y = canvas.height - 4 - v / Math.max(.01, maximum) * (canvas.height - 8); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y) })
+  ctx.strokeStyle = '#8fdfcb'; ctx.lineWidth = 1.5; ctx.stroke()
 }
-
 export function useDemoPipeline() {
-  const cam = useWebcam()
-  const lm = useLandmarker()
-  const { status: backendStatus, predict, setLastPrediction } = useBackend()
-
-  const overlayRef = useRef<HTMLCanvasElement>(null)
-  const appearanceRef = useRef<HTMLCanvasElement>(null)
-  const geometryRef = useRef<HTMLCanvasElement>(null)
-  const motionRef = useRef<HTMLCanvasElement>(null)
-  const bufferStripRef = useRef<HTMLCanvasElement>(null)
-
-  const lastDetectRef = useRef(0)
-  const lastVideoTimeRef = useRef(-1)
-  const lastBufferTsRef = useRef(0)
-  const lastReadoutRef = useRef(0)
-  const lastPredictRef = useRef(0)
-  const predictingRef = useRef(false)
-  const bufferDataRef = useRef<string[]>([])
-  const opennessHist = useRef<number[]>([])
-  const detectTimes = useRef<number[]>([])
-  const backendStatusRef = useRef(backendStatus)
-  backendStatusRef.current = backendStatus
-
-  const [running, setRunning] = useState(false)
+  const cam = useWebcam(), lm = useLandmarker(), backend = useBackend()
+  const backendRef = useRef(backend); backendRef.current = backend
+  const overlayRef = useRef<HTMLCanvasElement>(null), appearanceRef = useRef<HTMLCanvasElement>(null)
+  const geometryRef = useRef<HTMLCanvasElement>(null), motionRef = useRef<HTMLCanvasElement>(null), bufferStripRef = useRef<HTMLCanvasElement>(null)
+  const buffer = useRef<string[]>([])
+  const request = useRef<AbortController | null>(null), inFlight = useRef(false)
+  const session = useRef(0), startedAt = useRef(0)
+  const smoother = useRef(new PredictionStabilizer(.6, 2))
+  const [readout, setReadout] = useState<DemoReadout>(empty)
+  const [history, setHistory] = useState<SessionResult[]>([])
   const [predicting, setPredicting] = useState(false)
-  predictingRef.current = predicting
-
-  const [readout, setReadout] = useState<DemoReadout>({
-    frames: 0,
-    faceOk: false,
-    detected: null,
-    confidence: null,
-    top3: null,
-    uncertaintyState: null,
-    fps: 0,
-  })
-
-  const reset = useCallback(() => {
-    bufferDataRef.current = []
-    opennessHist.current = []
-    detectTimes.current = []
-    setReadout({
-      frames: 0, faceOk: false, detected: null,
-      confidence: null, top3: null, uncertaintyState: null, fps: 0,
-    })
-    setLastPrediction(null)
-  }, [setLastPrediction])
-
-  const start = useCallback(async () => {
-    reset()
-    const result = await cam.start()
-    if (result !== 'live') return
-    setRunning(true)
+  const [pipelineError, setPipelineError] = useState<string | null>(null)
+  const running = cam.status === 'live'
+  const clear = useCallback(() => {
+    session.current++; request.current?.abort(); request.current = null; inFlight.current = false
+    buffer.current = []; smoother.current.reset(); setReadout(empty()); setPredicting(false); setPipelineError(null)
+    backendRef.current.setLastPrediction(null)
+    for (const ref of [overlayRef, appearanceRef, geometryRef, motionRef, bufferStripRef]) {
+      const canvas = ref.current; canvas?.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height)
+    }
+  }, [])
+  const start = useCallback(async (deviceId?: string) => {
+    clear(); setHistory([]); startedAt.current = performance.now()
+    const token = session.current, status = await cam.start(deviceId)
+    if (token !== session.current || status !== 'live') return
     void lm.load()
-  }, [cam, lm, reset])
-
-  const stop = useCallback(() => {
-    setRunning(false)
-    cam.stop()
-    reset()
-  }, [cam, reset])
-
-
-  // The single rAF loop — created once per "running" lifecycle; reads only
-  // refs and stable callbacks so it never captures stale props.
+  }, [clear, cam.start, lm.load])
+  const stop = useCallback(() => { cam.stop(); clear(); setHistory([]) }, [cam.stop, clear])
+  const clearHistory = useCallback(() => setHistory([]), [])
   useEffect(() => {
-    if (!running) return
-    let raf = 0
-
-    const loop = () => {
-      raf = requestAnimationFrame(loop)
-      const video = cam.videoRef.current
-      const now = performance.now()
-      if (!video || video.readyState < 2) return
-
-      if (video.currentTime === lastVideoTimeRef.current) return
-      lastVideoTimeRef.current = video.currentTime
-      if (now - lastDetectRef.current < DETECT_INTERVAL_MS) return
-      lastDetectRef.current = now
-
-      const landmarker = lm.landmarkerRef.current
-      if (!landmarker) return
-
-      let faceOk = false
+    if (cam.status === 'idle' || cam.status === 'denied' || cam.status === 'error') { clear(); setHistory([]) }
+  }, [cam.status, clear])
+  useEffect(() => () => { session.current++; request.current?.abort() }, [])
+  useEffect(() => {
+    if (backend.status !== 'online' || !backend.inferenceReady) {
+      request.current?.abort(); smoother.current.reset(); backend.setLastPrediction(null)
+      setReadout(r => ({ ...r, detected: null, confidence: null, top3: null, predictedAt: null, stabilizing: false }))
+    }
+  }, [backend.status, backend.inferenceReady, backend.setLastPrediction])
+  useEffect(() => {
+    if (!running || lm.status !== 'ready') return
+    const capture = document.createElement('canvas'); capture.width = 96; capture.height = 96
+    const captureCtx = capture.getContext('2d', { willReadFrequently: true })
+    const geometry: number[] = [], motion: number[] = [], times: number[] = [], frameNumbers: number[] = []
+    const activity = new VisualActivityDetector()
+    let previous: Uint8ClampedArray | null = null
+    let raf = 0, lastDetect = 0, lastBuffer = 0, lastSync = 0, lastVideo = -1, totalFrames = 0
+    let utterance = 0, speechStart = 0, lastQueued = 0, lastMovement = -Infinity, lastPublished = 0
+    let speaking = false, vadEnergy = 0, idleCleared = true, faceWasVisible = false, disposed = false
+    let lastLogged = '', lastLoggedUtterance = -1
+    type Window = { frames: string[]; utterance: number }
+    let pending: Window | null = null
+    const token = session.current
+    const clearPrediction = () => {
+      smoother.current.reset(); backendRef.current.setLastPrediction(null)
+      setReadout(r => ({ ...r, detected: null, confidence: null, top3: null, predictedAt: null, stabilizing: false, smoothed: false }))
+    }
+    const dispatch = async (window: Window) => {
+      if (disposed || token !== session.current || !backendRef.current.inferenceReady || window.utterance !== utterance) return
+      if (inFlight.current) { pending = window; return }
+      inFlight.current = true; setPredicting(true)
+      const controller = new AbortController(); request.current = controller
+      const began = performance.now()
       try {
-        const res = landmarker.detectForVideo(video, now)
-        const all = res.faceLandmarks?.[0]
-        faceOk = !!all && all.length > 0
-
-        const overlay = overlayRef.current
-        const octx = overlay?.getContext('2d')
-        if (overlay && octx) {
-          const w = overlay.width
-          const h = overlay.height
-          octx.clearRect(0, 0, w, h)
-          octx.save()
-          octx.translate(w, 0)
-          octx.scale(-1, 1) // mirror to match the CSS-mirrored video
-
-          if (faceOk && all) {
-            octx.fillStyle = 'rgba(237, 235, 228, 0.28)'
-            for (let i = 0; i < all.length; i += 2) {
-              octx.fillRect(all[i].x * w - 0.75, all[i].y * h - 0.75, 1.5, 1.5)
-            }
-            const mouth: Pt[] = MOUTH_LANDMARK_INDICES.map((idx) => ({ x: all[idx].x, y: all[idx].y }))
-            octx.strokeStyle = 'rgba(143, 223, 203, 0.9)'
-            octx.lineWidth = 1.2
-            octx.beginPath()
-            mouth.slice(0, 10).forEach((p, i) =>
-              i === 0 ? octx.moveTo(p.x * w, p.y * h) : octx.lineTo(p.x * w, p.y * h),
-            )
-            octx.closePath()
-            octx.stroke()
-            octx.beginPath()
-            mouth.slice(10).forEach((p, i) =>
-              i === 0 ? octx.moveTo(p.x * w, p.y * h) : octx.lineTo(p.x * w, p.y * h),
-            )
-            octx.stroke()
-            octx.fillStyle = 'rgba(143, 223, 203, 1)'
-            mouth.forEach((p) => {
-              octx.beginPath()
-              octx.arc(p.x * w, p.y * h, 1.8, 0, Math.PI * 2)
-              octx.fill()
-            })
-
-            const crop = mouthCropRegion(mouth)
-            const ap = appearanceRef.current
-            const actx = ap?.getContext('2d')
-            if (crop.ok && crop.region && ap && actx) {
-              const [nx, ny, ns] = crop.region
-              const sx = nx * video.videoWidth
-              const sy = ny * video.videoHeight
-              const s = ns * video.videoWidth
-              actx.save()
-              actx.translate(64, 0)
-              actx.scale(-1, 1)
-              actx.drawImage(video, sx, sy, s, s, 0, 0, 64, 64)
-              actx.restore()
-
-              if (now - lastBufferTsRef.current >= BUFFER_INTERVAL_MS) {
-                lastBufferTsRef.current = now
-                bufferDataRef.current.push(ap.toDataURL('image/jpeg', 0.6))
-                if (bufferDataRef.current.length > SEQUENCE.maxFrames) bufferDataRef.current.shift()
-
-                const strip = bufferStripRef.current
-                const sctx = strip?.getContext('2d')
-                if (strip && sctx) {
-                  const cell = 24
-                  const slot = bufferDataRef.current.length - 1
-                  sctx.clearRect((slot % SEQUENCE.maxFrames) * cell, 0, cell, cell)
-                  sctx.drawImage(ap, 0, 0, 64, 64, (slot % SEQUENCE.maxFrames) * cell, 0, cell, cell)
-                }
-              }
-
-              const openness = mouthOpenness(mouth)
-              const hist = opennessHist.current
-              hist.push(openness)
-              if (hist.length > 120) hist.shift()
-              drawSparkline(geometryRef.current, hist, 0, Math.max(0.6, ...hist))
-              const deriv = hist.slice(1).map((v, i) => v - hist[i])
-              drawSparkline(motionRef.current, deriv, -0.15, 0.15)
-
-              detectTimes.current.push(now)
-              if (detectTimes.current.length > 30) detectTimes.current.shift()
-            }
-          }
-          octx.restore()
+        const raw = await backendRef.current.predict(window.frames, controller.signal)
+        if (disposed || controller.signal.aborted || token !== session.current || window.utterance !== utterance) return
+        if (!raw) { clearPrediction(); return }
+        const result = smoother.current.update(raw)
+        setReadout(r => ({ ...r, stabilizing: !result.confirmed }))
+        if (!result.prediction) return
+        const prediction = result.prediction, at = Date.now(), latencyMs = Math.round(performance.now() - began)
+        lastPublished = performance.now(); idleCleared = false
+        backendRef.current.setLastPrediction(prediction)
+        setReadout(r => ({ ...r, detected: prediction.letter, confidence: prediction.confidence, top3: prediction.top3, uncertaintyState: prediction.uncertainty?.state ?? null, latencyMs, predictedAt: at, stabilizing: false, smoothed: prediction.stabilization?.method === 'ema' }))
+        if (prediction.letter !== lastLogged || utterance !== lastLoggedUtterance) {
+          lastLogged = prediction.letter; lastLoggedUtterance = utterance
+          setHistory(items => [{ id: at, letter: prediction.letter, confidence: prediction.confidence, at, latencyMs }, ...items].slice(0,12))
         }
-      } catch {
-        faceOk = false
-      }
-
-      if (now - lastReadoutRef.current >= READOUT_INTERVAL_MS) {
-        lastReadoutRef.current = now
-        const times = detectTimes.current
-        const fps =
-          times.length > 1
-            ? Math.round((1000 * (times.length - 1)) / (times[times.length - 1] - times[0]))
-            : 0
-        setReadout((r) => ({ ...r, frames: bufferDataRef.current.length, faceOk, fps }))
-      }
-
-      if (
-        backendStatusRef.current === 'online' &&
-        !predictingRef.current &&
-        now - lastPredictRef.current >= PREDICT_INTERVAL_MS &&
-        bufferDataRef.current.length >= SEQUENCE.minFrames
-      ) {
-        lastPredictRef.current = now
-        setPredicting(true)
-        void predict(bufferDataRef.current.slice(-SEQUENCE.maxFrames)).then((p) => {
-          setPredicting(false)
-          if (p) {
-            setLastPrediction(p)
-            setReadout((r) => ({
-              ...r,
-              detected: p.letter,
-              confidence: p.confidence,
-              top3: p.top3,
-              uncertaintyState: p.uncertainty?.state ?? null,
-            }))
-          }
-        })
+      } finally {
+        if (request.current === controller) {
+          request.current = null; inFlight.current = false
+          const next = pending; pending = null
+          if (!disposed && next && next.utterance === utterance) void dispatch(next)
+          else if (!disposed) setPredicting(false)
+        }
       }
     }
-
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running])
-
+    const loop = (now: number) => {
+      raf = requestAnimationFrame(loop)
+      const video = cam.videoRef.current, landmarker = lm.landmarkerRef.current
+      if (!video || !landmarker || !captureCtx || video.readyState < 2 || video.currentTime === lastVideo || now - lastDetect < 66) return
+      lastVideo = video.currentTime; lastDetect = now
+      let faceOk = false, cropOk = false, openness: number | null = null, motionEnergy: number | null = null
+      const canvas = overlayRef.current, ctx = canvas?.getContext('2d')
+      if (canvas && ctx) {
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) { canvas.width = video.videoWidth; canvas.height = video.videoHeight }
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      }
+      try {
+        const all = landmarker.detectForVideo(video, now).faceLandmarks[0]
+        faceOk = !!all?.length
+        if (all?.length) {
+          if (ctx && canvas) {
+            ctx.fillStyle = '#8fdfcb'
+            for (const index of new Set(MOUTH_LANDMARK_INDICES)) { const p = all[index]; if (!p) continue; ctx.beginPath(); ctx.arc(p.x * canvas.width, p.y * canvas.height, 2, 0, Math.PI * 2); ctx.fill() }
+          }
+          const alignment = mouthAlignment(all, video.videoWidth, video.videoHeight)
+          if (alignment) {
+            cropOk = true
+            captureCtx.save()
+            captureCtx.clearRect(0,0,96,96)
+            captureCtx.translate(48,48)
+            captureCtx.scale(96 / alignment.size, 96 / alignment.size)
+            captureCtx.rotate(-alignment.angle)
+            captureCtx.drawImage(video, -alignment.cx, -alignment.cy)
+            captureCtx.restore()
+            const appearance = appearanceRef.current
+            if (appearance) appearance.getContext('2d')?.drawImage(capture,0,0,appearance.width,appearance.height)
+            openness = mouthOpenness(all, video.videoWidth, video.videoHeight)
+            const pixels = captureCtx.getImageData(0,0,96,96).data
+            if (previous) { let energy = 0; for (let i=0;i<pixels.length;i+=4) energy += Math.abs(pixels[i]-previous[i]); motionEnergy = energy / (96 * 96 * 255) }
+            previous = pixels
+            geometry.push(openness); if (geometry.length > 90) geometry.shift()
+            if (motionEnergy !== null) { motion.push(motionEnergy); if (motion.length > 90) motion.shift() }
+            spark(geometryRef.current,geometry,Math.max(.6,...geometry)); spark(motionRef.current,motion,Math.max(.2,...motion))
+            if (now - lastBuffer >= 66) {
+              lastBuffer = now; totalFrames++
+              buffer.current.push(capture.toDataURL('image/jpeg',.75)); frameNumbers.push(totalFrames)
+              if (buffer.current.length > LIVE_SEQUENCE.maxFrames) { buffer.current.shift(); frameNumbers.shift() }
+              const measured = activity.update(openness,now), wasSpeaking = speaking
+              speaking = measured.speaking; vadEnergy = measured.energy
+              if (speaking && !wasSpeaking && now - lastMovement > 700) {
+                utterance++; speechStart = totalFrames - 7; lastQueued = speechStart
+                pending = null; request.current?.abort(); clearPrediction(); idleCleared = false
+              }
+              lastMovement = measured.lastMovement
+              const selected = buffer.current.filter((_frame,index) => frameNumbers[index] >= speechStart)
+              const ending = wasSpeaking && !speaking
+              if ((speaking || ending) && selected.length >= LIVE_SEQUENCE.minFrames && (totalFrames-lastQueued >= LIVE_SEQUENCE.stride || (ending && totalFrames-lastQueued >= 2))) {
+                lastQueued = totalFrames
+                void dispatch({ frames: [...selected], utterance })
+              }
+              const strip = bufferStripRef.current, stripCtx = strip?.getContext('2d')
+              if (strip && stripCtx) {
+                if (buffer.current.length === LIVE_SEQUENCE.maxFrames) stripCtx.drawImage(strip,24,0,strip.width-24,24,0,0,strip.width-24,24)
+                stripCtx.drawImage(capture,(buffer.current.length-1)*24,0,24,24)
+              }
+            }
+          }
+        }
+      } catch (error) {
+        faceOk = false; setPipelineError(error instanceof Error ? error.message : 'Landmark processing failed. Retry the camera.')
+      }
+      if ((!faceOk || !cropOk) && faceWasVisible) {
+        utterance++; pending = null; buffer.current = []; frameNumbers.length = 0
+        activity.reset(); speaking = false; vadEnergy = 0; previous = null; request.current?.abort(); clearPrediction()
+        for (const ref of [appearanceRef,bufferStripRef]) { const c=ref.current;c?.getContext('2d')?.clearRect(0,0,c.width,c.height) }
+      }
+      if (!speaking && !inFlight.current && !pending && !idleCleared && now-Math.max(lastMovement,lastPublished)>1800) { clearPrediction(); idleCleared = true }
+      faceWasVisible = faceOk && cropOk
+      times.push(now); if (times.length>20) times.shift()
+      if (now-lastSync>=250) {
+        lastSync=now
+        setReadout(r=>({...r,frames:buffer.current.length,faceOk,cropOk,openness,motionEnergy,speaking,vadEnergy,elapsedSeconds:Math.floor((now-startedAt.current)/1000),fps:times.length>1?Math.round((times.length-1)*1000/(now-times[0])):0}))
+      }
+    }
+    raf=requestAnimationFrame(loop)
+    return()=>{disposed=true;pending=null;cancelAnimationFrame(raf);request.current?.abort();inFlight.current=false;setPredicting(false)}
+  },[running,lm.status,lm.landmarkerRef,cam.videoRef])
   return {
-    videoRef: cam.videoRef,
-    camStatus: cam.status as CamStatus,
-    camError: cam.error,
-    lmStatus: lm.status,
-    lmError: lm.error,
-    backendStatus,
-    predicting,
-    running,
-    readout,
-    overlayRef,
-    appearanceRef,
-    geometryRef,
-    motionRef,
-    bufferStripRef,
-    start,
-    stop,
+    videoRef:cam.videoRef,camStatus:cam.status,camError:cam.error,devices:cam.devices,
+    lmStatus:lm.status,lmError:lm.error,backendStatus:backend.status,
+    modelLoaded:backend.inferenceReady,inferenceReady:backend.inferenceReady,inferenceReason:backend.inferenceReason,modelKind:backend.modelKind,
+    predictionError:backend.predictionError,predicting,running,readout,history,pipelineError,clearHistory,
+    overlayRef,appearanceRef,geometryRef,motionRef,bufferStripRef,sequence:LIVE_SEQUENCE,start,stop,
   }
 }
-

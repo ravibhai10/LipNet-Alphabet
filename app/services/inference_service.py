@@ -276,6 +276,11 @@ class InferenceService:
     def is_loaded(self, ckpt_dir) -> bool:
         return str(Path(ckpt_dir).resolve()) in self._models
 
+    def has_loaded_model(self) -> bool:
+        """Return whether at least one compatible checkpoint is loaded."""
+        with self._lock:
+            return bool(self._models)
+
 
 # IncompatibleCheckpointError is the user-facing alias
 IncompatibleCheckpointError = _IncompatibleCheckpointError

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Optional
 
@@ -24,6 +24,11 @@ class GridValidator:
     grid_root: Path
     entries: list[GridManifestEntry] = field(default_factory=list)
 
+    def _mark(self, entry: GridManifestEntry, status: ValidationStatus, msg: str) -> GridManifestEntry:
+        errors = list(entry.errors)
+        errors.append(msg)
+        return replace(entry, validation_status=status, errors=errors)
+
     def run(self) -> GridValidationReport:
         report = GridValidationReport(talk_id="<all>")
         for entry in self.entries:
@@ -32,8 +37,10 @@ class GridValidator:
         return report
 
     def _check(self, entry: GridManifestEntry) -> GridManifestEntry:
-        issues: list[str] = []
+        issues: list[str] = list(entry.errors)
         workdir = Path(self.grid_root)
+        validation_status = entry.validation_status
+        alignment_status = entry.alignment_status
 
         # Re-open video to confirm readability
         if entry.video_path:
@@ -48,19 +55,18 @@ class GridValidator:
         if entry.audio_path:
             apath = workdir / entry.audio_path
             if not apath.exists():
-                entry.validation_status = ValidationStatus.MISSING_AUDIO
-                entry.errors.append("audio not found on disk")
+                validation_status = ValidationStatus.MISSING_AUDIO
+                issues.append("audio not found on disk")
 
         # Alignment
         if entry.alignment_path:
-            apath = workdir / entry.alignment_path
-            if not apath.exists():
-                entry.alignment_status = AlignmentStatus.MALFORMED
-                entry.errors.append("alignment not found on disk")
+            alpath = workdir / entry.alignment_path
+            if not alpath.exists():
+                alignment_status = AlignmentStatus.MALFORMED
+                issues.append("alignment not found on disk")
 
         if issues:
-            entry.errors.extend(issues)
-        elif entry.validation_status != ValidationStatus.OK:
-            entry.validation_status = ValidationStatus.OK
-            entry.errors = []
+            return replace(entry, validation_status=validation_status, alignment_status=alignment_status, errors=issues)
+        elif validation_status != ValidationStatus.OK:
+            return replace(entry, validation_status=ValidationStatus.OK, alignment_status=AlignmentStatus.OK, errors=[])
         return entry

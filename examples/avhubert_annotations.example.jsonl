@@ -1,0 +1,6 @@
+{"id":"train-a-001","video":"clips/train/a001.mp4","label":"A","speaker_id":"speaker01","split":"train","data_source":"real_camera","input_kind":"raw_video"}
+{"id":"train-b-001","video":"clips/train/b001.mp4","label":"B","speaker_id":"speaker01","split":"train","data_source":"real_camera","input_kind":"raw_video"}
+{"id":"valid-a-001","video":"clips/valid/a001.mp4","label":"A","speaker_id":"speaker02","split":"valid","data_source":"real_camera","input_kind":"raw_video"}
+{"id":"valid-b-001","video":"clips/valid/b001.mp4","label":"B","speaker_id":"speaker02","split":"valid","data_source":"real_camera","input_kind":"raw_video"}
+{"id":"test-a-001","video":"clips/test/a001.mp4","label":"A","speaker_id":"speaker03","split":"test","data_source":"real_camera","input_kind":"raw_video"}
+{"id":"test-b-001","video":"clips/test/b001.mp4","label":"B","speaker_id":"speaker03","split":"test","data_source":"real_camera","input_kind":"raw_video"}

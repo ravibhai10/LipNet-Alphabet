@@ -230,7 +230,7 @@ class LivePipeline:
 
     def save_test_recording(self, out_dir: Path) -> int:
         """Save the most recent face frames to test_recordings/ (NOT to training)."""
-        from datetime import datetime
+        from datetime import datetime, timezone
         out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
         frames = self._buffer.frames_chronological()
@@ -253,7 +253,7 @@ class LivePipeline:
             "session_id": "live_test",
             "data_source": "real_camera",
             "landmark_source": "mediapipe",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "frame_count": len(frames),
         }
         (out_dir / "metadata.json").write_text(

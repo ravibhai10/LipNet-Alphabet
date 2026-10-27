@@ -1,16 +1,7 @@
-/**
- * GlobalMap.tsx — Optional 3D wireframe globe with pulsing prediction markers.
- */
-import { GlobeMap } from "../components/3d/GlobeMap"
-
+import { useBackend } from '../hooks/useBackend'
+import { SectionHead } from '../components/ui'
+import { API_BASE } from '../lib/api'
 export function GlobalMap() {
-  return (
-    <section id="global-map" style={{ width: "100%", background: "linear-gradient(180deg,#08080c 0%,#0a0a18 100%)", padding: "64px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 32 }}>
-      <h2 style={{ fontFamily: "Fraunces, serif", fontSize: "clamp(24px,3vw,40px)", fontWeight: 700, color: "#fff", margin: 0 }}>Global Live Map</h2>
-      <p style={{ color: "#7070a0", fontSize: 15, textAlign: "center", maxWidth: 480 }}>Live predictions pulsing around the world. Each dot is a recognition event.</p>
-      <div style={{ width: "100%", maxWidth: 480, height: 320, borderRadius: 16, overflow: "hidden", border: "1px solid rgba(0,240,255,0.12)" }}>
-        <GlobeMap markers={12} />
-      </div>
-    </section>
-  )
+  const {status,inferenceReady} = useBackend()
+  return <section id="global-map" className="section research-detail"><div className="container"><SectionHead kicker="YOUR LOCAL WORKSPACE" title={<>A focused system.<br/><em>A clear connection.</em></>} lede="Camera capture and landmarks run in the browser. Available alphabet inference runs on your configured backend."/><div className="research-schematic"><div className="research-topology"><div><small>IN YOUR BROWSER</small><h3>Capture & landmarks</h3><p>Camera access starts with your action.</p></div><span aria-hidden="true">↔</span><div><small>CONFIGURED API</small><h3>{status==='online'?'Backend connected':status==='checking'||status==='idle'?'Checking connection':'Backend offline'}</h3><p>{inferenceReady?'Alphabet inference available':'Alphabet readiness unconfirmed'}</p></div></div><p className="mono-note">API: {API_BASE || 'Same origin'} · Camera recordings are not saved by the frontend</p></div></div></section>
 }

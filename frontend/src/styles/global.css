@@ -1,6 +1,6 @@
 /* ============================================================
-   VISUAL SPEECH AI — design system
-   deep black · off-white · silver · one restrained accent
+   VISUAL SPEECH AI — premium AI research design system
+   deep midnight · layered charcoal · electric indigo accent · cyan/teal life
    ============================================================ */
 
 @import '@fontsource-variable/fraunces';
@@ -11,32 +11,52 @@
   --bg: #0a0a0c;
   --bg-soft: #0e0e11;
   --bg-panel: #121216;
+  --bg-warm: #17191b;
   --ink: #edebe4;
   --ink-dim: #a3a2a9;
-  --ink-faint: #5c5c66;
+  --ink-faint: #939399;
   --line: rgba(237, 235, 228, 0.1);
   --line-strong: rgba(237, 235, 228, 0.22);
   --accent: #8fdfcb;
   --accent-dim: rgba(143, 223, 203, 0.35);
-  --accent-faint: rgba(143, 223, 203, 0.12);
+  --accent-glow: rgba(143, 223, 203, 0.15);
+  --accent-faint: rgba(143, 223, 203, 0.08);
+  --cyan: #8fdfcb;
+  --cyan-dim: rgba(136, 212, 182, 0.35);
+  --cyan-faint: rgba(136, 212, 182, 0.1);
+  --muted: #6e6a7a;
+  --muted-dim: #545062;
+  --surface: #17191b;
+  --border: rgba(237, 235, 228, 0.1);
+  --border-strong: rgba(237, 235, 228, 0.22);
+  --success: #a7f3d0;
+  --warning: #fcd34d;
+  --error: #ff7878;
+  --info: #7de1f9;
 
   --font-display: 'Fraunces Variable', 'Georgia', serif;
   --font-body: 'Inter Variable', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
 
-  --display-hero: clamp(3.4rem, 10.5vw, 10.5rem);
-  --display-xl: clamp(2.8rem, 6.5vw, 6rem);
-  --display-lg: clamp(2rem, 4.5vw, 3.6rem);
-  --display-md: clamp(1.4rem, 2.6vw, 2rem);
-  --body-lg: clamp(1.05rem, 1.4vw, 1.25rem);
+  --display-hero: clamp(3.8rem, 11vw, 12rem);
+  --display-xl: clamp(3rem, 7vw, 7.5rem);
+  --display-lg: clamp(2rem, 4.5vw, 3.8rem);
+  --display-md: clamp(1.5rem, 3vw, 2.2rem);
+  --body-lg: clamp(1.1rem, 1.6vw, 1.4rem);
   --body: 1rem;
-  --label: 0.72rem;
+  --label: 0.75rem;
 
-  --space-section: clamp(6rem, 14vh, 12rem);
-  --max-width: 1360px;
-  --gutter: clamp(1.25rem, 4vw, 4rem);
+  --space-section: clamp(8rem, 16vh, 16rem);
+  --max-width: 1400px;
+  --gutter: clamp(1.5rem, 4vw, 5rem);
 
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-btn: 999px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

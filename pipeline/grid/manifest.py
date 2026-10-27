@@ -20,10 +20,16 @@ about that contract.
 
 from __future__ import annotations
 
+import json
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator, Optional
+from tempfile import NamedTemporaryFile
+from typing import TYPE_CHECKING, Iterator, Optional
+
+if TYPE_CHECKING:
+    from pipeline.grid.schema import GridManifestEntry
 
 
 @dataclass(frozen=True)
@@ -118,3 +124,66 @@ class GRIDAlignmentParser:
     @staticmethod
     def parse_file(path: Path) -> AlignmentFile:
         return GRIDAlignmentParser(path).parse()
+
+
+def write_manifest_jsonl(
+    entries: list["GridManifestEntry"],
+    output_path: str | Path,
+    *,
+    require_valid: bool = True,
+) -> Path:
+    """Write validated manifest entries as physical JSONL lines atomically.
+
+    The parsed ``AlignmentFile`` is an in-memory convenience object and is
+    intentionally excluded from persisted records.
+    """
+    if require_valid:
+        invalid = [entry.utterance_id for entry in entries if not entry.is_ok]
+        if invalid:
+            raise ValueError(
+                "cannot write a manifest containing invalid entries: "
+                + ", ".join(invalid)
+            )
+
+    destination = Path(output_path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    records: list[str] = []
+    for entry in entries:
+        record = entry.to_dict()
+        record.pop("alignment", None)
+        records.append(json.dumps(record, ensure_ascii=False, separators=(",", ":")))
+
+    temporary_path: Path | None = None
+    try:
+        with NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            newline="\n",
+            dir=destination.parent,
+            prefix=f".{destination.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary_path = Path(handle.name)
+            for record in records:
+                handle.write(record)
+                handle.write("\n")
+
+        with temporary_path.open("r", encoding="utf-8", newline="") as handle:
+            physical_lines = handle.readlines()
+        if len(physical_lines) != len(entries):
+            raise ValueError(
+                f"manifest line count mismatch: expected {len(entries)}, "
+                f"got {len(physical_lines)}"
+            )
+        for line_number, line in enumerate(physical_lines, start=1):
+            if not line.endswith("\n"):
+                raise ValueError(f"manifest line {line_number} is missing a newline")
+            json.loads(line)
+
+        os.replace(temporary_path, destination)
+        temporary_path = None
+        return destination
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)

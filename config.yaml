@@ -1,0 +1,31 @@
+# config.yaml - LipNet-Alphabet Project Configuration
+# Updated for LRW 500-word dataset support
+
+dataset_path: "data/lrw"
+num_classes: 500  # 500 English words from LRW dataset
+
+# CPU-optimized training parameters
+batch_size: 2  # Reduced for CPU-only (max 8 recommended by cpu_utils.py)
+num_workers: 0  # No parallel workers for CPU stability
+amp: false  # Disable Automatic Mixed Precision for CPU
+
+# Model parameters
+input_channels: 1
+input_height: 140
+input_width: 46
+num_frames: 29  # Fixed frame count from LRW videos
+
+# Split configuration
+split_train: "train"
+split_valid: "valid"
+split_test: "test"
+
+# Vocabulary settings
+vocab_path: "data/vocab.txt"
+word_length: "variable"  # Words can be variable length
+
+# Random seed for reproducibility
+seed: 42
+
+# Device configuration (set by schema.py)
+device: "${DEVICE}"  # Will be overridden by schema.DEVICE

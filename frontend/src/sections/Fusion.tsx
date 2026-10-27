@@ -1,4 +1,6 @@
 import { Reveal } from '../animations/Reveal'
+import { MathExpression } from '../components/MathExpression'
+import { EQUATIONS } from '../lib/equations'
 import { SectionHead } from '../components/ui'
 import { useBackend } from '../hooks/useBackend'
 import { APPEARANCE, GEOMETRY, MOTION, FUSION } from '../data/architecture'
@@ -68,7 +70,7 @@ export function Fusion() {
                 </span>
               </div>
             ))}
-            <p className="fusion-sum mono-note">αA + αG + αM = 1 · softmax per timestep</p>
+            <p className="fusion-sum mono-note"><MathExpression tex={EQUATIONS.fusion} inline/> · softmax per timestep</p>
           </div>
 
           <div className="fusion-out">

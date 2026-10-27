@@ -1,34 +1,18 @@
-import { PIPELINE_STEPS } from "../../data/architecture"
-import { PipelineFlow } from "../PipelineFlow"
-
-type PipeStep = (typeof PIPELINE_STEPS)[number]
+﻿import { useState } from "react"
+import { Link } from "react-router-dom"
+import { useBackend } from "../../hooks/useBackend"
+import { PipelineFlow, REFERENCE_STAGES } from "../PipelineFlow"
+import { Icon } from "../Icon"
 
 export function PipelinePage() {
-  return (
-    <div>
-      <div className="ws-page-header">
-        <p className="ws-kicker">07 — Architecture</p>
-        <h1 className="ws-title">Architecture Pipeline</h1>
-        <p className="ws-lede">Interactive breakdown of the full visual speech recognition pipeline from raw video to alphabet prediction.</p>
-      </div>
-      <div className="ws-card" style={{ marginBottom: "20px" }}>
-        <div className="ws-card-title">Full Pipeline</div>
-        <div style={{ marginTop: "16px" }}><PipelineFlow activeStage={6} /></div>
-      </div>
-      <div className="ws-grid-2">
-        {PIPELINE_STEPS.map((step: PipeStep, i: number) => (
-          <div key={step.id} className="ws-card">
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--ws-accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 700, color: "var(--ws-bg)", flexShrink: 0 }}>{i + 1}</div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: "15px" }}>{step.label}</div>
-                <div style={{ fontSize: "11px", color: "var(--ws-text-dim)", fontFamily: "JetBrains Mono, monospace" }}>{step.id}</div>
-              </div>
-            </div>
-            <p style={{ fontSize: "13px", color: "var(--ws-text-muted)", lineHeight: 1.5 }}>{step.note}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  const [selected, setSelected] = useState(0)
+  const { status, modelLoaded } = useBackend()
+  const stage = REFERENCE_STAGES[selected]
+  return <div className="ws-page-inner">
+    <header className="ws-page-header"><p className="ws-kicker">07 / Pipeline & architecture</p><h1 className="ws-title">From movement<br /><em>to meaning.</em></h1><p className="ws-lede">Explore the visual speech architecture and see how each stage relates to the current alphabet workspace.</p></header>
+    <div className="ws-grid-3"><div className="ws-card ws-metric"><span className="ws-metric-label">Backend connection</span><span className="ws-metric-value" style={{ fontSize: "28px" }}>{status === "online" ? "Connected" : status === "checking" || status === "idle" ? "Checking" : "Offline"}</span><span className="ws-note">Live service health</span></div><div className="ws-card ws-metric"><span className="ws-metric-label">Alphabet model</span><span className="ws-metric-value" style={{ fontSize: "28px" }}>{modelLoaded === undefined ? "Unknown" : modelLoaded ? "Loaded" : "Not loaded"}</span><span className="ws-note">Reported model availability</span></div><div className="ws-card ws-metric"><span className="ws-metric-label">Sentence decoding</span><span className="ws-metric-value" style={{ fontSize: "28px" }}>Unavailable</span><span className="ws-note">The live interface predicts alphabet letters</span></div></div>
+    <section className="ws-card"><div className="ws-card-head"><div><p className="ws-kicker">Architecture reference</p><h2>Follow the signal</h2></div><span className="ws-badge ws-badge-muted">Select a stage</span></div><PipelineFlow activeStage={selected} onSelect={setSelected} /><p className="ws-note">This is an architecture reference. Implemented stages describe available capabilities; runtime activity is shown in Live Lip Reading.</p></section>
+    <div className="ws-grid-2"><section className="ws-card"><div className="ws-card-head"><div><p className="ws-kicker">Stage {String(selected + 1).padStart(2, "0")} / 08</p><h2>{stage.label}</h2></div><Icon name="pipeline" size={26} /></div><span className={`ws-badge ${stage.status === "Implemented" ? "ws-badge-ready" : "ws-badge-muted"}`}>{stage.status}</span><p className="ws-lede" style={{ marginTop: "20px", fontSize: "17px" }}>{stage.note}</p><dl className="ws-detail-list"><div><dt>Component</dt><dd>{stage.dimension}</dd></div><div><dt>Current execution</dt><dd>Not measured on this page</dd></div></dl><Link className="ws-btn ws-btn-primary" to="/demo/live">See live telemetry <Icon name="arrow" /></Link></section><section className="ws-card"><div className="ws-card-head"><div><p className="ws-kicker">The current live path</p><h2>A focused alphabet workflow</h2></div><Icon name="scan" /></div><div className="ws-steps">{[{title:"Capture & locate",note:"Browser camera frames and MediaPipe mouth landmarks."},{title:"Crop & sequence",note:"A real mouth crop and a bounded temporal frame buffer."},{title:"Request & display",note:"A backend prediction, its confidence, and available candidates."}].map((item,index) => <div className="ws-step-card" key={item.title}><span className="ws-step-num">{String(index+1).padStart(2,"0")}</span><div><h3 className="ws-step-title">{item.title}</h3><p className="ws-step-desc">{item.note}</p></div></div>)}</div><p className="ws-note">Architecture and readiness are separate. A checkpoint must be loaded before the service can produce predictions.</p></section></div>
+    <section className="ws-card"><div className="ws-card-head"><div><p className="ws-kicker">Capability map</p><h2>What is available today</h2></div><Icon name="layers" /></div><div className="ws-table-wrap"><table className="ws-table"><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td>Camera, landmarks & mouth crops</td><td><span className="ws-badge ws-badge-ready">Implemented</span></td><td>Runs after camera permission; requires the landmark model.</td></tr><tr><td>Alphabet inference</td><td><span className="ws-badge ws-badge-ready">Implemented</span></td><td>Requires an available backend and compatible loaded checkpoint.</td></tr><tr><td>Research multistream / Conformer path</td><td><span className="ws-badge ws-badge-muted">Unverified</span></td><td>Architecture depends on the active checkpoint.</td></tr><tr><td>Sentence-level transcription</td><td><span className="ws-badge ws-badge-muted">Unavailable</span></td><td>No sentence prediction capability is exposed here.</td></tr></tbody></table></div></section>
+  </div>
 }

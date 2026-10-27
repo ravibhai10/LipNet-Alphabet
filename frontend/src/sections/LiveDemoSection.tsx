@@ -1,20 +1,21 @@
 import { SectionHead } from '../components/ui'
 import { useDemoPipeline } from '../live-demo/useDemoPipeline'
-import { SEQUENCE } from '../data/architecture'
 
 /**
- * SECTION 09 — LIVE DEMO
- * Real webcam + real MediaPipe landmarks (the project's own
- * face_landmarker.task, lazy-loaded). Letter decoding requires the optional
- * Python inference backend; when it is unreachable the panel reads
- * "Model connection unavailable" — never a fabricated prediction.
+ * SECTION 13 — LIVE VISUAL SPEECH
+ * Premium live demo with deliberate composition, clear hierarchy,
+ * and real backend integration. Never fabricates predictions.
  */
 
 export function LiveDemoSection() {
   const d = useDemoPipeline()
 
   return (
-    <section className="section demo" id="demo" aria-labelledby="demo-title">
+    <section
+      className="section demo premium"
+      id="demo"
+      aria-labelledby="demo-title"
+    >
       <div className="container">
         <SectionHead
           id="demo-title"
@@ -24,10 +25,10 @@ export function LiveDemoSection() {
               See what <em>the model sees.</em>
             </>
           }
-          lede="Real landmark detection runs locally in your browser — nothing is uploaded. Letter decoding uses the project inference backend when connected."
+          lede="Landmark detection runs locally in your browser. When inference is ready, mouth crops are sent to your configured backend for experimental alphabet classification."
         />
 
-        <div className="demo-grid">
+        <div className="demo-layout">
           {/* ---------- viewport ---------- */}
           <div className="demo-stage">
             <div className="demo-video-wrap">
@@ -38,17 +39,39 @@ export function LiveDemoSection() {
                 muted
                 aria-label="Live camera feed"
               />
-              <canvas ref={d.overlayRef} width={960} height={540} className="demo-overlay" aria-hidden="true" />
+              <canvas
+                ref={d.overlayRef}
+                width={960}
+                height={540}
+                className="demo-overlay"
+                aria-hidden="true"
+              />
 
               {d.camStatus !== 'live' && (
-                <div className="demo-idle">
+                <div className="demo-idle-overlay">
                   {d.camStatus === 'requesting' ? (
                     <p>Requesting camera…</p>
                   ) : d.camStatus === 'denied' || d.camStatus === 'error' ? (
-                    <p>{d.camError ?? 'Camera unavailable.'}</p>
+                    <div className="demo-camera-help">
+                      <p>{d.camError ?? 'Camera unavailable.'}</p>
+                      <ol>
+                        <li>Allow camera access for this site.</li>
+                        <li>Close other apps using the webcam.</li>
+                        <li>Reload the page and try again.</li>
+                      </ol>
+                    </div>
                   ) : (
                     <p className="demo-idle-hint">The camera stays off until you start it.</p>
                   )}
+                </div>
+              )}
+              {d.camStatus === 'live' && (
+                <div className="demo-hud" aria-label="Live camera metrics">
+                  <span>{d.readout.fps} FPS</span>
+                  <span>{d.readout.latencyMs ?? '—'} ms</span>
+                  <span className={d.readout.cropOk ? 'is-good' : ''}>
+                    {d.readout.cropOk ? 'LIP CROP OK' : 'SEARCHING'}
+                  </span>
                 </div>
               )}
             </div>
@@ -59,15 +82,15 @@ export function LiveDemoSection() {
                   Stop camera
                 </button>
               ) : (
-                <button className="btn btn-solid" onClick={() => void d.start()}>
-                  Start camera
+                <button className="btn btn-solid" disabled={d.camStatus === 'requesting'} onClick={() => void d.start()}>
+                  {d.camStatus === 'requesting' ? 'Requesting camera…' : 'Start camera'}
                 </button>
               )}
               <p className="mono-note" role="status">
                 {d.lmStatus === 'loading' && 'Loading landmark model…'}
                 {d.lmStatus === 'failed' && `Landmark model failed to load — ${d.lmError ?? 'unknown error'}`}
                 {d.lmStatus === 'ready' && d.readout.faceOk && 'Face tracked · 20 mouth landmarks'}
-                {d.lmStatus === 'ready' && !d.readout.faceOk && 'Looking for a face…'}
+                {d.running && d.lmStatus === 'ready' && !d.readout.faceOk && 'Looking for a face…'}
               </p>
             </div>
 
@@ -75,29 +98,36 @@ export function LiveDemoSection() {
               <div className="demo-buffer-head">
                 <p className="mono-note">Temporal frame buffer</p>
                 <p className="mono-note">
-                  {d.readout.frames} / {SEQUENCE.maxFrames} frames · min {SEQUENCE.minFrames}
+                  {d.predicting
+                    ? `Processing ${d.readout.frames}/${d.sequence.maxFrames} frames…`
+                    : `${d.readout.frames} / ${d.sequence.maxFrames} frames · min ${d.sequence.minFrames}`}
                 </p>
               </div>
               <canvas
                 ref={d.bufferStripRef}
-                width={SEQUENCE.maxFrames * 24}
+                width={d.sequence.maxFrames * 24}
                 height={24}
                 className="demo-buffer-strip"
-                aria-label={`Frame buffer with ${d.readout.frames} of ${SEQUENCE.maxFrames} frames`}
+                aria-label={`Frame buffer with ${d.readout.frames} of ${d.sequence.maxFrames} frames`}
               />
             </div>
           </div>
 
           {/* ---------- side panel ---------- */}
           <aside className="demo-panel" aria-label="Live inference readout">
+            {(d.predictionError || d.pipelineError) && <p className="demo-status" role="alert">{d.predictionError || d.pipelineError}</p>}
             <div className="demo-panel-block demo-panel-block--primary">
               <p className="mono-note">Detected letter</p>
               <p className="demo-letter" aria-live="polite">
-                {d.backendStatus !== 'online' ? '—' : d.readout.detected ?? (d.predicting ? '…' : '—')}
+                {d.backendStatus !== 'online' || !d.modelLoaded
+                  ? '—'
+                  : d.readout.detected ?? (d.predicting ? '…' : '—')}
               </p>
               <p className="mono-note demo-status" role="status">
-                {d.backendStatus === 'online'
-                  ? 'Connected'
+                {d.backendStatus === 'online' && d.modelLoaded
+                  ? 'Model ready'
+                  : d.backendStatus === 'online'
+                    ? 'Backend online · model unavailable'
                   : d.backendStatus === 'checking'
                     ? 'Checking…'
                     : 'Model connection unavailable'}
@@ -132,19 +162,23 @@ export function LiveDemoSection() {
             <div className="demo-panel-block">
               <p className="mono-note">Temporal status</p>
               <p className="demo-value">
-                {d.readout.frames}/{SEQUENCE.maxFrames}
+                {d.readout.frames}/{d.sequence.maxFrames}
               </p>
               <p className="mono-note">
-                {d.readout.frames >= SEQUENCE.minFrames
+                {d.readout.frames >= d.sequence.minFrames
                   ? 'sequence ready'
-                  : `need ${SEQUENCE.minFrames - d.readout.frames} more`}
+                  : `need ${d.sequence.minFrames - d.readout.frames} more`}
               </p>
             </div>
 
             <div className="demo-panel-block">
               <p className="mono-note">Model status</p>
-              <p className={`demo-value demo-model ${d.backendStatus === 'online' ? 'is-online' : ''}`}>
-                {d.backendStatus === 'online' ? 'Ready' : 'Unavailable'}
+              <p className={`demo-value demo-model ${d.backendStatus === 'online' && d.modelLoaded ? 'is-online' : ''}`}>
+                {d.backendStatus === 'online' && d.modelLoaded
+                  ? 'Ready'
+                  : d.backendStatus === 'online'
+                    ? 'Backend only'
+                    : 'Unavailable'}
               </p>
             </div>
 

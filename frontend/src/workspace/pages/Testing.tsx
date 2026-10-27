@@ -1,107 +1,20 @@
-/**
- * Workspace — Model Testing
- *
- * Reuses the same live-demo pipeline as the Live Demo page so the
- * testing experience is byte-identical: real webcam → real MediaPipe
- * → real mouth crop → real /api/predict → top-3 + confidence.
- * Per-frame predictions and confusion-matrix accumulation are
- * implemented client-side from the live prediction stream.
- */
-import { useDemoPipeline } from "../../live-demo/useDemoPipeline"
-import { SEQUENCE, DECODER } from "../../data/architecture"
-import { useEffect, useRef, useState } from "react"
-import { useBackend } from "../../hooks/useBackend"
-
-const ALL_LETTERS = DECODER.letters
-
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { useDemoPipeline } from '../../live-demo/useDemoPipeline'
+import { Icon } from '../Icon'
 export function TestingPage() {
   const d = useDemoPipeline()
-  const { status } = useBackend()
-  const [confusion, setConfusion] = useState<Record<string, number>>({})
-  const [frameLog, setFrameLog] = useState<{ letter: string; conf: number; at: number }[]>([])
-  const totalRef = useRef(0)
-  const lastLetterRef = useRef<string | null>(null)
-
-  // Accumulate stable predictions into the confusion matrix
-  useEffect(() => {
-    const l = d.readout.detected
-    if (!l || l === "—" || l === "ABSTAIN") return
-    if (l === lastLetterRef.current) return
-    lastLetterRef.current = l
-    totalRef.current += 1
-    setConfusion((c) => ({ ...c, [l]: (c[l] ?? 0) + 1 }))
-    setFrameLog((log) => [{ letter: l, conf: d.readout.confidence ?? 0, at: Date.now() }, ...log].slice(0, 30))
-  }, [d.readout.detected, d.readout.confidence])
-
-  const maxCount = Math.max(1, ...Object.values(confusion))
-
-  return (
-    <div className="ws-page-inner">
-      <header className="ws-page-head">
-        <h1>Model Testing</h1>
-        <p className="ws-page-sub">Live per-frame predictions on the real webcam feed. Predictions accumulate as they stabilize.</p>
-      </header>
-
-      <div className="ws-demo-layout">
-        <div className="ws-demo-stage">
-          <div className="ws-video-wrap">
-            <video ref={d.videoRef} className="ws-video" playsInline muted aria-label="Live camera feed" />
-            <canvas ref={d.overlayRef} width={960} height={540} className="ws-overlay" aria-hidden="true" />
-            {d.camStatus !== "live" && (
-              <div className="ws-idle">
-                {d.camStatus === "requesting" ? <p>Requesting camera…</p>
-                  : d.camStatus === "denied" || d.camStatus === "error" ? <p>{d.camError ?? "Camera unavailable."}</p>
-                  : <p>The camera stays off until you start it.</p>}
-              </div>
-            )}
-          </div>
-          <div className="ws-controls">
-            {d.running
-              ? <button className="ws-btn ws-btn-ghost" onClick={d.stop}>Stop</button>
-              : <button className="ws-btn ws-btn-solid" onClick={() => void d.start()}>Start</button>}
-            <span className="ws-mono">
-              Buffer {d.readout.frames}/{SEQUENCE.maxFrames} · {d.readout.faceOk ? "face ✓" : "no face"} · {status === "online" ? "backend ✓" : "backend ✗"}
-            </span>
-          </div>
-        </div>
-
-        <aside className="ws-demo-panel">
-          <div className="ws-panel-block">
-            <span className="ws-mono">Stable predictions accumulated</span>
-            <p className="ws-value">{totalRef.current}</p>
-            <button className="ws-btn ws-btn-ghost" onClick={() => { setConfusion({}); setFrameLog([]); totalRef.current = 0; lastLetterRef.current = null }}>Reset</button>
-          </div>
-
-          <div className="ws-panel-block">
-            <span className="ws-mono">Letter distribution</span>
-            <div className="ws-confusion">
-              {ALL_LETTERS.map((L) => {
-                const n = confusion[L] ?? 0
-                return (
-                  <div key={L} className="ws-confusion-cell" title={`${L}: ${n}`}>
-                    <span className="ws-confusion-label">{L}</span>
-                    <div className="ws-confusion-bar" style={{ width: `${(n / maxCount) * 100}%` }} />
-                    <span className="ws-confusion-count">{n}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="ws-panel-block">
-            <span className="ws-mono">Recent predictions</span>
-            <ul className="ws-frame-log">
-              {frameLog.length === 0 ? <li className="ws-mono">— no predictions yet —</li>
-                : frameLog.map((f) => (
-                  <li key={f.at}>
-                    <span className="ws-letter-mini">{f.letter}</span>
-                    <span className="ws-mono">{(f.conf * 100).toFixed(0)}%</span>
-                  </li>
-                ))}
-            </ul>
-          </div>
-        </aside>
-      </div>
-    </div>
-  )
+  const counts = useMemo(() => {
+    const result: Record<string, number> = {}
+    d.history.forEach(item => { result[item.letter] = (result[item.letter] ?? 0) + 1 })
+    return result
+  }, [d.history])
+  const maximum = Math.max(1, ...Object.values(counts))
+  return <div className="ws-page-inner">
+    <header className="ws-page-header"><p className="ws-kicker">04 / EVALUATION & TESTING</p><h1 className="ws-title">Observe the output.<br/><em>Question the result.</em></h1><p className="ws-lede">Inspect genuine alphabet predictions. Live observations are separate from labeled model evaluation.</p></header>
+    <div className="ws-grid-3"><div className="ws-card ws-metric"><span className="ws-metric-label">Session results retained</span><span className="ws-metric-value">{d.history.length}</span><span className="ws-note">Up to 12 real responses</span></div><div className="ws-card ws-metric"><span className="ws-metric-label">Validated accuracy</span><span className="ws-metric-value">Not evaluated</span><span className="ws-note">No labeled evaluation has run here</span></div><div className="ws-card ws-metric"><span className="ws-metric-label">Current classifier</span><span className="ws-metric-value">{d.inferenceReady ? 'Loaded' : 'Unavailable'}</span><span className="ws-note">Experimental alphabet model</span></div></div>
+    <div className="ws-demo-layout"><section className="ws-card"><div className="ws-card-head"><h2>Live observation</h2><Link className="ws-inline-link" to="/demo/live">Full live studio<Icon name="arrow" size={14}/></Link></div><div className="ws-video-wrap"><video ref={d.videoRef} className="ws-video" playsInline muted aria-label="Test camera preview"/><canvas ref={d.overlayRef} className="ws-overlay" aria-hidden="true"/>{!d.running && <div className="ws-idle"><Icon name="camera" size={36}/><p>{d.camStatus === 'requesting' ? 'Allow camera access to begin.' : 'Start a session to observe real model responses.'}</p></div>}</div><div className="ws-controls">{d.running || d.camStatus === 'requesting' ? <button className="ws-btn ws-btn-ghost" onClick={d.stop}><Icon name="stop" size={14}/>{d.running ? 'Stop camera' : 'Cancel'}</button> : <button className="ws-btn ws-btn-primary" onClick={() => void d.start()}><Icon name="camera" size={14}/>Start camera</button>}<span className="ws-mono">{d.readout.frames} captured frames · {d.readout.faceOk ? 'Face detected' : 'No face detected'}</span></div>{(d.camError || d.lmError || d.predictionError || d.pipelineError) && <p className="ws-error" role="alert">{d.camError || d.lmError || d.predictionError || d.pipelineError}</p>}<p className="ws-note">Model confidence is an uncalibrated softmax score. A confidence value does not establish that a prediction is correct.</p><div className="ws-note">Ground-truth labels are not collected in this view, so precision, recall, accuracy, and a confusion matrix cannot be computed.</div></section>
+    <section className="ws-card"><div className="ws-card-head"><h2>Prediction distribution</h2><button className="ws-inline-link" disabled={!d.history.length} onClick={d.clearHistory}>Reset</button></div>{d.history.length === 0 ? <div className="ws-empty"><Icon name="chart" size={30}/><h3>No observed results yet</h3><p>Real returned letters will build a distribution here. No evaluation metrics are simulated.</p></div> : <div className="ws-test-distribution">{Object.entries(counts).sort(([a],[b])=>a.localeCompare(b)).map(([letter,count])=><div key={letter}><strong>{letter}</strong><span><i style={{width:count / maximum * 100 + '%'}}/></span><small>{count}</small></div>)}</div>}<p className="ws-note" style={{marginTop:16}}>Distribution of the retained session responses, without ground-truth comparison.</p></section></div>
+    <section className="ws-card"><div className="ws-card-head"><h2>Response log</h2><span className="ws-badge ws-badge-muted">Session memory only</span></div>{d.history.length === 0 ? <p className="ws-note">Waiting for a real inference response.</p> : <div className="ws-table-wrap"><table className="ws-table"><thead><tr><th>Received</th><th>Letter</th><th>Model confidence</th><th>Request round trip</th></tr></thead><tbody>{d.history.map(item=><tr key={item.id}><td>{new Date(item.at).toLocaleTimeString()}</td><td>{item.letter}</td><td>{(item.confidence * 100).toFixed(1)}%</td><td>{item.latencyMs} ms</td></tr>)}</tbody></table></div>}</section>
+  </div>
 }

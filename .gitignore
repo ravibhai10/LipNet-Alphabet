@@ -1,4 +1,4 @@
-﻿# ΓöÇΓöÇ Python ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ΓöÇΓöÇ Python ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -42,6 +42,7 @@ Thumbs.db
 # My additions for GRID/AV-HuBERT workstreams (keep .venv, model binaries, and downloaded corpora out of git)
 .venv/
 .venv-avhubert/
+.venv-avhubert-cpu/
 venv/
 env/
 __pycache__/
@@ -53,8 +54,13 @@ models/external/avhubert/avhubert_base.pt
 models/external/*/
 
 # Datasets & raw inputs (large / per-license)
+external/
 data/external/
 data/grid/
 data/grid_raw/
 scripts/wget-logs/
 
+# System & Temp files
+*.tmp
+*.bak
+runs/

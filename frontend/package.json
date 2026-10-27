@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:live": "node --experimental-strip-types --test tests/live-stability.test.mjs tests/socket-lifecycle.test.mjs",
+    "test:math": "node --experimental-strip-types --test tests/math-rendering.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.1.0",
@@ -15,6 +17,7 @@
     "@mediapipe/tasks-vision": "^0.10.14",
     "@types/three": "^0.185.4",
     "gsap": "^3.12.5",
+    "katex": "0.19.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.18.3",
