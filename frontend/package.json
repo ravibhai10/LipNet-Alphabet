@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "test:adaptive": "node --experimental-strip-types --test tests/adaptive-feedback.test.mjs",
     "test:live": "node --experimental-strip-types --test tests/live-stability.test.mjs tests/socket-lifecycle.test.mjs tests/word-consensus.test.mjs tests/word-capture.test.mjs tests/word-assistant.test.mjs tests/prediction-api.test.mjs tests/word-collection.test.mjs",
     "test:math": "node --experimental-strip-types --test tests/math-rendering.test.mjs"
   },

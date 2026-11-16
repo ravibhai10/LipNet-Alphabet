@@ -258,6 +258,10 @@ async def serve_video(video_path: str):
             candidate = (PROJECT_ROOT / "data" / video_path).resolve()
             if not (candidate.is_file() and any(_is_safe_subpath(candidate, b) for b in [RECORDINGS_ROOT, PROJECT_ROOT / "data"])):
                 raise HTTPException(status_code=404, detail="Video file not found")
+    if _is_safe_subpath(candidate, PROJECT_ROOT / 'data' / 'adaptive_private'):
+        raise HTTPException(status_code=404, detail="Video file not found")
+    if candidate.suffix.lower() not in {'.mp4', '.avi', '.mov', '.webm', '.mpg', '.mpeg'}:
+        raise HTTPException(status_code=404, detail="Video file not found")
     media_type = "video/mp4" if candidate.suffix.lower() == ".mp4" else "video/mpeg"
     return FileResponse(str(candidate), media_type=media_type)
 

@@ -13,6 +13,7 @@ TASK_LABELS = {'alphabet_recognition':[chr(65+i) for i in range(26)], 'isolated_
 BASE_WORD = 'avhubert-miracl8-preserved'
 BASE_ALPHABET = 'alphabet-cnn-bilstm-preserved'
 _word_adapter_lock = threading.Lock()
+_alphabet_models = {}
 
 
 class TaskAdapter:
@@ -120,10 +121,29 @@ class ModelRegistry:
             row = db.execute('SELECT model FROM champions WHERE task=?',(task,)).fetchone()
         identifier = row[0] if row else BASE_WORD if task=='isolated_word' else BASE_ALPHABET
         if identifier in {BASE_WORD,BASE_ALPHABET}:
-            return baseline_adapter(task).predict(jpeg_frames(rois))
+            value=baseline_adapter(task).predict(jpeg_frames(rois))
+            if value['model_version']!=self.model(identifier)['checkpoint_sha256']:
+                raise ValueError('Selected backend differs from the registered preserved model.')
+            return value
         meta = self.model(identifier)
         if meta['task']!=task or meta['vocabulary']!=TASK_LABELS[task]: raise ValueError('Champion task contract mismatch.')
-        if task!='isolated_word': raise RuntimeError('No validated alphabet challenger adapter is registered.')
+        self.store.version(meta['training_dataset_version'])
+        if task=='alphabet_recognition':
+            from .alphabet_training import load_alphabet
+            from app.services.browser_inference import BrowserInference
+            import torch
+            path=self.store.root/meta['checkpoint']
+            if digest(path.read_bytes())!=meta['checkpoint_sha256']:raise ValueError('Alphabet challenger checkpoint changed.')
+            if identifier not in _alphabet_models:
+                _alphabet_models[identifier]=load_alphabet(torch.load(path,map_location='cpu',weights_only=True))
+            with torch.inference_mode():
+                p=_alphabet_models[identifier](BrowserInference.decode_frames(jpeg_frames(rois))).softmax(-1)[0].numpy()
+            order=np.argsort(-p);vocab=TASK_LABELS[task]
+            accepted=p[order[0]]>=.5 and p[order[0]]-p[order[1]]>=.05
+            return {'task':task,'prediction':vocab[order[0]] if accepted else None,'candidate':vocab[order[0]],
+                    'confidence':float(p[order[0]]),'top_k':[{'label':vocab[i],'score':float(p[i])} for i in order[:5]],
+                    'model_id':identifier,'model_version':meta['version'],'vocabulary':vocab,'latency_ms':None,
+                    'status':'PREDICTED' if accepted else 'UNCERTAIN','confidence_calibrated':False}
         from .training import head_probabilities
         from pipeline.word_recognition.consensus import temporal_consensus
         import torch
@@ -135,7 +155,8 @@ class ModelRegistry:
             features=base.encoder.encode_frames(rois,source_fps=None,target_frames=29,output_layer=9)
             head=torch.load(path,map_location='cpu',weights_only=True)
             p=head_probabilities(head,features);order=np.argsort(-p);policy=meta['policy']
-            consistent=temporal_consensus(head,features,policy)['confirmed']
+            consensus=temporal_consensus(head,features,policy)
+            consistent=consensus['confirmed'] and consensus['views'][0]['candidate']==WORDS[int(order[0])]
         accepted=p[order[0]]>=policy['threshold'] and p[order[0]]-p[order[1]]>=policy['margin'] and consistent
         return {'task':task,'prediction':WORDS[int(order[0])] if accepted else None,'candidate':WORDS[int(order[0])],
                 'confidence':float(p[order[0]]),'top_k':[{'label':WORDS[i],'score':float(p[i])} for i in order[:5]],
@@ -146,8 +167,10 @@ class ModelRegistry:
         if approved is not True: raise ValueError('Explicit reviewer approval is required.')
         model = self.model(identifier)
         gates = model.get('comparison',{})
-        if gates.get('eligible') is not True or model.get('test_report') is None or model.get('regression_passed') is not True:
+        if gates.get('eligible') is not True or model.get('test_report') is None or model.get('regression_passed') is not True or model.get('integration_passed') is not True:
             raise ValueError('Challenger lacks passing validation comparison, final held-out evidence or regression results.')
+        if model['test_report'].get('negative_samples',0)<20:
+            raise ValueError('The final protocol needs at least 20 held-out negative recordings. Test metrics never select the challenger.')
         self.store.version(model['training_dataset_version'])
         path = self.store.root/model['checkpoint']
         if digest(path.read_bytes())!=model['checkpoint_sha256']: raise ValueError('Checkpoint integrity failed.')
@@ -165,6 +188,13 @@ class ModelRegistry:
             model_row=db.execute('SELECT payload FROM models WHERE id=?',(row['previous'],)).fetchone()
             model=json.loads(model_row[0]);path=self.store.root/model['checkpoint']
             if digest(path.read_bytes())!=model['checkpoint_sha256']: raise ValueError('Rollback checkpoint integrity failed.')
+            if model['deployment_status']=='challenger':
+                version=db.execute('SELECT payload FROM versions WHERE id=?',(model['training_dataset_version'],)).fetchone()
+                if not version:raise ValueError('Rollback dataset lineage is unavailable.')
+                identifiers=json.loads(version[0])['record_ids']
+                for identifier in identifiers:
+                    if self.store.row(db,identifier)['status']=='WITHDRAWN':
+                        raise ValueError('Rollback model contains withdrawn feedback; review its lineage first.')
             db.execute('UPDATE champions SET model=?,previous=? WHERE task=?',(row['previous'],row['model'],task))
             self.store.event(db,row['previous'],actor,'rollback',{'from':row['model'],'task':task})
         return {'champion':row['previous'],'previous':row['model'],'task':task}

@@ -3,10 +3,12 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { BackendProvider, useBackend } from '../hooks/useBackend'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { WorkspaceTopbar } from './WorkspaceTopbar'
+import { ExaminerDemoBar } from './components/ExaminerDemoBar'
 
 const titles: Record<string, string> = {
   '/demo/overview': 'Overview',
   '/demo/live': 'Live lip reading',
+  '/demo/feedback': 'Adaptive feedback lab',
   '/demo/collect': 'Collect eight-word recordings',
   '/demo/dataset': 'Dataset explorer',
   '/demo/training': 'Training',
@@ -87,6 +89,7 @@ function WorkspaceContent() {
             theme={theme}
             onToggleTheme={toggleTheme}
           />
+          <ExaminerDemoBar />
           {status === 'offline' && <div className="ws-reconnect-banner" role="alert">
             <span>Backend disconnected. Live recognition is paused.</span>
             <strong>Retry {retryCount}</strong>

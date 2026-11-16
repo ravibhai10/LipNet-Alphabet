@@ -93,7 +93,8 @@ class FeedbackStore:
         value.update(prediction=json.loads(row['prediction']) if row['prediction'] else None,
                      source_sha256=row['source'], warnings=meta['warnings'], capture_kind=meta['capture_kind'],
                      frame_count=meta['frame_count'], captured_fps=meta['captured_fps'],
-                     duration_ms=meta['duration_ms'], media_available=row['media'] is not None)
+                     original_video_available=bool(meta.get('original_video')) and row['status']!='WITHDRAWN',
+                     duration_ms=meta['duration_ms'], media_available=bool(row['has_media']) if 'has_media' in row.keys() else row['media'] is not None)
         if detail:
             value['metadata'] = meta
         return value
@@ -163,8 +164,8 @@ class FeedbackStore:
             if row['status'] in {'WITHDRAWN', 'TRAINING_INCLUDED', 'DUPLICATE'}:
                 raise ValueError('This record cannot be relabelled or approved.')
             meta = json.loads(row['metadata'])
-            if decision == 'APPROVED' and (not row['verdict'] or row['label'] == 'UNKNOWN' or meta['warnings']):
-                raise ValueError('Approval requires a verified known label and passing recording quality. Rerecord failed quality.')
+            if decision == 'APPROVED' and (not row['verdict'] or meta['warnings']):
+                raise ValueError('Approval requires a verified label and passing recording quality. UNKNOWN records are negative evaluation only. Rerecord failed quality.')
             db.execute('UPDATE captures SET status=?,reason=? WHERE id=?', (decision, reason, identifier))
             self.event(db, identifier, actor, 'review', {'decision': decision, 'reason': reason})
             return self.public(self.row(db, identifier))
@@ -181,19 +182,19 @@ class FeedbackStore:
                 self.event(db, identifier, actor, 'withdraw', {'included_in_manifest': included, 'requires_model_review': included})
             return {'id': identifier, 'status': 'WITHDRAWN', 'media_deleted': True, 'requires_model_review': included}
 
-    def list(self, owner=None, **filters):
+    def list(self, owner=None, limit=1000, **filters):
         allowed = {'task', 'label', 'speaker', 'session', 'status', 'verdict'}
-        sql = 'SELECT * FROM captures WHERE 1=1'; values = []
+        sql = 'SELECT id,owner,task,speaker,session,metadata,prediction,verdict,label,status,created,reason,source,media IS NOT NULL AS has_media FROM captures WHERE 1=1'; values = []
         if owner:
             sql += ' AND owner=?'; values.append(owner)
         for key, value in filters.items():
             if key in allowed and value:
                 sql += f' AND {key}=?'; values.append(value)
         with self.db() as db:
-            return [self.public(r) for r in db.execute(sql+' ORDER BY created DESC LIMIT 1000', values)]
+            return [self.public(r) for r in db.execute(sql+' ORDER BY created DESC'+(' LIMIT ?' if limit else ''), values+([limit] if limit else []))]
 
     def stats(self, owner=None):
-        rows = self.list(owner)
+        rows = self.list(owner,limit=None)
         with self.db() as db:
             versions = [json.loads(v[0]) for v in db.execute('SELECT payload FROM versions')]
         return {'total': len(rows), 'statuses': dict(Counter(r['status'] for r in rows)),
@@ -229,7 +230,7 @@ class FeedbackStore:
             rows = [r for r in rows if r['speaker'] in assignments]
             if not rows:
                 raise ValueError('No approved feedback is available.')
-            counts = Counter(); receipts = []; seen = set()
+            counts = Counter(); receipts = []; negatives = []; seen = set()
             # Existing evaluation speakers are forbidden from all new feedback versions.
             # Identity aliases cannot be detected by software; reviewers must verify IDs.
             forbidden = self.historical_evaluation_speakers()
@@ -237,19 +238,22 @@ class FeedbackStore:
                 split = assignments[row['speaker']]
                 if row['speaker'] in forbidden:
                     raise ValueError('Historical evaluation speaker must be quarantined from new independent protocols.')
-                if row['label'] not in labels or row['label'] == 'UNKNOWN':
+                negative=row['label']=='UNKNOWN'
+                if row['label'] not in labels and not negative:
                     raise ValueError('Expanded and unknown labels require a separate training protocol.')
+                if negative and split=='train':
+                    raise ValueError('UNKNOWN negatives may only enter independent validation/test evaluation, never classifier training.')
                 if row['pixels'] in seen:
                     raise ValueError('Duplicate decoded sequence in dataset.')
                 seen.add(row['pixels'])
                 prior = db.execute('SELECT split FROM assignments WHERE speaker=?', (row['speaker'],)).fetchone()
                 if prior and prior[0] != split:
                     raise ValueError('Speaker leakage across dataset versions.')
-                counts[split,row['label']] += 1
+                if not negative:counts[split,row['label']] += 1
                 meta = json.loads(row['metadata'])
                 if meta['consent'] is not True or meta['warnings'] or row['rois'] is None:
                     raise ValueError('Source consent or quality no longer allows training.')
-                receipts.append({'id':row['id'], 'speaker':row['speaker'], 'session':row['session'], 'label':row['label'],
+                (negatives if negative else receipts).append({'id':row['id'], 'speaker':row['speaker'], 'session':row['session'], 'label':row['label'],
                                  'split':split, 'source_sha256':row['source'], 'pixels_sha256':row['pixels'],
                                  'roi_sha256':meta['roi_sha256'], 'preprocessing':meta['preprocessing']})
             if any(counts[s,l]<minimum_per_class for s in ('train','valid','test') for l in labels):
@@ -259,7 +263,7 @@ class FeedbackStore:
                 if max(ns)>5*min(ns): raise ValueError('Class imbalance exceeds the fixed 5:1 limit.')
             identifier = uuid.uuid4().hex
             value = {'id': identifier, 'task':task, 'labels':labels, 'created':now(), 'protocol':'speaker_independent',
-                     'records':receipts, 'record_ids':[r['id'] for r in receipts], 'minimum_per_class':minimum_per_class,
+                     'records':receipts, 'negative_records':negatives, 'record_ids':[r['id'] for r in receipts+negatives], 'minimum_per_class':minimum_per_class,
                      'limits':'Structural checks only; identities are reviewer verified, sample sufficiency remains unproven.'}
             value['manifest_sha256'] = digest(canonical(value))
             db.execute('INSERT INTO versions VALUES(?,?,?,?)', (identifier, task, value['manifest_sha256'], json.dumps(value)))
@@ -288,7 +292,7 @@ class FeedbackStore:
             value = json.loads(row[0]); expected = value.pop('manifest_sha256')
             if digest(canonical(value)) != expected: raise ValueError('Dataset manifest integrity failed.')
             value['manifest_sha256'] = expected
-            for record in value['records']:
+            for record in value['records']+value.get('negative_records',[]):
                 r = self.row(db,record['id'])
                 if r['status']=='WITHDRAWN' or r['rois'] is None:
                     raise ValueError('A dataset recording was withdrawn. Freeze a new reviewed version.')

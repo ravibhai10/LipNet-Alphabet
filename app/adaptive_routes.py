@@ -42,6 +42,7 @@ class Capture(Strict):
     consent: bool
     frames: list[Annotated[str,Field(max_length=4_000_000)]]=Field(min_length=8,max_length=76)
     timestamps_ms: list[float]=Field(min_length=8,max_length=76)
+    original_video: str|None=Field(default=None,max_length=24*1024*1024)
 
 
 class Feedback(Strict):
@@ -106,7 +107,7 @@ def config(user=Depends(access)):
             'minimum_frames':8,'maximum_frames':76,'maximum_duration_ms':5000,'role':user['role'],
             'recording_consent':'I consent to storing this bounded face/mouth recording for review and research training. I can withdraw it. Uncommitted clips expire after 30 days when maintenance runs; committed model lineage needs separate review.',
             'accuracy_notice':'Scores are uncalibrated. Alphabet and physical webcam accuracy remain unproven.',
-            'training_support':{'isolated_word':'eight-word frozen-encoder batch adapter','alphabet_recognition':'collection and review; complete protocol/trainer adapter pending'}}
+            'training_support':{'isolated_word':'eight-word frozen-encoder batch adapter','alphabet_recognition':'preserved CNN-BiLSTM; complete reviewed A–Z partitions required'}}
 
 
 def run_prediction(identifier, actor):
@@ -186,9 +187,20 @@ def inspect(identifier:Identifier,user=Depends(access)):return call(store.inspec
 def frame(identifier:Identifier,index:int,user=Depends(access)):
     media=call(store.blob,identifier,'media',owner(user))
     with zipfile.ZipFile(io.BytesIO(media)) as archive:
-        if not 0<=index<len(archive.namelist()):raise HTTPException(404,'Frame not found.')
+        if f'{index:04d}.png' not in archive.namelist() or index<0:raise HTTPException(404,'Frame not found.')
         raw=archive.read(f'{index:04d}.png')
     return Response(raw,media_type='image/png',headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
+
+
+@router.get('/records/{identifier}/original-video')
+def original_video(identifier:Identifier,user=Depends(access)):
+    media=call(store.blob,identifier,'media',owner(user))
+    with zipfile.ZipFile(io.BytesIO(media)) as archive:
+        name=next((n for n in ('original.webm','original.mp4') if n in archive.namelist()),None)
+        if not name:raise HTTPException(404,'This recording retains original PNG frames only.')
+        raw=archive.read(name)
+    return Response(raw,media_type='video/webm' if name.endswith('.webm') else 'video/mp4',
+                    headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
 
 
 @router.get('/records/{identifier}/source')
@@ -261,6 +273,14 @@ class PrivateBodyLimit:
     async def __call__(self,scope,receive,send):
         if scope['type']!='http' or not scope.get('path','').startswith('/api/adaptive'):
             return await self.app(scope,receive,send)
+        if scope.get('method')=='OPTIONS':
+            return await self.app(scope,receive,send)
+        headers=dict(scope.get('headers',[]))
+        try:access(headers.get(b'authorization',b'').decode('latin1') or None)
+        except HTTPException as error:
+            await send({'type':'http.response.start','status':error.status_code,'headers':[(b'content-type',b'application/json'),(b'cache-control',b'no-store')]})
+            await send({'type':'http.response.body','body':json.dumps({'detail':error.detail}).encode()})
+            return
         messages=[];size=0
         while True:
             message=await receive()

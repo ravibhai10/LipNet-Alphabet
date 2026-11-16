@@ -8,6 +8,7 @@ const groups: { label: string; items: { path: string; href?: string; label: stri
   { label: 'WORKSPACE', items: [
     { path: 'overview', label: 'Overview', icon: 'grid' },
     { path: 'live', label: 'Live lip reading', icon: 'camera' },
+    { path: 'feedback', label: 'Adaptive feedback lab', icon: 'activity' },
   ]},
   { label: 'RESEARCH', items: [
     { path: 'dataset', label: 'Dataset explorer', icon: 'database' },

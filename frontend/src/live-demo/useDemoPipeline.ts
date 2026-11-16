@@ -30,7 +30,11 @@ export function useDemoPipeline(options: { manualWords?: boolean } = {}) {
   const cam = useWebcam(), lm = useLandmarker(), backend = useBackend()
   const backendRef = useRef(backend); backendRef.current = backend
   const manualWords = options.manualWords === true && backend.recognitionMode !== 'alphabet'
-  const assistant = useWordAssistant((frames, signal, capture) => backendRef.current.predictWord(frames, signal, capture, true))
+  const [capturedClip, setCapturedClip] = useState<string[]>([])
+  const assistant = useWordAssistant((frames, signal, capture) => {
+    setCapturedClip([...frames])
+    return backendRef.current.predictWord(frames, signal, capture, true)
+  })
   const assistantController = assistant.controller
   const overlayRef = useRef<HTMLCanvasElement>(null), appearanceRef = useRef<HTMLCanvasElement>(null)
   const geometryRef = useRef<HTMLCanvasElement>(null), motionRef = useRef<HTMLCanvasElement>(null), bufferStripRef = useRef<HTMLCanvasElement>(null)
@@ -151,6 +155,7 @@ export function useDemoPipeline(options: { manualWords?: boolean } = {}) {
       if (backendRef.current.recognitionMode !== 'alphabet' && publication.current.has(window.utterance)) return
       if (inFlight.current) { pending = window; return }
       inFlight.current = true; setPredicting(true)
+      setCapturedClip([...window.frames])
       const controller = new AbortController(); request.current = controller
       const began = performance.now()
       try {
@@ -358,7 +363,7 @@ export function useDemoPipeline(options: { manualWords?: boolean } = {}) {
     lmStatus:lm.status,lmError:lm.error,backendStatus:backend.status,
     modelLoaded:backend.inferenceReady,inferenceReady:backend.inferenceReady,inferenceReason:backend.inferenceReason,modelKind:backend.modelKind,
     predictionError:backend.predictionError,predicting:manualWords ? assistant.state.phase === 'PROCESSING' : predicting,running,readout,history,pipelineError,clearHistory,
-    assistant:manualWords ? assistant : null, canCaptureWord, beginWord,
+    assistant:manualWords ? assistant : null, canCaptureWord, beginWord, capturedFrames: capturedClip,
     recognitionMode:backend.recognitionMode,setRecognitionMode:backend.setRecognitionMode,wordHealth:backend.wordHealth,expandedHealth:backend.expandedHealth,lrwHealth:backend.lrwHealth,showOverlay,setShowOverlay,
     overlayRef,appearanceRef,geometryRef,motionRef,bufferStripRef,sequence:manualWords ? { ...WORD_LIMITS[backend.recognitionMode === 'alphabet' ? 'word' : backend.recognitionMode], stride: 1 } : backend.recognitionMode === 'lrw500' ? {maxFrames:76,minFrames:12,stride:8} : LIVE_SEQUENCE,start,stop,reset,
   }

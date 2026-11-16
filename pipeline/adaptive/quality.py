@@ -5,6 +5,7 @@ import hashlib
 import io
 import json
 import struct
+import tempfile
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,8 +15,37 @@ import numpy as np
 
 PREPROCESSING = {'id': 'adaptive-eyeaxis96-png-v1', 'size': 96, 'margin': 2.2,
                  'alignment': 'eye-axis', 'gray': 'opencv-BGR2GRAY', 'interpolation': 'linear',
-                 'border': 'reject', 'source': 'lossless browser canvas PNG; no audio'}
+                 'border': 'reject', 'inference_jpeg_quality':75,
+                 'source': 'lossless browser canvas PNG; no audio'}
 MAX_BYTES = 64 * 1024 * 1024
+
+
+def decode_original_video(encoded, geometry):
+    """Retain the uploaded bounded video bytes unchanged and check every decoded frame."""
+    prefixes={'data:video/webm;base64,':('.webm','video/webm'),'data:video/mp4;base64,':('.mp4','video/mp4')}
+    prefix=next((p for p in prefixes if encoded.startswith(p)),None)
+    if not prefix or len(encoded)>24*1024*1024:raise ValueError('Original bounded video must be WebM/MP4 under 18 MiB.')
+    try:raw=base64.b64decode(encoded[len(prefix):],validate=True)
+    except ValueError as exc:raise ValueError('Invalid original video encoding.') from exc
+    suffix,mime=prefixes[prefix]
+    if suffix=='.webm' and not raw.startswith(b'\x1aE\xdf\xa3') or suffix=='.mp4' and raw[4:8]!=b'ftyp':
+        raise ValueError('Original video container signature is invalid.')
+    with tempfile.TemporaryDirectory(prefix='lipnet-video-validation-') as directory:
+        path=Path(directory)/('original'+suffix);path.write_bytes(raw)
+        cap=cv2.VideoCapture(str(path));count=0;fps=float(cap.get(cv2.CAP_PROP_FPS))
+        try:
+            while True:
+                ok,frame=cap.read()
+                if not ok:break
+                count+=1
+                if count>180 or (frame.shape[1],frame.shape[0])!=geometry:
+                    raise ValueError('Original video is too long or differs from source-frame geometry.')
+        finally:cap.release()
+    if count<2 or not np.isfinite(fps) or fps<=0 or count/fps>5.8:
+        raise ValueError('Original video cannot be fully decoded as a bounded utterance.')
+    return raw,'original'+suffix,{'sha256':digest(raw),'mime_type':mime,'bytes':len(raw),
+             'decoded_frames':count,'container_fps':fps,'duration_ms':count/fps*1000,
+             'audio_absence':'browser video-only stream declaration; not device attestation'}
 
 
 def digest(value):
@@ -80,6 +110,9 @@ def validate_capture(row, root: Path, tracker=track_frames):
         raw_frames.append(raw); images.append(image)
     if sum(map(len, raw_frames)) > MAX_BYTES:
         raise ValueError('Recording exceeds 64 MiB. Record a shorter utterance.')
+    original_video=None
+    if row.get('original_video'):
+        original_video=decode_original_video(row['original_video'],geometry)
     landmarks = tracker(images, root)
     rois, evidence, warnings = [], [], []
     for image, faces in zip(images, landmarks):
@@ -110,12 +143,17 @@ def validate_capture(row, root: Path, tracker=track_frames):
     with zipfile.ZipFile(stream, 'w', compression=zipfile.ZIP_STORED) as archive:
         for i, raw in enumerate(raw_frames):
             archive.writestr(f'{i:04d}.png', raw)
+        if original_video:archive.writestr(original_video[1],original_video[0])
+        archive.writestr('timestamps.json',canonical({'timestamps_ms':times,'sampled_fps':fps,'source_native_fps':None}))
     roi_stream = io.BytesIO(); np.save(roi_stream, rois, allow_pickle=False)
-    metadata = {k: v for k, v in row.items() if k != 'frames'}
+    metadata = {k: v for k, v in row.items() if k not in {'frames','original_video'}}
     metadata.update(source_sha256=source_hash, pixels_sha256=pixels_hash, source_frame_hashes=[digest(r) for r in raw_frames],
                     frame_count=len(images), geometry=list(geometry), captured_fps=fps, duration_ms=duration,
                     preprocessing=PREPROCESSING, quality=evidence, warnings=sorted(set(warnings)),
                     landmarker_sha256=digest((root/'frontend/public/models/face_landmarker.task').read_bytes()),
                     roi_sha256=digest(roi_stream.getvalue()), device_attestation=False,
                     recording_format='ordered original PNG sequence; exact timestamps; lossless ZIP')
+    metadata['original_video']=original_video[2] if original_video else None
+    if original_video:
+        metadata['source_sha256']=digest(canonical({'original_pngs':source_hash,'original_video':original_video[2]['sha256']}))
     return metadata, stream.getvalue(), roi_stream.getvalue()

@@ -6,6 +6,8 @@ import { lazy, Suspense } from 'react'
 import { WorkspaceShell } from './workspace/WorkspaceShell'
 import { LiveDemoPage } from './workspace/pages/LiveDemo'
 import { RecordingStudioPage } from './workspace/pages/RecordingStudio'
+import { WordCollectionPage } from './workspace/pages/WordCollection'
+import { AdaptiveFeedbackPage } from './workspace/pages/AdaptiveFeedback'
 import { DatasetPage } from './workspace/pages/Dataset'
 import { TrainingPage } from './workspace/pages/Training'
 import { TestingPage } from './workspace/pages/Testing'
@@ -108,7 +110,9 @@ export const router = createBrowserRouter([
       { path: 'overview', element: <OverviewPage /> },
       { path: 'docs', element: <DocumentationPage /> },
       { path: 'live', element: <LiveDemoPage /> },
-      { path: 'collect', element: <RecordingStudioPage /> },
+      { path: 'collect', element: <WordCollectionPage /> },
+      { path: 'studio', element: <RecordingStudioPage /> },
+      { path: 'feedback', element: <AdaptiveFeedbackPage /> },
       { path: 'dataset', element: <DatasetPage /> },
       { path: 'training', element: <TrainingPage /> },
       { path: 'testing', element: <TestingPage /> },

@@ -6,6 +6,7 @@ import { Icon } from '../Icon'
 import { RecognitionEvidence } from '../components/RecognitionEvidence'
 import { WordAssistantPanel, WordCaptureStatus, WordSession } from '../components/WordAssistant'
 import { MissionControl } from '../components/MissionControl'
+import { FrameInspector } from '../components/FrameInspector'
 import '../../styles/live-workspace.css'
 
 function CameraIllustration() {
@@ -108,7 +109,7 @@ export function LiveDemoPage() {
               <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#10b981" }}>
                 Active Vocabulary ({selectedHealth.vocabulary.length} words)
               </span>
-              <Link to="/demo/collect" style={{ fontSize: "11px", color: "#34d399", textDecoration: "none" }}>+ Record / Add Words</Link>
+              <Link to="/demo/feedback" style={{ fontSize: "11px", color: "#34d399", textDecoration: "none" }}>Verify or correct predictions →</Link>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
               {selectedHealth.vocabulary.map(w => (
@@ -131,7 +132,20 @@ export function LiveDemoPage() {
           </div>
         )}
 
-        {assistant ? <WordAssistantPanel state={assistant.state} controller={assistant.controller} canCapture={d.canCaptureWord} cameraActive={d.running} begin={d.beginWord}/> : <>
+        {assistant ? (
+          <WordAssistantPanel
+            state={assistant.state}
+            controller={assistant.controller}
+            canCapture={d.canCaptureWord}
+            cameraActive={d.running}
+            begin={d.beginWord}
+            vocabulary={selectedHealth.vocabulary}
+            onInspectFrames={() => {
+              const el = document.getElementById('frame-inspector-section')
+              el?.scrollIntoView({ behavior: 'smooth' })
+            }}
+          />
+        ) : <>
           <div className="ws-live-letter-area"><span className="ws-eyebrow">{d.predicting ? 'ANALYZING SEQUENCE' : uncertain ? 'UNCERTAIN' : d.readout.stabilizing ? 'CONFIRMING PREDICTION' : hasPrediction ? 'PREDICTED LETTER' : 'WAITING FOR A SIGNAL'}</span><p className={'ws-live-letter' + (d.predicting ? ' is-processing' : '')} aria-live="polite">{hasPrediction ? d.readout.detected : '—'}</p><p className="ws-live-letter-note">{d.predicting ? 'Processing captured mouth frames…' : uncertain ? 'UNCERTAIN — PLEASE TRY AGAIN' : hasPrediction ? 'Experimental alphabet classification' : !d.inferenceReady ? 'Connect an available alphabet model' : d.readout.stabilizing ? 'Waiting for a second consistent window' : d.running ? 'Watching for mouth movement' : 'Start camera and speak a single letter'}</p></div>
           <div className="ws-live-confidence"><span>{d.readout.smoothed ? 'Smoothed model score' : 'Model confidence'}</span><strong>{d.readout.confidence !== null ? (d.readout.confidence * 100).toFixed(1) + '%' : '—'}</strong><div><i style={{ width: d.readout.confidence !== null ? d.readout.confidence * 100 + '%' : '0%' }}/></div></div>
           <div className="ws-live-candidates"><div className="ws-live-small-title"><span>Top candidates</span><span>MODEL SCORE</span></div>{d.readout.top3?.length ? d.readout.top3.map((candidate, i) => <div className="ws-live-candidate" key={candidate.letter}><span>{candidate.letter}</span><div><i style={{ width: candidate.prob * 100 + '%', opacity: Math.max(.3, 1 - i * .15) }}/></div><strong>{(candidate.prob * 100).toFixed(1)}%</strong></div>) : <div className="ws-live-no-candidates"><Icon name="layers" size={19}/><p>Candidates appear after a real model response.</p></div>}</div>
@@ -145,6 +159,13 @@ export function LiveDemoPage() {
     {issue && <div className="ws-live-error" role="alert"><Icon name="alert" size={18}/><div><strong>{cameraError ? 'Camera needs attention' : 'This attempt needs attention'}</strong><p>{issue}</p></div><button className="ws-btn ws-btn-ghost ws-btn-sm" onClick={cameraError ? () => void d.start(cameraId || undefined) : assistant && d.running ? assistant.controller.recover : refresh}>{assistant && d.running ? 'Back to Ready' : 'Retry'}</button></div>}
     {!d.inferenceReady && <div className="ws-live-notice"><Icon name="info" size={16}/><p>{d.inferenceReason || 'Checking the inference service. Camera preview remains available.'}</p><button className="ws-inline-link" onClick={refresh}>Check again<Icon name="refresh" size={12}/></button></div>}
     {assistant && <WordSession state={assistant.state} controller={assistant.controller}/>}
+    <section id="frame-inspector-section" style={{ margin: '20px 0' }}>
+      <FrameInspector
+        frames={d.capturedFrames}
+        durationMs={assistant?.state.captureMs}
+        label={assistant?.state.result?.word ?? assistant?.state.result?.candidate ?? (hasPrediction ? d.readout.detected ?? undefined : undefined)}
+      />
+    </section>
     <section className="ws-live-pipeline" aria-label="Real pipeline telemetry"><div className="ws-live-section-title"><h2>Behind the prediction</h2><span>LIVE PIPELINE TELEMETRY</span></div><div className="ws-live-stages">{steps.map((step, i) => <div className={'ws-live-stage' + (step.ready ? ' is-ready' : '')} key={step.name}><div><Icon name={step.icon} size={16}/><small>0{i + 1}</small></div><h3>{step.name}</h3><p>{step.value}</p></div>)}</div></section>
     <div className="ws-live-details">
       <section className="ws-card ws-live-analysis"><div className="ws-card-head"><h2>The visual signals</h2><span className="ws-mono">LOCAL ANALYSIS</span></div><div className="ws-live-signals">
