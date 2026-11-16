@@ -59,6 +59,9 @@ app.include_router(lrw500_router)
 app.include_router(expanded_word_router)
 from app.studio_routes import router as studio_router
 app.include_router(studio_router)
+from app.adaptive_routes import router as adaptive_router, PrivateBodyLimit
+app.include_router(adaptive_router)
+app.add_middleware(PrivateBodyLimit)
 INFERENCE_TIMEOUT_SECONDS = 30.0
 
 

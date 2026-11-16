@@ -74,3 +74,6 @@ runs/
 
 # Small publisher geometry required by research inference.
 !pipeline/lrw_tcn/20words_mean_face.npy
+
+# Consented biometric recordings and private feedback registry.
+data/adaptive_private/
