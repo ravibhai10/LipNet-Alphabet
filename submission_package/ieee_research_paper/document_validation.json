@@ -1,0 +1,191 @@
+{
+  "pages": 20,
+  "words_extracted": 13061,
+  "figures_excluding_equations": 13,
+  "equations": 12,
+  "per_page": [
+    {
+      "page": 1,
+      "column_occupancy": [
+        0.8288043478260869,
+        0.7875905797101449
+      ],
+      "characters": 4423,
+      "body_font_pt": 10
+    },
+    {
+      "page": 2,
+      "column_occupancy": [
+        0.9403571428571429,
+        0.9132142857142858
+      ],
+      "characters": 5820,
+      "body_font_pt": 10
+    },
+    {
+      "page": 3,
+      "column_occupancy": [
+        0.9035714285714286,
+        0.9071428571428571
+      ],
+      "characters": 5672,
+      "body_font_pt": 10
+    },
+    {
+      "page": 4,
+      "column_occupancy": [
+        0.9079255319148937,
+        0.9232142857142858
+      ],
+      "characters": 5056,
+      "body_font_pt": 10
+    },
+    {
+      "page": 5,
+      "column_occupancy": [
+        0.9311868131868132,
+        0.9292857142857143
+      ],
+      "characters": 5265,
+      "body_font_pt": 10
+    },
+    {
+      "page": 6,
+      "column_occupancy": [
+        0.9807048499716927,
+        0.9421428571428572
+      ],
+      "characters": 4794,
+      "body_font_pt": 10
+    },
+    {
+      "page": 7,
+      "column_occupancy": [
+        0.8743736263736264,
+        0.8728571428571429
+      ],
+      "characters": 4975,
+      "body_font_pt": 10
+    },
+    {
+      "page": 8,
+      "column_occupancy": [
+        0.8743541033434651,
+        0.875
+      ],
+      "characters": 4439,
+      "body_font_pt": 10
+    },
+    {
+      "page": 9,
+      "column_occupancy": [
+        0.8163846153846154,
+        0.8425329670329671
+      ],
+      "characters": 4347,
+      "body_font_pt": 10
+    },
+    {
+      "page": 10,
+      "column_occupancy": [
+        0.9125683890577508,
+        0.8985714285714286
+      ],
+      "characters": 4716,
+      "body_font_pt": 10
+    },
+    {
+      "page": 11,
+      "column_occupancy": [
+        0.8334493087557603,
+        0.8327350230414746
+      ],
+      "characters": 3154,
+      "body_font_pt": 10
+    },
+    {
+      "page": 12,
+      "column_occupancy": [
+        0.9014118541033436,
+        0.8872963525835866
+      ],
+      "characters": 3994,
+      "body_font_pt": 10
+    },
+    {
+      "page": 13,
+      "column_occupancy": [
+        0.9325,
+        0.9260714285714285
+      ],
+      "characters": 3883,
+      "body_font_pt": 10
+    },
+    {
+      "page": 14,
+      "column_occupancy": [
+        0.8832709843348141,
+        0.8896428571428572
+      ],
+      "characters": 4616,
+      "body_font_pt": 10
+    },
+    {
+      "page": 15,
+      "column_occupancy": [
+        0.9918541033434651,
+        0.9982826747720365
+      ],
+      "characters": 4389,
+      "body_font_pt": 10
+    },
+    {
+      "page": 16,
+      "column_occupancy": [
+        0.9307048499716928,
+        0.9321483516483515
+      ],
+      "characters": 4418,
+      "body_font_pt": 10
+    },
+    {
+      "page": 17,
+      "column_occupancy": [
+        0.8567857142857143,
+        0.8721428571428571
+      ],
+      "characters": 5283,
+      "body_font_pt": 10
+    },
+    {
+      "page": 18,
+      "column_occupancy": [
+        0.9742857142857143,
+        0.9678571428571429
+      ],
+      "characters": 5928,
+      "body_font_pt": 10
+    },
+    {
+      "page": 19,
+      "column_occupancy": [
+        0.9067857142857143,
+        0.9064285714285715
+      ],
+      "characters": 5498,
+      "body_font_pt": 10
+    },
+    {
+      "page": 20,
+      "column_occupancy": [
+        0.6553571428571429,
+        0.6717857142857143
+      ],
+      "characters": 4137,
+      "body_font_pt": 10
+    }
+  ],
+  "source_sha256": "ca2bc29c0f39d3d3ca0e5800a9f2d6e9385a64c47ae50f8705374fbf3bb450be",
+  "pdf_sha256": "3bcf8acb3d1cd52b74137a0d8f7b4ac8d4b9adfa8d79d0bb9158f154d7a7721f",
+  "no_training_or_checkpoint_changes": true
+}

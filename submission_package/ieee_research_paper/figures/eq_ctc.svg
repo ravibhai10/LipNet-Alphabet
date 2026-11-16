@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="170.27pt" height="38.82pt" viewBox="0 0 170.27 38.82" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-30T19:35:01.305678</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 38.82 
+L 170.27 38.82 
+L 170.27 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="text_1">
+   <!-- $\mathcal{L}_{CTC}=-\log\sum_{\pi\in\mathcal{B}^{-1}(Y)}\prod_t p(\pi_t\mid X)$ -->
+   <g transform="translate(7.2 18.42)">
+    <text>
+     <tspan x="0" y="-0.8125" style="font-style: italic; font-size: 11px; font-family: 'STIXNonUnicode'"></tspan>
+     <tspan x="7.728214" y="0.837495" style="font-style: oblique; font-size: 7.7px; font-family: 'DejaVu Sans'">C</tspan>
+     <tspan x="13.104678" y="0.837495" style="font-style: oblique; font-size: 7.7px; font-family: 'DejaVu Sans'">T</tspan>
+     <tspan x="17.808145" y="0.837495" style="font-style: oblique; font-size: 7.7px; font-family: 'DejaVu Sans'">C</tspan>
+     <tspan x="64.759597" y="11.342131" style="font-style: oblique; font-size: 7.7px; font-family: 'DejaVu Sans'">π</tspan>
+     <tspan x="95.911667" y="11.342131" style="font-style: oblique; font-size: 7.7px; font-family: 'DejaVu Sans'">Y</tspan>
+     <tspan x="106.619186" y="9.6375" style="font-style: oblique; font-size: 7.7px; font-family: 'DejaVu Sans'">t</tspan>
+     <tspan x="130.906296" y="0.837495" style="font-style: oblique; font-size: 7.7px; font-family: 'DejaVu Sans'">t</tspan>
+     <tspan x="25.628458" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans'">=</tspan>
+     <tspan x="36.988321" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans'">−</tspan>
+     <tspan x="46.205118" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans'">l</tspan>
+     <tspan x="49.26127" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans'">o</tspan>
+     <tspan x="55.991251" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans'">g</tspan>
+     <tspan x="119.992233" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans'">(</tspan>
+     <tspan x="136.369235" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans'">∣</tspan>
+     <tspan x="151.547946" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans'">)</tspan>
+     <tspan x="78.759597" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans Display'">∑</tspan>
+     <tspan x="103.619186" y="-0.8125" style="font-size: 11px; font-family: 'DejaVu Sans Display'">∏</tspan>
+     <tspan x="70.895534" y="11.342131" style="font-size: 7.7px; font-family: 'DejaVu Sans'">∈</tspan>
+     <tspan x="92.907614" y="11.342131" style="font-size: 7.7px; font-family: 'DejaVu Sans'">(</tspan>
+     <tspan x="100.615134" y="11.342131" style="font-size: 7.7px; font-family: 'DejaVu Sans'">)</tspan>
+     <tspan x="79.103103" y="11.342131" style="font-style: italic; font-size: 7.7px; font-family: 'STIXNonUnicode'"></tspan>
+     <tspan x="84.751555" y="8.162031" style="font-size: 5.39px; font-family: 'DejaVu Sans'">−</tspan>
+     <tspan x="89.267785" y="8.162031" style="font-size: 5.39px; font-family: 'DejaVu Sans'">1</tspan>
+     <tspan x="113.009811" y="-0.8125" style="font-style: oblique; font-size: 11px; font-family: 'DejaVu Sans'">p</tspan>
+     <tspan x="124.283737" y="-0.8125" style="font-style: oblique; font-size: 11px; font-family: 'DejaVu Sans'">π</tspan>
+     <tspan x="144.012302" y="-0.8125" style="font-style: oblique; font-size: 11px; font-family: 'DejaVu Sans'">X</tspan>
+    </text>
+   </g>
+  </g>
+ </g>
+</svg>

@@ -1,22 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MathExpression } from '../../components/MathExpression'
 import { EQUATIONS } from '../../lib/equations'
-import { probeHealth, HealthInfo } from '../../lib/api'
 
 export function PredictionAnalysisScene() {
-  const [selectedWord, setSelectedWord] = useState<string>('ABOUT')
-  const [health, setHealth] = useState<HealthInfo | null>(null)
-
-  useEffect(() => {
-    const ctrl = new AbortController()
-    probeHealth(ctrl.signal)
-      .then(setHealth)
-      .catch(() => setHealth({ status: 'offline', inferenceReady: false }))
-    return () => ctrl.abort()
-  }, [])
+  const [selectedWord, setSelectedWord] = useState<string>('LETTER_B')
 
   // Illustrative prediction profiles based on homopheny groups
-  const predictionProfiles: Record<string, { top5: { label: string; prob: number; viseme: string }[]; entropy: number; ambiguity: string }> = {
+  const predictionProfiles: Record<string, { top5: { label: string; prob: number; viseme: string }[]; ambiguity: string }> = {
     'ABOUT': {
       top5: [
         { label: 'ABOUT', prob: 0.74, viseme: 'Bilabial release /b/ + diphthong /aʊ/' },
@@ -25,7 +15,6 @@ export function PredictionAnalysisScene() {
         { label: 'AGAIN', prob: 0.04, viseme: 'Vocalic onset match' },
         { label: 'ACROSS', prob: 0.03, viseme: 'Residual distribution' },
       ],
-      entropy: 0.98,
       ambiguity: 'Low Ambiguity: The dynamic bilabial explosion into open diphthong /aʊ/ is visually distinct.'
     },
     'MAYBE': {
@@ -36,7 +25,6 @@ export function PredictionAnalysisScene() {
         { label: 'MAKE', prob: 0.06, viseme: 'Matching initial bilabial gesture' },
         { label: 'MANY', prob: 0.03, viseme: 'Residual probability' },
       ],
-      entropy: 1.84,
       ambiguity: 'High Homophenous Ambiguity: /m/, /b/, and /p/ share identical lip closure; differentiation relies entirely on vocal cord vibration which has zero optical footprint.'
     },
     'LETTER_B': {
@@ -47,12 +35,12 @@ export function PredictionAnalysisScene() {
         { label: 'V', prob: 0.03, viseme: 'Labiodental slip' },
         { label: 'D', prob: 0.02, viseme: 'Residual' },
       ],
-      entropy: 1.25,
-      ambiguity: 'Viseme Clustering: The model groups B, P, and M together because external lip geometry cannot reveal intra-oral nasalization.'
+      ambiguity: 'This invented distribution illustrates uncertainty. It is not a measured confusion group for spoken letter names, and does not show what the deployed model has learned.'
     }
   }
 
-  const activeProfile = predictionProfiles[selectedWord]
+  const profile = predictionProfiles[selectedWord]
+  const activeProfile = { ...profile, entropy: -profile.top5.reduce((sum, candidate) => sum + candidate.prob * Math.log2(candidate.prob), 0) }
 
   return (
     <section id="scene-prediction" className="science-scene" aria-label="Scene 6: The Anatomy of a Prediction">
@@ -72,18 +60,32 @@ export function PredictionAnalysisScene() {
             <span>Viseme Ambiguity & Multi-Class Probability Distribution</span>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <span className={`sci-tag ${health?.status === 'online' ? 'verified' : 'illustrative'}`}>
-              Backend: {health?.status === 'online' ? 'Online API' : 'Illustrative Fixture'}
+            <span className="sci-tag illustrative">
+              Teaching simulation · not inference
             </span>
           </div>
         </div>
 
         {/* Word / Phoneme Selector */}
+        <div style={{
+          marginBottom: '1rem',
+          padding: '0.65rem 0.9rem',
+          background: 'rgba(237, 235, 228, 0.02)',
+          border: '1px solid rgba(237, 235, 228, 0.08)',
+          borderRadius: '8px',
+          fontSize: '0.76rem',
+          fontFamily: 'var(--font-mono)',
+          color: 'var(--ink-dim)',
+          lineHeight: 1.5
+        }}>
+          <strong style={{ color: 'var(--accent)' }}>All profiles below are manually specified:</strong> These are invented teaching distributions, including the letter example. They are not checkpoint outputs, measurements, or evidence of word recognition. Entropy is calculated from the displayed five scores. The live endpoint supports isolated A–Z clips only.
+        </div>
+
         <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
           {[
-            { id: 'ABOUT', name: 'Word: "ABOUT" (Distinct Trajectory)' },
-            { id: 'MAYBE', name: 'Word: "MAYBE" (Bilabial Ambiguity)' },
-            { id: 'LETTER_B', name: 'Single Letter: "B" (Viseme /b, p, m/)' },
+            { id: 'LETTER_B', name: 'Letter "B" (Teaching Example)' },
+            { id: 'ABOUT', name: 'Word "ABOUT" (LRW Research Simulation)' },
+            { id: 'MAYBE', name: 'Word "MAYBE" (Homophene /m, b, p/ Simulation)' },
           ].map((item) => (
             <button
               key={item.id}
@@ -185,7 +187,7 @@ export function PredictionAnalysisScene() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>
                   <span style={{ color: 'var(--ink-dim)' }}>SHANNON ENTROPY:</span>
                   <span style={{ color: activeProfile.entropy < 1.2 ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>
-                    {activeProfile.entropy} bits
+                    {activeProfile.entropy.toFixed(3)} bits
                   </span>
                 </div>
                 <div style={{ height: '6px', background: 'rgba(237, 235, 228, 0.1)', borderRadius: '3px', marginTop: '6px', overflow: 'hidden' }}>
@@ -226,7 +228,7 @@ export function PredictionAnalysisScene() {
               color: 'var(--ink-faint)',
               fontFamily: 'var(--font-mono)'
             }}>
-              DATA SOURCE: Derived from calibrated viseme clustering metrics and active EMA smoothing parameters.
+              DATA SOURCE: Manually specified teaching distributions. No calibrated metrics, live predictions, or evaluation results are shown in this panel.
             </div>
           </div>
         </div>

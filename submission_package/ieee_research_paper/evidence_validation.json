@@ -1,0 +1,48 @@
+{
+  "paired_ids": 192,
+  "before_correct": 24,
+  "after_correct": 182,
+  "difference_pp": 82.29166666666667,
+  "wilson_95_before": [
+    0.08545671788882409,
+    0.1792546416612415
+  ],
+  "wilson_95_after": [
+    0.9067948899639535,
+    0.9714665416845791
+  ],
+  "paired_discordant": [
+    158,
+    0
+  ],
+  "mcnemar_exact_descriptive_p": 5.473822126268817e-48,
+  "statistical_caveat": "Clip-level descriptive calculations; speaker dependence and pilot exposure preclude a population-independent significance claim.",
+  "current_policy": {
+    "head_sha256": "bc07a9eca0979e556af573a387733396a891fe41faa10715c9f4d323e9c4cc74",
+    "threshold": 0.6,
+    "margin": 0.1,
+    "source": "validation known-word and phrase samples calibrated for live webcam speech",
+    "general_oov_detection_validated": false
+  },
+  "evaluated_policy": {
+    "threshold": 0.95,
+    "margin": 0.2,
+    "selection": "validation known-word correctness and phrase OOD only; prespecified utility",
+    "known_test_accepted": 137,
+    "known_test_coverage": 0.7135416666666666,
+    "accepted_correct": 137,
+    "accepted_accuracy": 1.0,
+    "phrase_ood_test_samples": 60,
+    "phrase_ood_false_accepts": 8,
+    "phrase_ood_false_accept_rate": 0.13333333333333333,
+    "limitation": "Multi-word phrase diagnostic only; arbitrary unseen isolated-word rejection is not established."
+  },
+  "source_hashes": {
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\evaluation.json": "dc26a5e1c5183c9770f20d1c5a3d2b639dd1701d22e8e0ae1a34c94d800cccef",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\selection.json": "873115c67cfc04830e612d8be1761fc079732b348fd89a956d348695d9803c0f",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\paired_comparison.json": "d72eb7f74df19a6098b33d8fe498f733cdafba756e696f031064b64a3adc93d2",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\protocol.json": "58ae0afdf05e25772b1d9f45adc81848278f56d852ef39cd25cfd216eea99015",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\test_predictions.jsonl": "1e9180739e11735ea27057f64c27709cade143592b5c37d3330683f7d91a6df6",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\preserved_scratch_test_predictions.jsonl": "8061eb279c2e5695213703c51e827775d430c05ec233712312c37476e45376d9"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "dataset": "grid_aligned_whole_words",
+  "corpus_root": "data/external/grid",
+  "source_inventory": "data/processed/grid_multispeaker_v1",
+  "processed_root": "data/processed/grid_whole_words",
+  "words": [
+    "bin",
+    "lay",
+    "place",
+    "set"
+  ],
+  "quotas": {
+    "train": 24,
+    "valid": 8,
+    "test": 8
+  },
+  "minimum_speakers": {
+    "train": 3,
+    "valid": 2,
+    "test": 2
+  },
+  "preprocessing": {
+    "version": "grid-whole-word-mouth-v1",
+    "frames": 24,
+    "size": 64,
+    "grayscale": true
+  },
+  "model": {
+    "channels": [
+      8,
+      16,
+      32
+    ],
+    "hidden_size": 48,
+    "layers": 2,
+    "dropout": 0.15
+  },
+  "training": {
+    "epochs": 24,
+    "batch_size": 4,
+    "lr": 0.0002,
+    "weight_decay": 0.0005,
+    "label_smoothing": 0.0,
+    "patience": 8,
+    "min_delta": 5e-05,
+    "threads": 2,
+    "seed": 42,
+    "max_minutes": 20
+  },
+  "reserve_gib": 20,
+  "download_max_minutes": 10
+}

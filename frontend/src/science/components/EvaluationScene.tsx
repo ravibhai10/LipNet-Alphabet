@@ -12,7 +12,7 @@ export function EvaluationScene() {
 
   const classes = ['A', 'B', 'C', 'D', 'E']
 
-  // 5x5 sample confusion matrix (illustrative benchmark based on single-speaker baseline)
+  // Invented arithmetic example, not a benchmark or a corpus evaluation.
   const matrix: number[][] = [
     [142,  4,  2,  5,  3], // Actual A
     [  3, 128,  1,  6, 18], // Actual B (confuses with E/D)
@@ -62,9 +62,11 @@ export function EvaluationScene() {
           <div className="sci-card-title">
             <span>5-Class Confusion Matrix & Per-Class Metrics</span>
           </div>
-          <span className="sci-tag illustrative">Illustrative Fixture (GRID s1 Sample)</span>
+          <span className="sci-tag illustrative">Invented counts · not model results</span>
         </div>
 
+        <p className="math-desc" style={{ marginBottom: '1.5rem' }}>No audited A–Z or LRW benchmark is available. This matrix and the loss curve below contain invented teaching numbers; neither was measured on GRID, LRW, or a webcam. They demonstrate metric arithmetic only.</p>
+        <p className="math-desc" style={{ marginBottom: '1.5rem' }}>Historical artifact: <code>models/training_summary.json</code> records 12% test accuracy on 100 samples after a 30-epoch run. Its original split, evaluated clips, and per-sample predictions are absent, so that result was not reproduced or verified as speaker independent.</p>
         <div className="sci-split">
           {/* Left: Interactive 5x5 Confusion Matrix */}
           <div>
@@ -97,7 +99,7 @@ export function EvaluationScene() {
                     const count = matrix[r][c]
                     const isDiagonal = r === c
                     const isHovered = selectedCell?.actual === actualClass && selectedCell?.predicted === predClass
-                    const cellType: 'TP' | 'FP' | 'FN' | 'TN' = isDiagonal ? 'TP' : r === 0 ? 'FN' : c === 0 ? 'FP' : 'TN'
+                    const cellType: 'TP' | 'FP' | 'FN' | 'TN' = r === classIdx && c === classIdx ? 'TP' : r === classIdx ? 'FN' : c === classIdx ? 'FP' : 'TN'
 
                     return (
                       <div
@@ -135,7 +137,7 @@ export function EvaluationScene() {
             </div>
 
             <div style={{ fontSize: '0.72rem', color: 'var(--ink-faint)', marginTop: '0.8rem', fontFamily: 'var(--font-mono)' }}>
-              Note: Diagonal green cells denote True Positives; off-diagonal yellow cells denote viseme misclassifications (e.g. B ↔ E).
+              Diagonal cells are correct classifications in this invented example. TP/FP/FN/TN labels use A versus the other classes; the error causes are not known.
             </div>
           </div>
 
@@ -205,7 +207,7 @@ export function EvaluationScene() {
         <div style={{ borderTop: '1px solid var(--line)', marginTop: '2rem', paddingTop: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.82rem', fontFamily: 'var(--font-mono)', color: 'var(--ink)', fontWeight: 600 }}>
-              Training Loss vs Validation Loss (CosineAnnealingLR Schedule)
+              Synthetic Loss Curve · Teaching Example
             </span>
             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>
               <span style={{ color: 'var(--accent)' }}>● Train Loss</span>
@@ -231,8 +233,7 @@ export function EvaluationScene() {
             ))}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--ink-dim)', marginTop: '0.6rem' }}>
-            Inflection Analysis: Early stopping triggered when validation loss ceases to decrease for 3 consecutive epochs, 
-            preventing memorization of specific speaker idiosyncratic facial wrinkles.
+            This curve illustrates a possible train/validation divergence. No corresponding training run or early-stopping event is recorded by these numbers.
           </div>
         </div>
       </div>

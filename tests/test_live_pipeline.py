@@ -218,7 +218,10 @@ class TestLivePipelineInference:
             state="CONFIDENT",
         )
         pipe._apply_result(result, now, 10.0, 2.0, 3.0, 4.0, 1.0)
-
+        assert pipe._state.state == "PROCESSING"
+        assert pipe._state.letter == ""
+        pipe._apply_result(result, now + .1, 10.0, 2.0, 3.0, 4.0, 1.0)
+        pipe._apply_result(result, now + .2, 10.0, 2.0, 3.0, 4.0, 1.0)
         assert pipe._state.state == "CONFIDENT"
         assert pipe._state.letter == "A"
         assert pipe._state.confidence == 0.85

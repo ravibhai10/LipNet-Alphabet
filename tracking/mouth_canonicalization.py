@@ -32,7 +32,11 @@ def aligned_mouth_crop(frame, landmarks, size=96, margin=2.2):
                           borderMode=cv2.BORDER_REPLICATE)
 
 
-def read_aligned_mouth_video(video_path, *, max_frames=500):
+def read_aligned_mouth_video(video_path, *, max_frames=500, start_frame=0, end_frame=None):
+    if type(start_frame) is not int or start_frame < 0 or (end_frame is not None and (type(end_frame) is not int or end_frame <= start_frame)):
+        raise ValueError("Segment bounds must be nonnegative integer frame indices with end > start.")
+    if end_frame is not None and end_frame - start_frame > max_frames:
+        raise ValueError("Segment exceeds the maximum frame count.")
     from pathlib import Path
     from tracking.aligner import FaceTracker, TrackingConfig
     model_path = Path(__file__).resolve().parents[1] / "frontend/public/models/face_landmarker.task"
@@ -40,15 +44,21 @@ def read_aligned_mouth_video(video_path, *, max_frames=500):
     capture = cv2.VideoCapture(str(video_path))
     fps = capture.get(cv2.CAP_PROP_FPS)
     fps = fps if np.isfinite(fps) and fps > 0 else 25.
-    crops, seen, consecutive_missing = [], 0, 0
+    crops, seen, consecutive_missing, source_index = [], 0, 0, 0
     try:
         while True:
+            if end_frame is not None and source_index >= end_frame:
+                break
             ok, frame = capture.read()
             if not ok:
                 break
+            index = source_index
+            source_index += 1
+            if index < start_frame:
+                continue
             if seen >= max_frames:
                 raise ValueError("Segment videos into clips of at most 500 frames.")
-            result = tracker.process_frame(frame, seen, seen * 1000. / fps)
+            result = tracker.process_frame(frame, index, index * 1000. / fps)
             seen += 1
             if result.has_face and result.landmarks is not None and "no_face" not in (result.quality_flags or []):
                 crops.append(cv2.cvtColor(aligned_mouth_crop(frame, result.landmarks), cv2.COLOR_BGR2GRAY))
@@ -60,6 +70,8 @@ def read_aligned_mouth_video(video_path, *, max_frames=500):
     finally:
         capture.release()
         tracker.close()
+    if end_frame is not None and source_index < end_frame:
+        raise ValueError("Segment ends beyond the decoded video.")
     if len(crops) < 2 or len(crops) < seen * .8:
         raise ValueError("Too few reliably tracked mouth frames in the video.")
     return np.stack(crops), fps

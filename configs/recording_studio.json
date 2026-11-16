@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "dataset_version": "studio-v2",
+  "protocol": "speaker_independent",
+  "tasks": {
+    "alphabet_recognition": {"labels": ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], "instruction": "Say the name of the prompted English letter once. Capture the whole utterance, then confirm the label."},
+    "isolated_word": {"labels": ["choose","connection","hello","navigation","next","previous","start","stop","help","i","am"], "instruction": "Say only the prompted word once. Start before lip movement and finish after the complete word. HELP, I and AM are collection targets, not active model classes."},
+    "negative": {"labels": ["silence","unknown_word"], "instruction": "Capture silence or an isolated word outside the active vocabulary. For an unknown word, record what was actually spoken. Negatives never become known-word training labels."}
+  },
+  "preprocessing": "browser-eyeaxis96-jpeg-v1",
+  "minimum_frames": 8,
+  "maximum_frames": 76,
+  "maximum_duration_ms": 5000,
+  "minimum_capture_fps": 8,
+  "maximum_gap_ms": 250,
+  "training_rule": "Every configured class must have genuine confirmed examples in train, validation and test with disjoint speakers. This is a structural eligibility check, not evidence that the sample count or speaker diversity is sufficient.",
+  "collection_recommendation": "Prioritize new speakers and missing class/split combinations. Collect a small balanced pilot, then use training-only learning curves and validation results to decide how many additional recordings are needed. No universal per-class quota is asserted.",
+  "final_test_rule": "Prefer new test speakers collected after model and policy selection. Do not fit weights or select thresholds using test recordings."
+}

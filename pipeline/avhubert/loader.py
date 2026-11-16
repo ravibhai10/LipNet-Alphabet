@@ -7,6 +7,7 @@ does not contain a trained letter/word classifier or a sentence decoder.
 from __future__ import annotations
 import logging
 import threading
+import time
 from pathlib import Path
 from types import SimpleNamespace
 import cv2
@@ -20,12 +21,13 @@ class ModelUnavailableError(RuntimeError):
     """Required trained weights or the official runtime are unavailable."""
 
 class AVHubertLoader:
-    def __init__(self, ckpt_path: str | Path | None = None, *, threads=4):
+    def __init__(self, ckpt_path: str | Path | None = None, *, threads=4, low_memory=False):
         self.ckpt_path = Path(ckpt_path) if ckpt_path is not None else None
         self._models = self._cfg = self._task = None
         self.available = False
         self.d_out = 768
         self.threads = threads
+        self.low_memory = low_memory
         self._lock = threading.Lock()
 
     @property
@@ -62,9 +64,13 @@ class AVHubertLoader:
                 if not user_dir.is_dir():
                     raise ModelUnavailableError("The official external/av_hubert/avhubert source is missing.")
                 fairseq.utils.import_user_module(SimpleNamespace(user_dir=str(user_dir)))
-                models, cfg, task = checkpoint_utils.load_model_ensemble_and_task(
-                    [str(self.ckpt_path)], arg_overrides={}
-                )
+                if self.low_memory:
+                    from .low_memory import load_encoder
+                    models,cfg,task=load_encoder(self.ckpt_path)
+                else:
+                    models, cfg, task = checkpoint_utils.load_model_ensemble_and_task(
+                        [str(self.ckpt_path)], arg_overrides={}
+                    )
                 if len(models) != 1 or not hasattr(models[0], "extract_finetune"):
                     raise ModelUnavailableError("Expected one pretrained AV-HuBERT feature encoder.")
                 model = models[0].cpu().float().eval()
@@ -119,7 +125,7 @@ class AVHubertLoader:
             frames = np.stack([cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) for frame in frames])
         if frames.ndim != 3 or not 1 <= len(frames) <= 500:
             raise ValueError("Expected 1-500 grayscale mouth ROI frames [T,H,W].")
-        if not np.isfinite(frames).all() or not np.isfinite(source_fps) or source_fps <= 0:
+        if not np.isfinite(frames).all() or (source_fps is None and target_frames is None) or (source_fps is not None and (not np.isfinite(source_fps) or source_fps <= 0)):
             raise ValueError("Invalid ROI values or frame rate.")
         integer_input = np.issubdtype(frames.dtype, np.integer)
         array = frames.astype(np.float32) / (255. if integer_input else 1.)
@@ -141,28 +147,40 @@ class AVHubertLoader:
         # Official source: video [batch,1,time,height,width], audio absent.
         return torch.from_numpy(np.ascontiguousarray(array))[None, None]
 
-    def encode_frames(self, mouth_rois, *, source_fps=25., target_frames=None):
+    def encode_frames(self, mouth_rois, *, source_fps=25., target_frames=None, output_layer=None):
         import torch
+        started = time.perf_counter()
         video = self.prepare_rois(mouth_rois, source_fps=source_fps, target_frames=target_frames)
+        prepared = time.perf_counter()
+        extra={}
+        if output_layer is not None:
+            if type(output_layer) is not int or not 1<=output_layer<=len(self.models[0].encoder.layers):
+                raise ValueError('Requested transformer layer is outside this encoder.')
+            extra['output_layer']=output_layer
         with torch.inference_mode():
             # The official pretraining extract_features() requires both
             # modalities. Its downstream extract_finetune() path explicitly
             # supports missing audio and is also valid with frozen weights.
             features, _ = self.models[0].extract_finetune(
-                source={"video": video, "audio": None}, padding_mask=None, mask=False
+                source={"video": video, "audio": None}, padding_mask=None, mask=False, **extra
             )
         if features.ndim != 3 or features.shape[0] != 1 or features.shape[-1] != self.d_out:
             raise ModelUnavailableError(f"Unexpected feature tensor shape: {tuple(features.shape)}")
         result = features[0].detach().cpu().float().numpy()
         if not np.isfinite(result).all():
             raise ModelUnavailableError("AV-HuBERT produced invalid features.")
+        self.last_timings_ms = {'preprocessing': (prepared-started)*1000,
+                                'feature_extraction': (time.perf_counter()-prepared)*1000}
         return result
 
-    def encode(self, video_path: str | Path, *, input_kind="raw_video", target_frames=None):
+    def encode(self, video_path: str | Path, *, input_kind="raw_video", target_frames=None, start_frame=0, end_frame=None):
         if input_kind == "raw_video":
             from tracking.mouth_canonicalization import read_aligned_mouth_video
-            frames, fps = read_aligned_mouth_video(video_path)
+            bounds = {"start_frame": start_frame, "end_frame": end_frame} if start_frame != 0 or end_frame is not None else {}
+            frames, fps = read_aligned_mouth_video(video_path, **bounds)
         elif input_kind == "mouth_roi":
+            if start_frame != 0 or end_frame is not None:
+                raise ValueError("Segment frame bounds require raw_video inputs.")
             capture = cv2.VideoCapture(str(video_path))
             fps = capture.get(cv2.CAP_PROP_FPS)
             fps = fps if np.isfinite(fps) and fps > 0 else 25.

@@ -1,41 +1,11 @@
 export function ResearchWorkflowScene() {
   const steps = [
-    {
-      num: '01',
-      title: 'Acoustic-Visual Corpus Acquisition',
-      data: 'GRID Corpus (s1: 3,005 recordings) + LRW 500-Word Spec',
-      detail: 'Curated studio-quality videos with precise word and phoneme boundary alignment files (.align).'
-    },
-    {
-      num: '02',
-      title: 'Facial Mesh & Landmark Extraction',
-      data: 'MediaPipe 468-point 3D Face Mesh',
-      detail: '22 critical lip contour indices sampled at 30 FPS. Automatic discard of frames with facial occlusion.'
-    },
-    {
-      num: '03',
-      title: 'Spatial Canonicalization & Augmentation',
-      data: 'Affine Rotation + 140×46 Crop + Z-Score Norm',
-      detail: 'Horizontal flip (p=0.5) and random temporal frame jitter (±2 frames) to simulate speech rate variability.'
-    },
-    {
-      num: '04',
-      title: 'Speaker-Disjoint Dataset Partitioning',
-      data: 'Strict Split Protocol: Train (80%) / Val (10%) / Test (10%)',
-      detail: 'Enforces zero speaker leakage: unseen subjects in evaluation to measure true generalized visual reading.'
-    },
-    {
-      num: '05',
-      title: 'Optimization & Regularized Training',
-      data: 'AdamW (lr=3e-4) + CosineAnnealingLR + Label Smoothing (0.1)',
-      detail: 'Multi-epoch backpropagation on PyTorch CPU-only / CUDA graph with gradient clipping at norm 1.0.'
-    },
-    {
-      num: '06',
-      title: 'Cryptographic Checkpoint Staging',
-      data: 'SHA-256 Verified: 7C00D5117B7FAE9A... (alphabet_classifier.pt)',
-      detail: 'Implements immutable weight caching ensuring 100% reproducible baseline evaluations.'
-    }
+    { num: '01', title: 'Inventory the Available Data', data: 'GRID: 32,891 usable sentences / 33 speakers; MIRACL: real RGB sequences', detail: 'GRID letter slots stay separate from word recognition. MIRACL supplied eight unambiguous word classes. The 45 legacy LRW fixture videos are not a genuine LRW training corpus.' },
+    { num: '02', title: 'Facial Mesh & Landmark Extraction', data: 'Measured landmarks; multiple-face and lighting checks', detail: 'The eight-word model uses its original eye-axis crop. The separate 500-word research path uses publisher mean-face geometry with explicitly approximate MediaPipe anatomical correspondences.' },
+    { num: '03', title: 'Spatial and Temporal Preprocessing', data: 'Word models: 96-pixel ROIs, center 88, mean 0.421 / std 0.165', detail: 'The eight-word model resamples to its trained 29-frame setting. The webcam 500-word path samples actual timestamps at 25 Hz; interpolation does not recover missing visual information. Alphabet preprocessing remains separate.' },
+    { num: '04', title: 'Require Independent Evaluation Data', data: 'Eight-word train / validation / test speakers are separate', detail: 'The 192 test utterances exclude 48 previously used pilot utterances. Test people had appeared in that historical pilot. Native MIRACL FPS is unknown. Complete authorized LRW evaluation data and publisher-training speaker separation remain unavailable.' },
+    { num: '05', title: 'Select Using Validation Only', data: 'Frozen AV-HuBERT layer 9 + mean/std pooling + linear word head', detail: 'The eight-word head was selected on 240 validation utterances before the frozen 192-clip test. The separate publisher-trained 500-word model was not trained or tuned on local diagnostic examples.' },
+    { num: '06', title: 'Preserve and Verify Artifacts', data: 'Checkpoint, vocabulary, preprocessing and source SHA-256 fingerprints', detail: 'Original model weights and eight-word evaluation artifacts remain protected. The 500-word diagnostic records real predictions, failures, limited class coverage and CPU measurements; it does not establish broad-English or webcam accuracy.' },
   ]
 
   return (
@@ -51,14 +21,14 @@ export function ResearchWorkflowScene() {
 
       <div className="sci-card">
         <div className="sci-card-header">
-          <h3 className="sci-card-title">End-to-End Experimental Lineage</h3>
-          <span className="sci-tag verified">6-Stage Protocol</span>
+          <h3 className="sci-card-title">Available Code and Remaining Evidence</h3>
+          <span className="sci-tag">Audited inventory · not a completed benchmark</span>
         </div>
 
         {/* 6-Stage Timeline Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: '1rem',
           margin: '1.5rem 0'
         }}>

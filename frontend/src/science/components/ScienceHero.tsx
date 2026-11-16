@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { MathExpression } from '../../components/MathExpression'
+import { ModelCapabilitiesNotice } from './ModelCapabilitiesNotice'
 
 export function ScienceHero() {
   const [activeFrame, setActiveFrame] = useState(2)
@@ -20,17 +21,17 @@ export function ScienceHero() {
         <h1 className="scene-title">Every word leaves a trace in motion.</h1>
         <p className="scene-lead">
           Sound waves dissolve instantly in ambient noise, but the biological mechanics of speech—the coordinated acceleration of 
-          jaw, lips, and tongue—leave an indelible optical signature. LipNet-AI translates silent visual kinematics into 
-          linguistic tokens using spatio-temporal deep learning.
+          jaw and lips—leave a visible record. This project runs an experimental isolated-letter classifier; word and sentence recognition require separate evidence.
         </p>
       </div>
 
+      <ModelCapabilitiesNotice />
       <div className="sci-card" style={{ background: 'linear-gradient(180deg, #121217 0%, #0c0d10 100%)' }}>
         <div className="sci-card-header">
           <div className="sci-card-title">
             <span style={{ color: 'var(--accent)' }}>●</span> Optical Kinematics & Viseme Temporal Ribbon
           </div>
-          <span className="sci-tag verified">Verified Silent Pipeline</span>
+          <span className="sci-tag illustrative">Illustrative motion · not captured video</span>
         </div>
 
         {/* Frame Ribbon Visualizer */}
@@ -146,9 +147,8 @@ export function ScienceHero() {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '1.2rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-              <div><span style={{ color: 'var(--ink-faint)' }}>Audio SNR:</span> <span style={{ color: 'var(--accent)' }}>-∞ dB (Silent)</span></div>
-              <div><span style={{ color: 'var(--ink-faint)' }}>Sampling:</span> <span style={{ color: 'var(--ink)' }}>29–30 FPS</span></div>
-              <div><span style={{ color: 'var(--ink-faint)' }}>Target:</span> <span style={{ color: 'var(--accent)' }}>Phoneme /æ/</span></div>
+              <div><span style={{ color: 'var(--ink-faint)' }}>Audio:</span> <span style={{ color: 'var(--accent)' }}>Not captured</span></div>
+              <div><span style={{ color: 'var(--ink-faint)' }}>Motion:</span> <span style={{ color: 'var(--ink)' }}>Illustrative timing</span></div>
             </div>
           </div>
         </div>
@@ -165,15 +165,15 @@ export function ScienceHero() {
         }}>
           <div>
             <strong style={{ color: 'var(--ink)', display: 'block', marginBottom: '4px' }}>Zero Acoustic Leakage</strong>
-            Trained and deployed on purely visual video matrices; no microphone permissions or acoustic embeddings are processed.
+            The browser requests video only. The current alphabet endpoint accepts JPEG mouth crops and does not receive audio.
           </div>
           <div>
             <strong style={{ color: 'var(--ink)', display: 'block', marginBottom: '4px' }}>Temporal Non-Invertibility</strong>
-            Mouth movement cannot be classified from a single freeze-frame; phoneme identity is encoded in the rate of aperture expansion.
+            The classifier processes a 30-frame sequence internally and uses the last BiLSTM output for one clip-level decision.
           </div>
           <div>
             <strong style={{ color: 'var(--ink)', display: 'block', marginBottom: '4px' }}>Biomechanical Invariance</strong>
-            Standardized coordinates isolate oral articulators from speaker skull geometry and lighting variances.
+            Measured eye landmarks align the mouth crop. Robustness to different speakers, poses, and lighting has not been measured.
           </div>
         </div>
       </div>

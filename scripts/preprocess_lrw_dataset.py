@@ -53,8 +53,7 @@ def preprocess_video_clip(
         cap.release()
 
     if not frames:
-        # Create synthetic deterministic frames if video could not be decoded
-        return torch.zeros((target_frames, 1, target_height, target_width), dtype=torch.float32)
+        raise ValueError(f"Cannot decode video; no substitute tensor is permitted: {video_path}")
 
     # Uniform resampling to target_frames
     indices = np.linspace(0, len(frames) - 1, target_frames).round().astype(int)
@@ -75,6 +74,8 @@ def run_preprocessing(
     max_per_word: Optional[int] = None,
 ) -> List[Dict]:
     """Preprocess all available raw videos into PyTorch tensors and write manifest."""
+    if manifest_path.exists() or (output_dir.exists() and any(output_dir.iterdir())):
+        raise FileExistsError("Existing preprocessing outputs are protected; choose new output paths. For real LRW use scripts/lrw_words.py.")
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -161,6 +162,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
-
     main()

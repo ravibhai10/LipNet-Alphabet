@@ -1,0 +1,71 @@
+{
+  "project_title": "Context-Aware Lip Reading and Speech Generation Using Deep Learning",
+  "group_id": "12",
+  "academic_year": "2026-2027",
+  "submission_deadline": "31 October 2026",
+  "institution": "K. J. Somaiya School of Engineering, Mumbai- 77",
+  "university": "Somaiya Vidyavihar University",
+  "department": "Department of Electronics and Computer Engineering",
+  "program": "Bachelor of Technology (B. Tech) in Electronics and Computer Engineering",
+  "mentor": {
+    "name": "Prof. Umang Patel",
+    "designation": "Assistant Professor, Department of Electronics and Computer Engineering"
+  },
+  "students": [
+    {
+      "name": "Ravikumar Gupta",
+      "roll_no": "16014023042"
+    },
+    {
+      "name": "Omkar Gupta",
+      "roll_no": "16014023035"
+    }
+  ],
+  "technical_facts": {
+    "word_model": {
+      "name": "WordVideoNet",
+      "architecture": "3D-CNN (Conv3d x3 + BatchNorm3d + SiLU) + Spatial Global Pooling + 2-layer Bidirectional GRU + Linear Classifier",
+      "vocabulary": ["bin", "lay", "place", "set"],
+      "vocabulary_size": 4,
+      "input_dimensions": "[B, 1, 24, 64, 64]",
+      "sampling_rate": "24 frames / second, grayscale normalized",
+      "checkpoint": "best_word_model.pt",
+      "dataset_source": "GRID Corpus (33 speakers on disk, 32,891 utterances)",
+      "splits": {
+        "train": "96 samples (24 per class across 23 disjoint speakers: s1-s20, s22-s24)",
+        "valid": "32 samples (8 per class across 5 disjoint speakers: s25-s29)",
+        "test": "32 samples (8 per class across 5 held-out speakers: s30-s34)"
+      },
+      "baseline_collapsed_accuracy": "25.00% (100% collapsed to single majority class)",
+      "repaired_top1_accuracy": "34.38% (11/32 on unseen held-out speakers)",
+      "repaired_top2_accuracy": "62.50% (20/32 on unseen held-out speakers)",
+      "test_confusion_matrix": [
+        [7, 0, 0, 1],
+        [4, 0, 2, 2],
+        [6, 0, 2, 0],
+        [6, 0, 0, 2]
+      ],
+      "per_class_recall": {
+        "bin": "87.5% (7/8)",
+        "lay": "0.0% (0/8)",
+        "place": "25.0% (2/8)",
+        "set": "25.0% (2/8)"
+      },
+      "visemic_homopheny": "place (/p/) and bin (/b/) share bilabial lip closure; 6/8 place samples predicted as bin"
+    },
+    "alphabet_model": {
+      "name": "Alphabet Classifier",
+      "task": "Isolated visual letter classification",
+      "vocabulary_size": 26,
+      "classes": "A-Z",
+      "checkpoint": "models/alphabet_classifier.pt"
+    },
+    "video_to_text": {
+      "name": "Visual CTC Sequence Decoder",
+      "task": "Continuous sentence recognition",
+      "status": "In Development (Fails closed; no verified trained visual-only sentence checkpoint)"
+    },
+    "test_suite": "32 passing tests (100% pass rate in tests/test_browser_inference.py and tests/test_word_recognition.py)",
+    "frontend_build": "Vite v5.4.21 + React 18, 0 errors, built in 16.18s"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-10-29T13:58:00+05:30",
+  "environment": {
+    "os": "Windows",
+    "cpu": "Intel Core i3-1115G4 (2 cores / 4 threads)",
+    "gpu_available": false,
+    "python_executable": ".venv\\Scripts\\python.exe",
+    "torch_version": "2.2.2+cpu"
+  },
+  "datasets": {
+    "grid": {
+      "name": "GRID Audiovisual Sentence Corpus",
+      "provenance": "https://spandh.dcs.shef.ac.uk/gridcorpus/",
+      "license": "Free research use (University of Sheffield)",
+      "modality": "audiovisual_sentence_and_aligned_words",
+      "status": "VERIFIED_ON_DISK",
+      "speakers_available": 33,
+      "usable_videos": 32891,
+      "archives_verified": 66,
+      "supported_tasks": ["Track A: isolated_words", "Track B: video_to_text"],
+      "extracted_words": ["bin", "lay", "place", "set"]
+    },
+    "miracl_vc1": {
+      "name": "MIRACL-VC1 Visual Speech Dataset",
+      "provenance": "https://www.kaggle.com/datasets/apoorvwatsky/miraclvc1",
+      "license": "Research use only (University of Mons)",
+      "modality": "isolated_words_and_phrases",
+      "status": "ADAPTER_READY_REQUIRES_KAGGLE_CREDENTIALS",
+      "speakers": 15,
+      "words_vocabulary": ["begin", "choose", "connection", "navigation", "next", "previous", "start", "stop", "hello", "web"],
+      "download_instructions": "Place kaggle.json in ~/.kaggle/ and run 'python scripts/download_miracl_vc1.py'"
+    },
+    "tcd_timit": {
+      "name": "TCD-TIMIT Audio-Visual Speech Corpus",
+      "provenance": "https://sigmedia.tv/datasets/tcd_timit/",
+      "license": "Non-commercial research agreement (Trinity College Dublin)",
+      "modality": "continuous_phonetically_balanced_sentences",
+      "status": "ADAPTER_READY_REQUIRES_AUTHORIZATION",
+      "download_instructions": "Apply for non-commercial license at sigmedia.tv and extract archives into data/external/tcd_timit/"
+    },
+    "muavic": {
+      "name": "MuAViC Multilingual Audio-Visual Corpus",
+      "provenance": "https://github.com/facebookresearch/muavic",
+      "license": "CC-BY-NC 4.0 (Meta Research)",
+      "modality": "continuous_speech_avsr",
+      "status": "ADAPTER_READY_REQUIRES_STORAGE_PREFLIGHT",
+      "download_instructions": "Run scripts/download_muavic.py with --language en --split test for small validation split"
+    },
+    "roboflow_lipreading": {
+      "name": "Roboflow Lip Reading",
+      "provenance": "https://universe.roboflow.com/lipreading/lip-reading-h5j77",
+      "license": "Public / Community",
+      "modality": "static_phonetic_images",
+      "status": "AUXILIARY_STATIC_ONLY",
+      "notes": "Not a temporal video word dataset; used only for static landmark validation"
+    },
+    "lrw": {
+      "name": "Lip Reading in the Wild (LRW)",
+      "provenance": "https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrw1.html",
+      "license": "BBC Research & Development Data Agreement",
+      "modality": "isolated_500_word_clips",
+      "status": "EXPERIMENTAL_CHECKPOINT_PRESENT_RAW_VIDEOS_ABSENT",
+      "download_instructions": "Submit signed data agreement to Oxford VGG / BBC R&D and place tar archives into data/external/lrw/"
+    }
+  }
+}

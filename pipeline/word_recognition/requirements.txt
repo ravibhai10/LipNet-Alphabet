@@ -1,0 +1,17 @@
+# Torch CPU wheels are installed first by setup.py from the official CPU index.
+torch==2.2.2
+torchvision==0.17.2
+torchaudio==2.2.2
+numpy==1.26.4
+opencv-contrib-python==4.10.0.84
+mediapipe==0.10.14
+jax==0.4.28
+jaxlib==0.4.28
+protobuf==4.25.8
+scipy==1.13.1
+pandas==2.2.3
+tqdm==4.67.1
+scikit-learn==1.5.2
+requests==2.32.3
+imageio-ffmpeg==0.6.0
+pytest==8.3.5

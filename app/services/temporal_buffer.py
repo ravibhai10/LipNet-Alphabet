@@ -9,8 +9,18 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from typing import List, Optional
+from functools import wraps
+import threading
 
 import numpy as np
+
+
+def _synchronized(method):
+    @wraps(method)
+    def call(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return call
 
 
 @dataclass
@@ -48,11 +58,12 @@ class TemporalBuffer:
         min_frames: int = 8,
         no_face_timeout_s: float = 1.0,
     ):
-        if max_frames < min_frames:
+        if min_frames < 1 or max_frames < min_frames:
             raise ValueError(
                 f"max_frames ({max_frames}) must be >= min_frames ({min_frames})"
             )
         self._buf: deque[BufferedFrame] = deque(maxlen=max_frames)
+        self._lock = threading.RLock()
         self._min = min_frames
         self._no_face_timeout = no_face_timeout_s
         self._last_face_ts: float = 0.0
@@ -68,6 +79,7 @@ class TemporalBuffer:
     def min_frames(self) -> int:
         return self._min
 
+    @_synchronized
     def __len__(self) -> int:
         return len(self._buf)
 
@@ -75,6 +87,7 @@ class TemporalBuffer:
     # Mutators
     # ------------------------------------------------------------------
 
+    @_synchronized
     def append(self, frame: BufferedFrame) -> bool:
         """Append one frame. Returns True if accepted.
 
@@ -84,6 +97,8 @@ class TemporalBuffer:
           is present.
         """
         if frame is None:
+            return False
+        if not np.isfinite(frame.timestamp) or (self._buf and frame.timestamp < self._last_append_ts):
             return False
         if frame.frame_id in self._ids:
             return False
@@ -102,6 +117,7 @@ class TemporalBuffer:
 
         return True
 
+    @_synchronized
     def clear(self) -> None:
         """Drop all frames and reset state."""
         self._buf.clear()
@@ -113,6 +129,7 @@ class TemporalBuffer:
     # Accessors
     # ------------------------------------------------------------------
 
+    @_synchronized
     def is_ready(self, now_ts: float) -> bool:
         """Buffer has enough frames to attempt inference."""
         if len(self._buf) < self._min:
@@ -121,76 +138,71 @@ class TemporalBuffer:
             return False
         return True
 
+    @_synchronized
     def has_face_recently(self, now_ts: float) -> bool:
         if self._last_face_ts == 0.0:
             return False
         return (now_ts - self._last_face_ts) <= self._no_face_timeout
 
+    @_synchronized
     def stats(self, now_ts: float) -> BufferStats:
         return BufferStats(
             size=len(self._buf),
             capacity=self._buf.maxlen or 0,
             has_min=len(self._buf) >= self._min,
             has_face_recently=self.has_face_recently(now_ts),
-            age_s=(now_ts - self._last_append_ts) if self._last_append_ts > 0 else 0.0,
+            age_s=max(0.0, now_ts - self._buf[0].timestamp) if self._buf else 0.0,
         )
 
+    @_synchronized
     def stacked_fused(self) -> np.ndarray:
         """Return the current temporal sequence as [T, 192] float32."""
         if not self._buf:
             return np.zeros((0, 192), dtype=np.float32)
         return np.stack([f.fused for f in self._buf], axis=0).astype(np.float32)
 
+    @_synchronized
     def frames_chronological(self) -> List[BufferedFrame]:
         """Return a snapshot of the buffer in chronological order."""
         return list(self._buf)
 
 
 class PredictionStabilizer:
-    """Reduce label flicker on the displayed prediction.
+    """Confirm consecutive accepted windows; never publish a first-window guess.
 
-    The displayed label only changes once the same label has been
-    observed for ``required_count`` consecutive stable inferences OR
-    the confidence drop is above a margin.  This isolates the
-    UI from raw per-frame jitter.
+    Thresholds are heuristic and must be calibrated on validation captures.
+    Rejected input clears both confirmation evidence and displayed output.
     """
-
-    def __init__(self, required_count: int = 3, margin: float = 0.05):
-        if required_count < 1:
+    def __init__(self, required_count: int = 3, margin: float = 0.05,
+                 confidence_threshold: float = 0.5):
+        if not isinstance(required_count, int) or required_count < 1:
             raise ValueError("required_count must be >= 1")
+        if not 0 <= margin <= 1 or not 0 <= confidence_threshold <= 1:
+            raise ValueError("Invalid confidence or margin threshold")
         self._required = required_count
-        self._margin = float(margin)
-        self._current: Optional[str] = None
-        self._current_conf: float = 0.0
-        self._count = 0
+        self._margin = margin
+        self._threshold = confidence_threshold
+        self.reset()
 
-    def update(self, label: str, confidence: float) -> Optional[str]:
-        """Feed one inference result.
-
-        Returns the new stable label when it changes, else None.
-        """
-        if self._current is None:
-            self._current = label
-            self._current_conf = confidence
-            self._count = 1
-            return label
-
-        if label == self._current:
-            self._count += 1
-            self._current_conf = max(self._current_conf, confidence)
+    def update(self, label: str, confidence: float, *, probability_margin=None) -> Optional[str]:
+        import math
+        if (not label or not math.isfinite(confidence) or not self._threshold <= confidence <= 1
+                or probability_margin is not None and
+                (not math.isfinite(probability_margin) or not self._margin <= probability_margin <= 1)):
+            self.reset()
             return None
-
-        # Different label: accept only if seen >= required_count and conf jump
-        if self._count >= self._required and confidence > self._current_conf + self._margin:
-            prev = self._current
-            self._current = label
-            self._current_conf = confidence
-            self._count = 1
-            return prev
-        return None
+        self._count = self._count + 1 if label == self._candidate else 1
+        self._candidate = label
+        if self._count < self._required:
+            return None
+        changed = self._current != label
+        self._current = label
+        self._current_conf = confidence
+        return label if changed else None
 
     def reset(self) -> None:
-        self._current = None
+        self._current: Optional[str] = None
+        self._candidate: Optional[str] = None
         self._current_conf = 0.0
         self._count = 0
 

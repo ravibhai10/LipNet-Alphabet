@@ -1,4 +1,10 @@
+> Latest integration, 2026-10-29: separate selectable eight-word and publisher 500-word research modes are connected to the private demo on port 8002. The eight-word 94.79% result remains frozen. The 500-word available-source diagnostic and camera replay expose substantial limitations; no LRW-wide or webcam accuracy is established. See [current implementation, measured results and commands](EXPANDED_WORD_RECOGNITION.md). Historical findings below are retained.
+
+> Latest whole-word result, **2026-10-29**: a separate frozen AV-HuBERT eight-word head achieved **182/192 (94.79%)**, versus **24/192 (12.50%)** for the preserved scratch model on the same clips. A private research Word Mode runs separately on port 8001. A genuine publisher-trained 500-word LRW model also passed one research CLI smoke; its local accuracy has not been benchmarked. See [measured results, scope and commands](WORD_ACCURACY_IMPROVEMENT.md). Historical results below remain unchanged. This does not establish arbitrary-English, webcam or sentence accuracy, and the eight-word head is incompatible with the 26-class alphabet adapter.
+
 # AV-HuBERT training and live stabilization
+
+Separate **2026-10-29** work executed a four-command GRID whole-word 3D-CNN/BiGRU experiment: **8/32 (25%)** held-out accuracy, with single-class collapse. See [AUTOMATED_WORD_PIPELINE_REPORT.md](AUTOMATED_WORD_PIPELINE_REPORT.md). It did not train an AV-HuBERT alphabet head or change the live backend discussed below.
 
 The training pipeline is ready for labeled data. Real head training is blocked by missing authentic isolated A–Z recordings with independent speakers. The active live backend still uses the existing alphabet CNN-BiLSTM checkpoint. There is no new measured recognition accuracy or guaranteed accuracy increase. See [PROJECT_STATUS.md](PROJECT_STATUS.md) and [VALIDATION_REPORT.md](VALIDATION_REPORT.md) for the latest completion audit; the original validation counts below describe the earlier milestone.
 

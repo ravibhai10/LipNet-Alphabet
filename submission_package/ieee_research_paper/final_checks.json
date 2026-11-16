@@ -1,0 +1,248 @@
+{
+  "title": "Context-Aware Lip Reading and Speech Generation Using Deep Learning",
+  "title_matches_pdf_word_markdown_and_metadata": true,
+  "pages": 20,
+  "words": 13061,
+  "tables": 14,
+  "figures": 13,
+  "equations": 12,
+  "embedded_images": 25,
+  "role_descriptions_removed": true,
+  "author_superscripts_removed": true,
+  "reference_layout": "SkinScope-IEEE-Research-Paper.pdf; visual formatting only",
+  "running_headers_and_footer_notice_removed": true,
+  "numbered_equations": 12,
+  "requested_closing_notes_removed": true,
+  "acknowledgment_before_references": true,
+  "all_images_within_column_and_page_bounds": true,
+  "image_bounds": [
+    {
+      "page": 4,
+      "box": [
+        43.0,
+        325.2,
+        295.0,
+        507.5
+      ]
+    },
+    {
+      "page": 5,
+      "box": [
+        83.67,
+        433.0,
+        229.33,
+        458.75
+      ]
+    },
+    {
+      "page": 5,
+      "box": [
+        71.62,
+        252.92,
+        241.38,
+        282.0
+      ]
+    },
+    {
+      "page": 6,
+      "box": [
+        43.0,
+        239.01,
+        295.0,
+        496.0
+      ]
+    },
+    {
+      "page": 7,
+      "box": [
+        64.84,
+        583.83,
+        248.16,
+        611.25
+      ]
+    },
+    {
+      "page": 7,
+      "box": [
+        65.25,
+        395.61,
+        247.75,
+        421.08
+      ]
+    },
+    {
+      "page": 7,
+      "box": [
+        76.75,
+        174.19,
+        236.25,
+        209.36
+      ]
+    },
+    {
+      "page": 8,
+      "box": [
+        43.0,
+        336.95,
+        295.0,
+        519.25
+      ]
+    },
+    {
+      "page": 9,
+      "box": [
+        88.52,
+        588.5,
+        224.48,
+        634.75
+      ]
+    },
+    {
+      "page": 9,
+      "box": [
+        98.76,
+        451.95,
+        214.24,
+        496.25
+      ]
+    },
+    {
+      "page": 9,
+      "box": [
+        66.92,
+        332.28,
+        246.08,
+        359.7
+      ]
+    },
+    {
+      "page": 9,
+      "box": [
+        345.35,
+        701.95,
+        515.65,
+        741.0
+      ]
+    },
+    {
+      "page": 9,
+      "box": [
+        370.68,
+        443.23,
+        490.32,
+        468.7
+      ]
+    },
+    {
+      "page": 10,
+      "box": [
+        43.0,
+        213.95,
+        295.0,
+        396.25
+      ]
+    },
+    {
+      "page": 11,
+      "box": [
+        43.0,
+        353.84,
+        295.0,
+        601.5
+      ]
+    },
+    {
+      "page": 11,
+      "box": [
+        317.0,
+        448.34,
+        569.0,
+        696.0
+      ]
+    },
+    {
+      "page": 12,
+      "box": [
+        43.0,
+        294.51,
+        295.0,
+        490.75
+      ]
+    },
+    {
+      "page": 12,
+      "box": [
+        317.0,
+        539.39,
+        569.0,
+        707.75
+      ]
+    },
+    {
+      "page": 13,
+      "box": [
+        317.0,
+        479.25,
+        569.0,
+        731.25
+      ]
+    },
+    {
+      "page": 14,
+      "box": [
+        76.19,
+        621.02,
+        236.81,
+        646.5
+      ]
+    },
+    {
+      "page": 14,
+      "box": [
+        43.0,
+        269.71,
+        295.0,
+        448.52
+      ]
+    },
+    {
+      "page": 15,
+      "box": [
+        43.0,
+        336.95,
+        295.0,
+        519.25
+      ]
+    },
+    {
+      "page": 15,
+      "box": [
+        317.0,
+        513.7,
+        569.0,
+        696.0
+      ]
+    },
+    {
+      "page": 16,
+      "box": [
+        43.0,
+        238.76,
+        295.0,
+        495.75
+      ]
+    },
+    {
+      "page": 16,
+      "box": [
+        337.87,
+        486.25,
+        523.13,
+        512.0
+      ]
+    }
+  ],
+  "page_previews_rendered": 20,
+  "pdf_sha256": "3bcf8acb3d1cd52b74137a0d8f7b4ac8d4b9adfa8d79d0bb9158f154d7a7721f",
+  "minimum_column_occupancy": 0.6553571428571429
+}

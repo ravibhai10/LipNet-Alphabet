@@ -265,6 +265,16 @@
 }
 
 /* Scientific Math Notation Box */
+.science-capabilities { border: 1px solid var(--line); border-radius: 16px; background: var(--bg-panel, #121216); padding: clamp(1.2rem, 3vw, 2.5rem); margin-bottom: 2rem; }
+.science-capability-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.science-capability-grid article { min-width: 0; padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }
+.science-capability-heading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+.science-capability-heading h3 { margin: 0; font-size: 1rem; }
+.science-capability-heading span { font: 0.72rem/1.6 var(--font-mono); color: var(--ink-dim); }
+.science-capability-grid p { font-size: 0.85rem; line-height: 1.7; color: var(--ink-dim); margin: 0.5rem 0 0; }
+.science-capability-grid .science-capability-status { color: var(--accent); font-size: 0.76rem; }
+@media (max-width: 640px) { .science-capability-grid { grid-template-columns: 1fr; } }
+
 .math-box {
   background: #0d0e12;
   border: 1px solid rgba(143, 223, 203, 0.2);

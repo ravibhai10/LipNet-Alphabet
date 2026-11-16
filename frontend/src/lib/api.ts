@@ -1,5 +1,5 @@
 /** Typed browser API boundary. Predictions always come from the backend. */
-const configuredBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
+const configuredBase = (import.meta.env?.VITE_API_BASE_URL as string | undefined)?.trim()
 export const API_BASE = configuredBase?.replace(/\/$/, '') ?? (
   typeof window !== 'undefined' && ['5173', '5174', '3000'].includes(window.location.port)
     ? `${window.location.protocol}//${window.location.hostname}:8000`
@@ -23,6 +23,7 @@ export interface HealthInfo {
 }
 export interface Prediction {
   letter: string
+  uncertain?: boolean
   confidence: number
   top3: { letter: string; prob: number }[]
   probabilities?: { letter: string; prob: number }[]
@@ -34,7 +35,8 @@ export interface Prediction {
   latency_ms?: number
 }
 export class ApiError extends Error {
-  constructor(message: string, public status?: number) { super(message); this.name = 'ApiError' }
+  status?: number
+  constructor(message: string, status?: number) { super(message); this.name = 'ApiError'; this.status = status }
 }
 export async function fetchWithTimeout(url: string, init: RequestInit = {}, ms = 5000): Promise<Response> {
   const ctrl = new AbortController()
@@ -82,17 +84,135 @@ export async function fetchDatasetStats(signal?: AbortSignal): Promise<Record<st
   } catch { return null }
 }
 export async function requestPrediction(frames: string[], signal?: AbortSignal): Promise<Prediction> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/predict`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ frames }), signal,
-  }, 20000)
-  if (!res.ok) throw await responseError(res)
-  const data = await res.json() as Partial<Prediction>
+  const data = await predictionJson('/api/predict', { frames }, signal, 20000) as Partial<Prediction>
   if (!data || typeof data.letter !== 'string' || typeof data.confidence !== 'number' ||
-      !Number.isFinite(data.confidence) || !Array.isArray(data.top3)) {
+      !Number.isFinite(data.confidence) || data.confidence < 0 || data.confidence > 1 || !Array.isArray(data.top3) ||
+      (data.uncertain !== undefined && typeof data.uncertain !== 'boolean') ||
+      data.top3.some(item => typeof item?.letter !== 'string' || !Number.isFinite(item.prob) || item.prob < 0 || item.prob > 1)) {
     throw new ApiError('The backend returned an invalid prediction.')
   }
   return {
     ...data, letter: data.letter, confidence: data.confidence,
     top3: data.top3.filter(item => typeof item?.letter === 'string' && Number.isFinite(item.prob)),
   }
+}
+
+export type RecognitionMode = 'alphabet' | 'word' | 'expanded' | 'lrw500'
+export type WordRecognitionMode = Exclude<RecognitionMode, 'alphabet'>
+const WORD_ENDPOINTS = {
+  word: { prediction: '/api/predict/word', health: '/api/word/health', name: 'Eight-word model' },
+  expanded: { prediction: '/api/predict/word/expanded', health: '/api/word/expanded/health', name: 'Combined 20-word model' },
+  lrw500: { prediction: '/api/predict/word/lrw500', health: '/api/word/lrw500/health', name: 'LRW 500-word model' },
+} as const
+export interface WordPrediction {
+  task: 'isolated_word'
+  word?: string | null
+  performance?: { wall_ms: number; process_cpu_percent_one_core: number; requests_per_second_sequential: number; memory_after: { rss_bytes: number | null } }
+  predicted_word: string
+  display_word: string
+  confidence: number | null
+  uncertain: boolean
+  top_predictions: { word: string; prob: number }[]
+  all_probabilities: { word: string; prob: number }[]
+  diagnostics?: {
+    margin: number
+    entropy?: number
+    confidence_threshold: number
+    rejection_status: string
+    temporal_consensus?: { confirmed: boolean; views: (number | { bounds: number[]; candidate: string; confidence: number; margin: number; accepted: boolean })[] } | null
+  }
+  temporal?: { received_frames: number; model_target_frames: number }
+  latency_ms?: number
+  model_name?: string
+  vocabulary?: string[]
+}
+
+export async function requestWordPrediction(frames: string[], signal?: AbortSignal, mode: WordRecognitionMode = 'word', capture?: import('../live-demo/wordCapture').WordCapture): Promise<WordPrediction> {
+  const endpoint = WORD_ENDPOINTS[mode]
+  if (!endpoint) throw new ApiError('Select an available word recognition mode before capturing.')
+  return parseWordPrediction(await predictionJson(endpoint.prediction, { frames, ...capture }, signal))
+}
+
+/** Bound the entire response, including JSON parsing, not just response headers. */
+export async function predictionJson(path: string, payload: unknown, signal?: AbortSignal, timeoutMs = 30000): Promise<unknown> {
+  const controller = new AbortController()
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let rejectAbort: (reason: unknown) => void = () => {}
+  const cancelled = new Promise<never>((_resolve, reject) => { rejectAbort = reject })
+  const abort = () => { controller.abort(); rejectAbort(new DOMException('Request cancelled.', 'AbortError')) }
+  if (signal?.aborted) abort()
+  else signal?.addEventListener('abort', abort, { once: true })
+  const operation = async () => {
+    if (controller.signal.aborted) throw new DOMException('Request cancelled.', 'AbortError')
+    const response = await fetch(`${API_BASE}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: controller.signal })
+    if (!response.ok) throw await responseError(response)
+    try { return await response.json() }
+    catch (error) { if (controller.signal.aborted) throw error; throw new ApiError('The backend returned invalid JSON. Retry the word.') }
+  }
+  timer = setTimeout(() => { controller.abort(); rejectAbort(new ApiError('Analysis timed out. Check the backend and retry your word.')) }, timeoutMs)
+  try { return await Promise.race([operation(), cancelled]) }
+  catch (error) {
+    if (signal?.aborted) throw new DOMException('Request cancelled.', 'AbortError')
+    if (error instanceof ApiError) throw error
+    throw new ApiError('Cannot reach the inference service. Check the backend connection and retry.')
+  } finally { clearTimeout(timer); signal?.removeEventListener('abort', abort) }
+}
+
+export function parseWordPrediction(value: unknown): WordPrediction {
+  if (!value || typeof value !== 'object') throw new ApiError('The word model returned an invalid response.')
+  const data = value as Record<string, unknown>
+  const score = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1
+  const vector = (v: unknown): v is { word: string; prob: number }[] => Array.isArray(v) && v.every(p => p && typeof p.word === 'string' && p.word.trim().length > 0 && score(p.prob))
+  if (data.task !== 'isolated_word' || typeof data.predicted_word !== 'string' || !data.predicted_word.trim() || /\s/.test(data.predicted_word.trim()) ||
+      typeof data.uncertain !== 'boolean' || (data.confidence != null && !score(data.confidence)) || !vector(data.top_predictions) ||
+      (data.all_probabilities != null && !vector(data.all_probabilities)) ||
+      (data.latency_ms != null && (typeof data.latency_ms !== 'number' || !Number.isFinite(data.latency_ms) || data.latency_ms < 0))) {
+    throw new ApiError('The word model returned an invalid response. Retry or check the backend.')
+  }
+  if (data.diagnostics != null) {
+    if (typeof data.diagnostics !== 'object') throw new ApiError('The word model returned invalid diagnostics.')
+    const diagnostic = data.diagnostics as Record<string, unknown>, consensus = diagnostic.temporal_consensus
+    if (consensus != null && (typeof consensus !== 'object' || typeof (consensus as { confirmed?: unknown }).confirmed !== 'boolean')) throw new ApiError('The word model returned invalid confirmation data.')
+  }
+  if (data.performance != null) {
+    const p = data.performance as WordPrediction['performance']
+    const finite = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0
+    if (!p || typeof p !== 'object' || !finite(p.wall_ms) || !finite(p.process_cpu_percent_one_core) ||
+        !finite(p.requests_per_second_sequential) || !p.memory_after ||
+        (p.memory_after.rss_bytes !== null && !finite(p.memory_after.rss_bytes))) {
+      throw new ApiError('The word model returned invalid performance data.')
+    }
+  }
+  return { ...data, confidence: data.confidence ?? null, display_word: typeof data.display_word === 'string' ? data.display_word : data.predicted_word,
+    all_probabilities: data.all_probabilities ?? [] } as WordPrediction
+}
+
+export interface WordHealth {
+  model_loaded: boolean
+  inference_ready: boolean
+  model_kind: string
+  vocabulary: string[]
+  checkpoint?: string
+  error?: string
+  research_activation_gate_passed?: boolean
+  held_out_accuracy?: number | null
+  evaluation_protocol?: string | null
+  evaluation_samples?: number | null
+  evaluation_correct?: number | null
+  available?: boolean
+  state?: 'not_loaded' | 'loading' | 'ready' | 'failed'
+  available_diagnostic?: { known_samples: number; correct: number; covered_classes: number; failed_inputs: number } | null
+}
+
+export async function probeWordHealth(signal?: AbortSignal, mode: WordRecognitionMode = 'word'): Promise<WordHealth> {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}${WORD_ENDPOINTS[mode].health}`, { signal }, 20000)
+    if (res.ok) {
+      const value = await res.json() as WordHealth
+      if (typeof value.model_loaded === 'boolean' && typeof value.inference_ready === 'boolean' && typeof value.model_kind === 'string' && Array.isArray(value.vocabulary)
+          && value.vocabulary.every(word => typeof word === 'string' && word.length > 0)
+          && (!value.inference_ready || (value.model_loaded && value.vocabulary.length >= 2))) return value
+    }
+  } catch {}
+  return { model_loaded: false, inference_ready: false, model_kind: WORD_ENDPOINTS[mode]?.name ?? 'Word model', vocabulary: [] }
 }

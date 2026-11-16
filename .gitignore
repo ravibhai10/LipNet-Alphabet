@@ -43,6 +43,7 @@ Thumbs.db
 .venv/
 .venv-avhubert/
 .venv-avhubert-cpu/
+.venv-word-recognition/
 venv/
 env/
 __pycache__/
@@ -56,6 +57,10 @@ models/external/*/
 # Datasets & raw inputs (large / per-license)
 external/
 data/external/
+data/processed/grid_multispeaker*/
+data/processed/grid_whole_words/
+data/processed/multidataset/
+data/processed/lrw_official*/
 data/grid/
 data/grid_raw/
 scripts/wget-logs/
@@ -64,3 +69,8 @@ scripts/wget-logs/
 *.tmp
 *.bak
 runs/
+.qa/
+*.y4m
+
+# Small publisher geometry required by research inference.
+!pipeline/lrw_tcn/20words_mean_face.npy

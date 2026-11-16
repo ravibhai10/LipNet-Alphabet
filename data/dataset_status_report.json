@@ -1,0 +1,60 @@
+{
+  "datasets": {
+    "grid": {
+      "available_locally": true,
+      "integrity_details": {
+        "status": "VALID",
+        "source": "https://spandh.dcs.shef.ac.uk/gridcorpus/",
+        "total_archives": 66,
+        "verified_archives": 66,
+        "speakers_present": 33
+      }
+    },
+    "miracl_vc1": {
+      "available_locally": false,
+      "integrity_details": {
+        "status": "UNAVAILABLE",
+        "message": "MIRACL-VC1 dataset not found. Download via Kaggle API: 'kaggle datasets download -d apoorvwatsky/miraclvc1 -p data/external/miraclvc1 --unzip'",
+        "required_credentials": "~/.kaggle/kaggle.json"
+      }
+    },
+    "tcd_timit": {
+      "available_locally": false,
+      "integrity_details": {
+        "status": "UNAVAILABLE_REQUIRES_LICENSE",
+        "message": "TCD-TIMIT requires signing non-commercial research agreement at https://sigmedia.tv/datasets/tcd_timit/.",
+        "target_directory": "C:\\Users\\Dell\\Downloads\\LipNet-Alphabet-main\\LipNet-Alphabet-main\\data\\external\\tcd_timit"
+      }
+    },
+    "muavic": {
+      "available_locally": false,
+      "integrity_details": {
+        "status": "UNAVAILABLE",
+        "message": "MuAViC English corpus requires running preparation script from https://github.com/facebookresearch/muavic.",
+        "target_directory": "C:\\Users\\Dell\\Downloads\\LipNet-Alphabet-main\\LipNet-Alphabet-main\\data\\external\\muavic",
+        "license": "CC-BY-NC 4.0"
+      }
+    },
+    "lrw": {
+      "available_locally": false,
+      "integrity_details": {
+        "status": "REQUIRES_BBC_AGREEMENT",
+        "vocab_file_present": true,
+        "vocab_count": 500,
+        "message": "LRW raw videos require Oxford VGG BBC data-sharing agreement: https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrw1.html."
+      }
+    },
+    "roboflow_lipreading": {
+      "available_locally": false,
+      "integrity_details": {
+        "status": "AUXILIARY_STATIC_IMAGE_DATASET",
+        "nature": "Static phonetic bounding boxes, not temporal video word recognition",
+        "available": false
+      }
+    }
+  },
+  "storage": {
+    "root": "C:\\Users\\Dell\\Downloads\\LipNet-Alphabet-main\\LipNet-Alphabet-main",
+    "free_gib": 307.37
+  }
+}

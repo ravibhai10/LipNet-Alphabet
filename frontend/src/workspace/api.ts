@@ -103,3 +103,25 @@ export interface EvaluationMetrics {
   accuracy?: number; macro_f1?: number; top3?: number; top5?: number; cer?: number; ece?: number; evaluated_on?: string; evaluated_at?: string
 }
 export function readEvaluation(sidecarPath: string) { return json<EvaluationMetrics>(`/api/evaluation/${encodeURIComponent(sidecarPath)}`) }
+
+export interface EvaluationItem {
+  id: string
+  name: string
+  architecture: string
+  task: string
+  vocabulary?: string[]
+  test_samples: number
+  correct?: number
+  top1_accuracy?: number
+  top2_accuracy?: number
+  top5_accuracy?: number
+  macro_f1?: number
+  wer?: number
+  cer?: number
+  total_reference_words?: number
+  total_word_errors?: number
+  speaker_protocol?: string
+  checkpoint_path: string
+  evaluated_at: string
+}
+export function listEvaluations() { return json<{ evaluations: EvaluationItem[] }>('/api/evaluations') }

@@ -44,7 +44,7 @@ export function TemporalSequenceScene() {
         <div className="sci-card">
           <div className="sci-card-header">
             <h3 className="sci-card-title">Articulatory Window Calculator</h3>
-            <span className="sci-tag verified">Nyquist Speech Mechanics</span>
+            <span className="sci-tag illustrative">Synthetic timing example</span>
           </div>
 
           <div className="math-box">
@@ -132,16 +132,16 @@ export function TemporalSequenceScene() {
               <div style={{ fontSize: '0.65rem', color: 'var(--ink-dim)' }}>per frame Δt</div>
             </div>
             <div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--ink-faint)' }}>NYQUIST STATUS</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--ink-faint)' }}>ILLUSTRATIVE SAMPLING CHECK</div>
               <div style={{
                 fontSize: '0.85rem',
                 fontWeight: 600,
                 marginTop: '4px',
                 color: isNyquistSafe ? 'var(--success)' : 'var(--warning)'
               }}>
-                {isNyquistSafe ? 'Adequate (≥20Hz)' : 'Aliasing Risk (<20Hz)'}
+                {isNyquistSafe ? 'At least 20 samples/s' : 'Below 20 samples/s'}
               </div>
-              <div style={{ fontSize: '0.65rem', color: 'var(--ink-dim)' }}>Speech Bandwidth</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--ink-dim)' }}>Teaching threshold; not validated recognition tolerance</div>
             </div>
           </div>
         </div>

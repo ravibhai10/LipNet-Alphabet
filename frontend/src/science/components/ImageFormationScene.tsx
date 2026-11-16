@@ -45,7 +45,7 @@ export function ImageFormationScene() {
         <div className="sci-card">
           <div className="sci-card-header">
             <h3 className="sci-card-title">Spatial Preprocessing Pipeline</h3>
-            <span className="sci-tag verified">LipNet Preprocessor</span>
+            <span className="sci-tag illustrative">Illustrative pixels · not live input</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -181,7 +181,7 @@ export function ImageFormationScene() {
               <MathExpression tex={EQUATIONS.normalization}/>
             </div>
             <p className="math-desc">
-              Zero-mean unit-variance clip normalization. Eliminates ambient brightness disparities between different subjects and rooms.
+              Illustrative z-score normalization. The active alphabet adapter instead scales grayscale pixels to [0, 1]; AV-HuBERT uses its own recorded mean and standard deviation. This inspector is not a live model input.
             </p>
           </div>
 

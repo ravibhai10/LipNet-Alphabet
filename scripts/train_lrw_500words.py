@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-"""scripts/train_lrw_500words.py - LRW 500-Word Fine-Tuning Script.
+"""Legacy synthetic training harness. Real LRW uses scripts/lrw_words.py train.
 
-High-Accuracy Configuration:
+Configuration for explicitly requested fixture tests (not recognition evidence):
 - Label-Smoothing Cross Entropy (label_smoothing=0.1)
 - Cosine Annealing Learning Rate Schedule with minimum eta=1e-6
 - Spatial, Temporal, and Photometric Video Augmentations
-- Saves best checkpoint and history strictly to runs/finetune/lrw_500words/
+- Saves to a new run directory; existing outputs are protected.
 """
 
 from __future__ import annotations
@@ -31,7 +31,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from data.schema import NUM_CLASSES, VOCABULARY, get_word
 from models.alphabet_model import AlphabetCNNBiLSTM
 from pipeline.lrw.loader import LRWDataset
-from pipeline.avhubert.classification import load_annotations
 from src.video_training import warmup_cosine_scheduler
 
 logging.basicConfig(
@@ -121,12 +120,13 @@ def run_training(
     data_manifest: Optional[Path] = None,
     warmup_epochs: int = 5,
 ) -> Dict[str, float]:
-    """Run LRW 500-word model training with high-accuracy optimizations."""
+    """Exercise the legacy optimizer on explicitly requested synthetic fixtures."""
     if epochs < 1 or batch_size < 1:
         raise ValueError("Epochs and batch size must be positive.")
-    if not use_mock and data_manifest is None:
-        raise ValueError("Provide --data-manifest with real-camera provenance and speaker-disjoint splits. Local LRW development fixtures cannot establish accuracy.")
-    records = load_annotations(data_manifest) if not use_mock else None
+    if not use_mock:
+        raise ValueError("Real whole-word training requires scripts/lrw_words.py ingest/cache/train. This legacy harness accepts --use-mock only; generic letter manifests and legacy caches are not an audited LRW dataset.")
+    if data_manifest is not None:
+        raise ValueError("Do not mix a data manifest with synthetic fixture training.")
     output_dir = Path(output_dir) if output_dir else FINETUNE_DIR.parent / ("lrw_500words_" + datetime.now().strftime("%Y%m%d_%H%M%S_%f"))
     if output_dir.exists() and any(output_dir.iterdir()):
         raise FileExistsError("Existing runs are protected; choose a new output directory.")
@@ -134,13 +134,8 @@ def run_training(
     logger.info("Training on device: %s (classes: %d)", device, NUM_CLASSES)
 
     # Initialize datasets with augment=True for training
-    def manifest_samples(split):
-        if records is None:
-            return None
-        from data.schema import WORD_TO_IDX
-        return [{"word": row["label"], "label": WORD_TO_IDX[row["label"]], "file_path": Path(row["video"]), "type": "video"} for row in records if row["split"] == split]
-    train_dataset = LRWDataset(split="train", use_mock=use_mock, augment=True, samples=manifest_samples("train"))
-    valid_dataset = LRWDataset(split="valid", use_mock=use_mock, augment=False, samples=manifest_samples("valid"))
+    train_dataset = LRWDataset(split="train", use_mock=True, augment=True)
+    valid_dataset = LRWDataset(split="valid", use_mock=True, augment=False)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info("Train samples: %d | Valid samples: %d", len(train_dataset), len(valid_dataset))
@@ -241,7 +236,7 @@ def run_training(
         "label_smoothing": 0.1,
         "scheduler": "warmup_then_cosine",
         "warmup_epochs": min(warmup_epochs, max(0, epochs - 1)),
-        "evaluation_kind": "synthetic_fixture" if use_mock else "speaker_disjoint_real_camera",
+        "evaluation_kind": "synthetic_fixture",
         "best_val_loss": best_val_loss,
         "total_time_seconds": total_time,
         "history": history,
@@ -254,13 +249,13 @@ def run_training(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="LRW 500-Word Fine-Tuning Pipeline")
+    parser = argparse.ArgumentParser(description="Legacy fixture harness; real LRW: scripts/lrw_words.py train")
     parser.add_argument("--epochs", type=int, default=3, help="Number of training epochs")
     parser.add_argument("--batch-size", type=int, default=2, help="Mini-batch size")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate")
     parser.add_argument("--device", type=str, default="cpu", help="Device (cpu or cuda)")
     parser.add_argument("--output-dir", type=Path, default=None, help="New checkpoint output folder")
-    parser.add_argument("--data-manifest", type=Path, help="Audited JSONL real-data annotation manifest")
+    parser.add_argument("--data-manifest", type=Path, help="Deprecated/rejected; use scripts/lrw_words.py ingest/cache/train")
     parser.add_argument("--warmup-epochs", type=int, default=5)
     parser.add_argument("--use-mock", action="store_true", help="Force mock samples for testing")
     parser.add_argument("--pretrained-backbone", type=str, default="models/alphabet_classifier.pt",

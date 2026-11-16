@@ -1,0 +1,14 @@
+{
+  "dataset": "grid_aligned_whole_words",
+  "corpus_root": "data/external/grid",
+  "source_inventory": "data/processed/grid_multispeaker_v1",
+  "processed_root": "data/processed/grid_whole_words",
+  "words": ["bin", "lay", "place", "set", "blue", "green", "red", "white", "at", "by", "in", "with", "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "again", "now", "please", "soon"],
+  "quotas": {"train": 1000, "valid": 200, "test": 200},
+  "minimum_speakers": {"train": 10, "valid": 5, "test": 5},
+  "preprocessing": {"version": "grid-whole-word-mouth-v1", "frames": 24, "size": 64, "grayscale": true},
+  "model": {"channels": [8, 16, 32], "hidden_size": 48, "layers": 2, "dropout": 0.15},
+  "training": {"epochs": 30, "batch_size": 4, "lr": 0.001, "weight_decay": 0.0001, "label_smoothing": 0.1, "patience": 6, "min_delta": 0.0001, "threads": 2, "seed": 42, "max_minutes": 60},
+  "reserve_gib": 20,
+  "download_max_minutes": 10
+}

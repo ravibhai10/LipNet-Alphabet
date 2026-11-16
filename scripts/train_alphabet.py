@@ -48,7 +48,10 @@ class AlphabetDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
         path, label = self.file_paths[idx]
-        clip = np.load(path).astype(np.float32) / 255.0
+        raw = np.load(path, allow_pickle=False)
+        if raw.shape != (T, H, W) or not np.isfinite(raw).all() or raw.min() < 0 or raw.max() > 255:
+            raise ValueError(f"Invalid alphabet clip geometry or values: {path.name}")
+        clip = raw.astype(np.float32) / 255.0
         clip = np.expand_dims(clip, axis=1)  # (T,1,H,W)
         tensor = torch.from_numpy(clip)
         return (augment_video(tensor) if self.augment else tensor), label
@@ -202,6 +205,8 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--warmup-epochs", type=int, default=5)
     p.add_argument("--min-lr", type=float, default=1e-6)
+    p.add_argument("--allow-incomplete-vocabulary", action="store_true",
+                   help="Explicit partial-label research run; missing letters remain unsupported.")
     return p.parse_args()
 
 
@@ -241,7 +246,30 @@ def main() -> int:
     LOGGER.info("Split: train=%d val=%d test=%d", len(tr), len(va), len(te))
     if not tr or not va or not te:
         raise ValueError("Training, validation, and test splits must all contain samples.")
+    missing = {name: [ALPHABET[i] for i in range(26) if i not in {y for _,y in rows}]
+               for name, rows in (("train",tr),("valid",va),("test",te))}
+    if any(missing.values()) and not args.allow_incomplete_vocabulary:
+        raise ValueError("Incomplete A-Z coverage. Supply real recordings or explicitly use "
+                         "--allow-incomplete-vocabulary for partial research: " + json.dumps(missing))
     args.out_dir.mkdir(parents=True, exist_ok=True)
+    preprocessing = {"frames": T,"height": H,"width": W,"channels":1,
+                     "range":[0,1],"scale":255.,"layout":"B,T,C,H,W",
+                     "temporal":"training clips must already contain 30 frames; live uses linear resampling"}
+    run_metadata = {"seed":args.seed,"vocabulary":ALPHABET,"label_mapping":LABEL_TO_IDX,
+                    "preprocessing":preprocessing,"missing_labels":missing,
+                    "speaker_independent":bool(manifest_samples),"optimizer":"AdamW",
+                    "lr":args.lr,"batch_size":args.batch_size,"patience":args.patience,
+                    "loss":"cross_entropy; label_smoothing=.1","scheduler":"warmup_cosine",
+                    "epochs":args.epochs,"warmup_epochs":args.warmup_epochs,"min_lr":args.min_lr,
+                    "dropout":.5,"lstm_hidden":96,"lstm_layers":1,"device":str(device)}
+    for name, value in (("training_config",run_metadata),("label_mapping",LABEL_TO_IDX),
+                        ("preprocessing",preprocessing)):
+        (args.out_dir/(name+".json")).write_text(json.dumps(value,indent=2))
+    import hashlib
+    receipt = {name:[{"clip":str(p.resolve()),"label":ALPHABET[y],
+                     "sha256":hashlib.sha256(p.read_bytes()).hexdigest()} for p,y in rows]
+               for name,rows in (("train",tr),("valid",va),("test",te))}
+    (args.out_dir/"split_manifest.json").write_text(json.dumps(receipt,indent=2))
     tr_ds = AlphabetDataset(args.dataset, tr, augment=True)
     va_ds = AlphabetDataset(args.dataset, va, augment=False)
     te_ds = AlphabetDataset(args.dataset, te, augment=False)
@@ -279,6 +307,7 @@ def main() -> int:
         if v_a > best_val_acc:
             best_val_acc = v_a; patience_ctr = 0
             torch.save({"model_state_dict": model.state_dict(),
+                       "metadata":run_metadata,"epoch":epoch,"validation_accuracy":v_a,
                        "config": {"num_classes": NUM_CLASSES, "t": T, "h": H, "w": W}},
                       args.out_dir / "alphabet_classifier.pt")
             LOGGER.info("  -> Best model (val=%.1f%%)", v_a * 100)
@@ -287,6 +316,9 @@ def main() -> int:
             if patience_ctr >= args.patience:
                 LOGGER.info("Early stopping at epoch %d", epoch); break
     elapsed = time.time() - t0
+    torch.save({"model_state_dict":model.state_dict(),"metadata":run_metadata,
+                "config":{"num_classes":NUM_CLASSES,"t":T,"h":H,"w":W},
+                "epoch":len(history["train_loss"])},args.out_dir/"final.pt")
     LOGGER.info("Training done in %.0fs", elapsed)
     ck = torch.load(args.out_dir / "alphabet_classifier.pt",
                      map_location=device, weights_only=False)

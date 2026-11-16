@@ -1,5 +1,13 @@
 # GRID Corpus Access & Acquisition Plan
 
+## Current workflow — 2026-10-29
+
+Use [the official multi-speaker workflow](pipeline/grid/MULTISPEAKER.md) and `scripts/download_grid_official.py`. It discovers actual publisher links, resumes partial downloads, verifies archives, and preserves the existing `data/external/grid/s1` corpus. The video-only encoder uses normal-quality video plus word alignments; additional audio is unnecessary. Current acquisition and validation results are recorded in `GRID_EXPANSION_REPORT.md` and the generated dataset inventory.
+
+The planning snapshot below is historical. Its statements about an empty corpus, required audio, and a manual-download blocker have been superseded by the implemented workflow.
+
+## Historical planning snapshot
+
 **Date:** 2026-10-25  
 **Official source:** https://spandh.dcs.shef.ac.uk/gridcorpus/  
 **License / access terms:** "Freely available for research use." Per-talk files are downloadable separately from the official site (audio, video, word alignments). **No aggregate unlock button is present** — each talker's archive is fetched individually.

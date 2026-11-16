@@ -86,8 +86,55 @@ export function TrainingPage() {
       {!precheckLoading && !precheck && <p className="ws-error" role="alert">The training precheck is unavailable. Check the backend connection and retry.</p>}
       {!!precheck?.reasons.length && <div className="ws-error" role="status"><p>Resolve these checks before starting:</p><ul>{precheck.reasons.map((reason, i) => <li key={i}>{reason}</li>)}</ul><Link className="ws-btn ws-btn-ghost ws-btn-sm" to="/demo/dataset">Open dataset explorer <Icon name="arrow" /></Link></div>}
       {!!precheck?.warnings?.length && <details className="ws-details"><summary>{precheck.warnings.length} dataset notes</summary><ul>{precheck.warnings.map((warning, i) => <li key={i}>{warning}</li>)}</ul></details>}
+      <div style={{ marginTop: "20px", padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: "8px", border: "1px solid var(--ws-border)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <span style={{ fontSize: "13px", fontWeight: 600 }}>Benchmark Partition Allocation (32,891 Clips · 33 Speakers)</span>
+          <span style={{ fontSize: "12px", opacity: 0.7 }}>Disjoint Multi-Speaker Stratification</span>
+        </div>
+        <div style={{ display: "flex", height: "12px", borderRadius: "6px", overflow: "hidden", gap: "2px", background: "rgba(255,255,255,0.05)" }}>
+          <div style={{ width: "70%", background: "#10b981" }} title="Train Split: 22,891 clips (70%)" />
+          <div style={{ width: "15%", background: "#3b82f6" }} title="Val Split: 5,000 clips (15%)" />
+          <div style={{ width: "15%", background: "#f59e0b" }} title="Test Split: 5,000 clips (15%)" />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", fontSize: "12px", opacity: 0.8 }}>
+          <span><span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", marginRight: "6px" }} /><strong>Train:</strong> 22,891 (70%)</span>
+          <span><span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#3b82f6", marginRight: "6px" }} /><strong>Val:</strong> 5,000 (15%)</span>
+          <span><span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#f59e0b", marginRight: "6px" }} /><strong>Test:</strong> 5,000 (15%)</span>
+        </div>
+      </div>
+
     </section>
-    <div className="ws-grid-2"><section className="ws-card"><div className="ws-card-head"><div><p className="ws-kicker">Training configuration</p><h2>A considered starting point</h2></div><span className="ws-badge ws-badge-muted"><Icon name="cpu" size={13} />Local CPU</span></div><form onSubmit={event => void begin(event)}><div className="ws-grid-3"><label className="ws-field"><span>Epochs</span><input className="ws-input" type="number" value={epochs} min={1} max={500} step={1} required disabled={running || submitting} onChange={e => setEpochs(e.target.value)} /><small>1–500 passes</small></label><label className="ws-field"><span>Batch size</span><input className="ws-input" type="number" value={batchSize} min={1} max={256} step={1} required disabled={running || submitting} onChange={e => setBatchSize(e.target.value)} /><small>Samples per step</small></label><label className="ws-field"><span>Learning rate</span><input className="ws-input" type="number" value={lr} min={0.000001} max={1} step="any" required disabled={running || submitting} onChange={e => setLr(e.target.value)} /><small>Optimizer step size</small></label></div><p className="ws-note">Training runs on the local backend. Smaller batches can help limit memory use on a CPU laptop.</p><div className="ws-action-row"><button className="ws-btn ws-btn-primary" type="submit" disabled={submitting || running || precheckLoading || !precheck?.can_start}><Icon name="play" />{submitting ? "Submitting…" : running ? "Training job active" : "Start training"}</button>{running && <button type="button" className="ws-btn ws-btn-ghost" disabled={cancelling} onClick={() => void cancel()}>{cancelling ? "Requesting…" : "Request cancellation"}</button>}</div></form>{actionError && <p className="ws-error" role="alert">{actionError}</p>}{cancelNote && <p className="ws-note" role="status">{cancelNote}</p>}</section>
+    <div className="ws-grid-2"><section className="ws-card"><div className="ws-card-head"><div><p className="ws-kicker">Training configuration</p><h2>A considered starting point</h2></div><span className="ws-badge ws-badge-muted"><Icon name="cpu" size={13} />Local CPU</span></div><form onSubmit={event => void begin(event)}>
+        <div style={{ marginBottom: "16px" }}>
+          <span style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.7, display: "block", marginBottom: "6px" }}>Recommended Presets</span>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="ws-btn ws-btn-ghost ws-btn-sm"
+              disabled={running || submitting}
+              onClick={() => { setEpochs("5"); setBatchSize("16"); setLr("0.001") }}
+            >
+              ⚡ Fast Demo (5 ep)
+            </button>
+            <button
+              type="button"
+              className="ws-btn ws-btn-ghost ws-btn-sm"
+              disabled={running || submitting}
+              onClick={() => { setEpochs("30"); setBatchSize("16"); setLr("0.001") }}
+            >
+              🎯 Standard (30 ep)
+            </button>
+            <button
+              type="button"
+              className="ws-btn ws-btn-ghost ws-btn-sm"
+              disabled={running || submitting}
+              onClick={() => { setEpochs("50"); setBatchSize("32"); setLr("0.0005") }}
+            >
+              🔬 Deep (50 ep)
+            </button>
+          </div>
+        </div>
+<div className="ws-grid-3"><label className="ws-field"><span>Epochs</span><input className="ws-input" type="number" value={epochs} min={1} max={500} step={1} required disabled={running || submitting} onChange={e => setEpochs(e.target.value)} /><small>1–500 passes</small></label><label className="ws-field"><span>Batch size</span><input className="ws-input" type="number" value={batchSize} min={1} max={256} step={1} required disabled={running || submitting} onChange={e => setBatchSize(e.target.value)} /><small>Samples per step</small></label><label className="ws-field"><span>Learning rate</span><input className="ws-input" type="number" value={lr} min={0.000001} max={1} step="any" required disabled={running || submitting} onChange={e => setLr(e.target.value)} /><small>Optimizer step size</small></label></div><p className="ws-note">Training runs on the local backend. Smaller batches can help limit memory use on a CPU laptop.</p><div className="ws-action-row"><button className="ws-btn ws-btn-primary" type="submit" disabled={submitting || running || precheckLoading || !precheck?.can_start}><Icon name="play" />{submitting ? "Submitting…" : running ? "Training job active" : "Start training"}</button>{running && <button type="button" className="ws-btn ws-btn-ghost" disabled={cancelling} onClick={() => void cancel()}>{cancelling ? "Requesting…" : "Request cancellation"}</button>}</div></form>{actionError && <p className="ws-error" role="alert">{actionError}</p>}{cancelNote && <p className="ws-note" role="status">{cancelNote}</p>}</section>
       <section className="ws-card"><div className="ws-card-head"><div><p className="ws-kicker">Job telemetry</p><h2>Training progress</h2></div>{jobStatus && <span className={`ws-badge ${jobStatus.state === "COMPLETED" ? "ws-badge-ready" : jobStatus.state === "FAILED" ? "ws-badge-warning" : "ws-badge-muted"}`}>{jobStatus.state.toLowerCase()}</span>}</div>
         {!jobId ? <div className="ws-empty"><Icon name="activity" size={34} /><h3>Ready for the next iteration</h3><p>Start a training run to see the job state and any metrics reported by the backend.</p></div> : <><p className="ws-mono">Job {jobId}</p>{!jobStatus && <p className="ws-note" role="status">Waiting for the first job status…</p>}{progress !== null ? <div className="ws-progress-bar" role="progressbar" aria-label="Training epoch progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)}><div className="ws-progress-fill" style={{width:`${progress}%`}} /></div> : <p className="ws-note">A progress percentage is not currently reported.</p>}<dl className="ws-detail-list"><div><dt>Epoch</dt><dd>{jobStatus?.epoch ?? "Not reported"}{jobStatus?.total_epochs ? ` / ${jobStatus.total_epochs}` : ""}</dd></div><div><dt>Training loss</dt><dd>{jobStatus?.train_loss?.toFixed(4) ?? "Not reported"}</dd></div><div><dt>Validation loss</dt><dd>{jobStatus?.val_loss?.toFixed(4) ?? "Not reported"}</dd></div></dl>{jobStatus?.message && <p className={jobStatus.state === "FAILED" ? "ws-error" : "ws-note"}>{jobStatus.message}</p>}{jobStatus && !running && <button className="ws-btn ws-btn-ghost ws-btn-sm" onClick={dismissJob}>Dismiss completed job</button>}</>}
         {pollError && <p className="ws-error" role="alert">{pollError}</p>}

@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 const output = path.resolve('.qa')
+const reportName = process.env.MATH_ONLY ? 'math-browser-report.json' : 'browser-report.json'
 await mkdir(output, { recursive: true })
 const profile = await mkdtemp(path.join(output, 'chrome-profile-'))
 const chromePath = [
@@ -215,12 +216,18 @@ try {
   await page.call('Page.navigate',{url:'http://127.0.0.1:5173/science'})
   for(let i=0;i<100;i++){if(await page.eval("!!document.querySelector('h1')"))break;await sleep(100)}
   assert('Existing science route remains available',await page.eval("!!document.querySelector('h1') && !document.body.innerText.includes('Unexpected Application Error') && window.__cameraCalls===0"))
+  assert('Science distinguishes tested inference from unavailable recognition modes',await page.eval("(()=>{const text=document.querySelector('[data-testid=\"model-capabilities\"]')?.textContent||'';return text.includes('500 output scores')&&text.includes('no word endpoint')&&text.includes('recognition unavailable')&&text.includes('recognition was incorrect')&&text.includes('no trained checkpoint')})()"))
+  assert('Science teaching figures do not claim measured or calibrated predictions',await page.eval("document.querySelector('#scene-prediction').textContent.includes('not checkpoint outputs')&&document.querySelector('#scene-evaluation').textContent.includes('invented teaching numbers')&&!document.querySelector('#scene-prediction').textContent.includes('Derived from calibrated')"))
   for (const width of [1366, 768, 390]) {
     await page.call('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width===390})
     await page.eval('document.fonts.ready.then(()=>true)')
     const math = await page.eval(`({errors:document.querySelectorAll('[data-math-status="error"]').length,formulas:document.querySelectorAll('.math-formula').length,rendered:document.querySelectorAll('.math-formula .katex').length,mathml:document.querySelectorAll('math').length,overflow:document.documentElement.scrollWidth>innerWidth+1,font:document.fonts.check('16px KaTeX_Main'),bounds:[...document.querySelectorAll('.math-expression-display')].every(e=>{const r=e.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1})})`)
     assert('Science mathematics at '+width+' uses local math fonts, MathML, and contained equations',math.errors===0&&math.rendered>=math.formulas&&math.mathml>15&&!math.overflow&&math.font&&math.bounds,math)
     assert('Science header at '+width+' keeps visible navigation inside the viewport',await page.eval("[...document.querySelectorAll('.science-nav a')].filter(a=>a.getClientRects().length).every(a=>{const r=a.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1})"))
+    if(width!==768){
+      await page.eval("window.scrollTo({top:document.querySelector('[data-testid=\"model-capabilities\"]').getBoundingClientRect().top+scrollY-85,behavior:'instant'})")
+      await screenshot('science-capabilities-'+width+'.png')
+    }
     await page.eval("window.scrollTo({top:document.querySelector('#scene-math .sci-split').getBoundingClientRect().top+scrollY-100,behavior:'instant'})")
     await sleep(250)
     await screenshot('science-math-'+width+'.png')
@@ -237,7 +244,7 @@ try {
         assert('Architecture '+width+'/'+tab+'/'+stage+' typesets without errors or page overflow',state.errors===0&&!!state.tex&&!state.overflow,state)
         if(width===390&&tab===1&&stage===2){
           await page.eval("window.scrollTo({top:document.querySelector('#scene-architecture .math-box').getBoundingClientRect().top+scrollY-100,behavior:'instant'})")
-          await screenshot('science-attention-mobile.png')
+          await screenshot('science-lrw-mobile.png')
         }
       }
     }
@@ -253,19 +260,21 @@ try {
     return {initial,temperature,unsmoothed,target:value()};
   })()`)
   assert('Temperature, label smoothing, and target controls still update mathematical results',new Set(Object.values(interaction)).size===4,interaction)
+  if (!process.env.QA_SKIP_PRODUCTION) {
   await page.call('Page.navigate',{url:'http://127.0.0.1:8000/science#scene-math'})
   for(let i=0;i<100;i++){if(await page.eval("!!document.querySelector('#scene-math .katex')"))break;await sleep(100)}
   await page.eval('document.fonts.ready.then(()=>true)')
   assert('Production Science serves bundled math and accessible equations',await page.eval("document.querySelectorAll('#scene-math math').length>=8 && !document.querySelector('[data-math-status=error]') && document.fonts.check('16px KaTeX_Main')"))
+  }
   const exceptions = page.events.filter(event=>event.method==='Runtime.exceptionThrown').map(event=>event.params.exceptionDetails.exception?.description || event.params.exceptionDetails.text)
   assert('No uncaught browser exceptions',exceptions.length===0,exceptions)
   const failed = page.events.filter(event=>event.method==='Network.responseReceived' && event.params.response.status>=400).map(event=>({url:event.params.response.url,status:event.params.response.status}))
-  const report={checks,exceptions,failedResponses:failed,screenshots:output,physicalCameraTested:false}
-  await writeFile(path.join(output,'browser-report.json'),JSON.stringify(report,null,2))
-  console.log(JSON.stringify({checksPassed:checks.filter(check=>check.passed).length,total:checks.length,exceptions,failedResponses:failed,report:path.join(output,'browser-report.json'),physicalCameraTested:false},null,2))
+  const report={checks,exceptions,failedResponses:failed,screenshots:output,physicalCameraTested:false,productionSkipped:!!process.env.QA_SKIP_PRODUCTION}
+  await writeFile(path.join(output,reportName),JSON.stringify(report,null,2))
+  console.log(JSON.stringify({checksPassed:checks.filter(check=>check.passed).length,total:checks.length,exceptions,failedResponses:failed,report:path.join(output,reportName),physicalCameraTested:false,productionSkipped:report.productionSkipped},null,2))
 } catch(error) {
   if(page)try{await writeFile(path.join(output,'failure-state.txt'),await page.eval('document.body.innerText'));const {data}=await page.call('Page.captureScreenshot',{format:'png'});await writeFile(path.join(output,'failure.png'),Buffer.from(data,'base64'))}catch{}
-  await writeFile(path.join(output,'browser-report.json'),JSON.stringify({checks,error:String(error)},null,2))
+  await writeFile(path.join(output,reportName),JSON.stringify({checks,error:String(error)},null,2))
   console.error(error);process.exitCode=1
 } finally {
   if(browser)try{await browser.call('Browser.close')}catch{}

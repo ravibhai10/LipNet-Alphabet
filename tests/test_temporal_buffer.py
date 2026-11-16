@@ -195,13 +195,14 @@ class TestPredictionStabilizer:
 
     def test_same_label_accumulates(self):
         stab = PredictionStabilizer(required_count=3)
-        assert stab.update("A", 0.9) == "A"  # count=1
+        assert stab.update("A", 0.9) is None  # count=1
         assert stab.update("A", 0.85) is None   # count=2
-        assert stab.update("A", 0.80) is None   # count=3 -> stable
+        assert stab.update("A", 0.80) == "A"   # count=3 -> stable
         assert stab.current == "A"
 
     def test_different_label_blocked_until_required_count(self):
         stab = PredictionStabilizer(required_count=3)
+        stab.update("A", 0.9)
         stab.update("A", 0.9)
         stab.update("A", 0.9)
         stab.update("B", 0.5)   # count resets to 1 for B
@@ -209,16 +210,18 @@ class TestPredictionStabilizer:
         assert stab.update("B", 0.5) is None   # count=2
         assert stab.current == "A"
 
-    def test_confidence_margin_allows_early_switch(self):
+    def test_high_confidence_cannot_bypass_temporal_confirmation(self):
         stab = PredictionStabilizer(required_count=2, margin=0.05)
         # First lock in "A" for 2 frames (required_count)
         stab.update("A", 0.9)
         stab.update("A", 0.9)
         # Now "B" with a much higher confidence jump (> margin)
         result = stab.update("B", 0.99)
-        # Should switch to B because conf jump > margin AND count>=required
+        assert result is None
+        assert stab.current == "A"
+        result = stab.update("B", 0.99)
         assert stab.current == "B"
-        assert result == "A"  # returns prev
+        assert result == "B"  # returns the confirmed replacement
 
     def test_reset_clears_state(self):
         stab = PredictionStabilizer(required_count=2)

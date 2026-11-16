@@ -67,3 +67,15 @@ test('alignment rejects invalid and off-image mouth coordinates', () => {
   points[13]={x:.1,y:.05};points[14]={x:.1,y:.06}
   assert.equal(mouthAlignment(points,640,480),null)
 })
+
+test('rejection and ambiguous margins clear all accumulated confirmations', () => {
+  const smoother=new PredictionStabilizer()
+  smoother.update(prediction())
+  assert.equal(smoother.update({...prediction(),uncertain:true}).confirmed,false)
+  assert.equal(smoother.update(prediction()).confirmed,false)
+  assert.equal(smoother.update(prediction(.51,.49)).confirmed,false)
+  assert.equal(smoother.update(prediction()).confirmed,false)
+  assert.equal(smoother.update(prediction()).confirmed,true)
+  assert.equal(smoother.update({...prediction(),confidence:NaN}).prediction,null)
+  assert.equal(smoother.update(prediction()).confirmed,false)
+})

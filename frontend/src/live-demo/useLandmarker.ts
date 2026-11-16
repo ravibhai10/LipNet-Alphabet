@@ -17,7 +17,7 @@ export function useLandmarker() {
         const fileset = await vision.FilesetResolver.forVisionTasks('/mediapipe/wasm')
         const model = await vision.FaceLandmarker.createFromOptions(fileset, {
           baseOptions: { modelAssetPath: '/models/face_landmarker.task', delegate: 'CPU' },
-          runningMode: 'VIDEO', numFaces: 1,
+          runningMode: 'VIDEO', numFaces: 2,
         })
         if (!mounted.current) { model.close(); return null }
         landmarkerRef.current = model; setStatus('ready'); return model

@@ -3,30 +3,30 @@ export function LimitationsScene() {
     {
       title: 'Viseme Homopheny (Phonetic Ambiguity)',
       impact: 'Intrinsic Information Limit',
-      metric: '~50% English phonemes share identical visible lip shape',
+      metric: 'Confusion groups have not been measured for this classifier',
       desc: 'Phonemes like /p/ (pat), /b/ (bat), and /m/ (mat) are bilabial articulatory gestures. They differ only in vocal cord vibration and velum elevation—internal biomechanics that produce zero optical deformation on the external face.',
-      solution: 'Mitigated in continuous speech using large language model (LLM) beam-search decoding and n-gram linguistic priors.'
+      solution: 'No language-model beam search is connected to the active classifier. Its uncalibrated scores and errors require held-out, labeled recordings.'
     },
     {
       title: 'Non-Frontal Head Pose & Yaw Angular Drift',
       impact: 'Geometric Occlusion',
-      metric: 'Significant degradation when yaw/pitch exceeds ±25°',
+      metric: 'No validated yaw or pitch operating range',
       desc: '2D bounding-box affine normalization assumes near-frontal orientation. As the speaker turns their head, one oral commissure is occluded and depth cues are lost.',
-      solution: 'Requires full 3D dense mesh re-projection or multi-view camera fusion arrays.'
+      solution: 'Measured eye-axis alignment is implemented. Pose robustness and recovery need physical-camera tests; no multi-view recognition system is deployed.'
     },
     {
       title: 'Sensor Motion Blur & Rolling Shutter',
       impact: 'Temporal Smear',
-      metric: 'Exposure time > 1/60s blurs high-velocity plosives',
+      metric: 'Physical-webcam blur and speed tolerance are untested',
       desc: 'Low-cost laptop webcams automatically lengthen exposure times in dim room lighting. A fast lip explosion (occurring in 20–30ms) turns into a blurry gray streak across adjacent video frames.',
-      solution: 'LipNet-AI incorporates visual VAD (Voice Activity Detection) and luminance threshold checks.'
+      solution: 'The browser has mouth-motion gating and bounded requests. These mechanisms do not establish recognition accuracy under blur or CPU load.'
     },
     {
       title: 'Domain Shift: Studio Benchmarks vs Real Life',
       impact: 'Generalization Gap',
       metric: 'Distributional drift from high-end cameras to consumer webcams',
-      desc: 'Datasets like GRID and Oxford LRW are recorded under studio lights with uniform distance and high bitrates. Real consumer environments introduce backlight, camera compression, and varied skin tones.',
-      solution: 'Extensive data augmentation: random brightness jitter, contrast scaling, and horizontal reflection.'
+      desc: 'The current real corpus has one GRID speaker. Local LRW videos are generated fixtures. Neither provides a speaker-independent webcam benchmark.',
+      solution: 'Training-only brightness/contrast jitter, spatial jitter, and temporal masking are implemented. Their effect on held-out recognition has not been measured.'
     }
   ]
 
@@ -49,7 +49,7 @@ export function LimitationsScene() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
           gap: '1.25rem',
           margin: '1.5rem 0'
         }}>

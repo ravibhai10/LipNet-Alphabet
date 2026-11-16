@@ -46,7 +46,8 @@ def extract(args):
         # Read and canonicalize once; optional training augmentation shares
         # the source's speaker and split and never enters validation/test.
         if row.get("input_kind", "raw_video") == "raw_video":
-            rois, fps = read_aligned_mouth_video(row["video"])
+            bounds = {key: row[key] for key in ("start_frame", "end_frame") if key in row}
+            rois, fps = read_aligned_mouth_video(row["video"], **bounds)
         else:
             capture = cv2.VideoCapture(row["video"]); fps = capture.get(cv2.CAP_PROP_FPS) or 25.
             rois = []

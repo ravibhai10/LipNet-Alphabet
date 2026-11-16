@@ -1,0 +1,71 @@
+{
+  "publisher": "https://github.com/mpc001/Lipreading_using_Temporal_Convolutional_Networks",
+  "commit": "0cc99fab046bd959578f2baac52e654746da4825",
+  "license": "See LICENSE; noncommercial individual research/comparative prototypes only",
+  "files": [
+    {
+      "source": "external/lrw_tcn_reference/lipreading/model.py",
+      "vendored": "pipeline/lrw_tcn/vendor/model.py",
+      "original_sha256": "e66fa532d805c045ec6205cc555960e97caceccdfa51db99ec82028c3d83ca28",
+      "vendored_sha256": "cbfdfc64d7db2ee569de72177ed80e9f00ee03e2beafad5189c7ea4f120bd7c1",
+      "change": "import namespace only"
+    },
+    {
+      "source": "external/lrw_tcn_reference/lipreading/models/densetcn.py",
+      "vendored": "pipeline/lrw_tcn/vendor/models/densetcn.py",
+      "original_sha256": "6aa6a7beb76fc28275ba888d05661ebb35e7e2a07d6ce18aff0414b43ba85281",
+      "vendored_sha256": "c6692a1ef2ccef643737f176ba291c2f27dff532988039274972e62a80063a26",
+      "change": "import namespace only"
+    },
+    {
+      "source": "external/lrw_tcn_reference/lipreading/models/resnet.py",
+      "vendored": "pipeline/lrw_tcn/vendor/models/resnet.py",
+      "original_sha256": "c11a04ae033ce0dc01d97559ed6e301069bd181184af1ace5c3ed45b9f3347a9",
+      "vendored_sha256": "93c1ccc038d003d89579e0aa7eca4b7b03ab95143cb3ad4ef0316f454ac7477c",
+      "change": "import namespace only"
+    },
+    {
+      "source": "external/lrw_tcn_reference/lipreading/models/resnet1D.py",
+      "vendored": "pipeline/lrw_tcn/vendor/models/resnet1D.py",
+      "original_sha256": "605b2db4002607830f413870ff8e959dae40087a7affb616904021e707082e11",
+      "vendored_sha256": "097ea73f823644e4a66813a6f139caa020bc1d0049ce25044e4f9c87ab0f37e2",
+      "change": "import namespace only"
+    },
+    {
+      "source": "external/lrw_tcn_reference/lipreading/models/se_module.py",
+      "vendored": "pipeline/lrw_tcn/vendor/models/se_module.py",
+      "original_sha256": "7ba7e8bbcc4f0854309fe80b93b605736f3a3bbf3bcc838babd1879c517312c2",
+      "vendored_sha256": "24ab03d2c3321059eefda2c9f20a64c3438814875d18c9fb76ea84aab5127320",
+      "change": "import namespace only"
+    },
+    {
+      "source": "external/lrw_tcn_reference/lipreading/models/shufflenetv2.py",
+      "vendored": "pipeline/lrw_tcn/vendor/models/shufflenetv2.py",
+      "original_sha256": "348cade3142907ce8d8ba5bd76141d5b38d8c8c5e71ba12900a8ce2b8bf6b5d0",
+      "vendored_sha256": "348cade3142907ce8d8ba5bd76141d5b38d8c8c5e71ba12900a8ce2b8bf6b5d0",
+      "change": "import namespace only"
+    },
+    {
+      "source": "external/lrw_tcn_reference/lipreading/models/swish.py",
+      "vendored": "pipeline/lrw_tcn/vendor/models/swish.py",
+      "original_sha256": "b11fad569c50d2daf4d134bf2ce196d1fde732539b228234c93b29bf75d97b1b",
+      "vendored_sha256": "b11fad569c50d2daf4d134bf2ce196d1fde732539b228234c93b29bf75d97b1b",
+      "change": "import namespace only"
+    },
+    {
+      "source": "external/lrw_tcn_reference/lipreading/models/tcn.py",
+      "vendored": "pipeline/lrw_tcn/vendor/models/tcn.py",
+      "original_sha256": "e55644264ed6c5f5ba81b25eda748d77bde47a3df3f4a189f2caec5198b05afd",
+      "vendored_sha256": "5ad7b8545c66100a6a68c7dc1e5210efe73ba087ecad8f735b331550c7973ff5",
+      "change": "import namespace only"
+    }
+  ],
+  "preprocessing_reference": {
+    "source": "external/lrw_tcn_reference/preprocessing/20words_mean_face.npy",
+    "vendored": "pipeline/lrw_tcn/20words_mean_face.npy",
+    "sha256": "dbf68b2044171e1160716df7c53e8bbfaa0ee8c61fb41171d04cb6092bb81422",
+    "algorithm_source": "preprocessing/dataloader.py at pinned source commit",
+    "algorithm_license": "Apache-2.0 notice in author preprocessing source; overall publisher LICENSE retained",
+    "landmark_limitation": "MediaPipe anatomical correspondences differ from the publisher detector."
+  }
+}

@@ -11,6 +11,7 @@ import threading
 import time
 import os
 import logging
+import hashlib
 from pathlib import Path
 
 import cv2
@@ -34,6 +35,7 @@ class BrowserInference:
         self._load_lock = threading.Lock()
         self._predict_lock = threading.Lock()
         self.error = None
+        self.model_version = None
         self.backend = os.environ.get("LIPNET_MODEL_BACKEND", "alphabet").lower()
         self.model_kind = MODEL_KIND if self.backend == "alphabet" else "AV-HuBERT + supervised alphabet head"
 
@@ -50,6 +52,8 @@ class BrowserInference:
                     if self._model.metadata["vocabulary"] != [chr(65 + index) for index in range(26)]:
                         self._model = None
                         raise ValueError("The live alphabet endpoint requires an A-Z head. Use the classifier CLI for word heads.")
+                    with Path(head_path).open('rb') as stream:
+                        self.model_version = hashlib.file_digest(stream, 'sha256').hexdigest()
                     return True
                 if self.backend != "alphabet":
                     raise ValueError("LIPNET_MODEL_BACKEND must be alphabet or avhubert.")
@@ -69,6 +73,8 @@ class BrowserInference:
                 model.eval()
                 torch.set_num_threads(min(torch.get_num_threads(), 4))
                 self._model = model
+                with CHECKPOINT_PATH.open('rb') as stream:
+                    self.model_version = hashlib.file_digest(stream, 'sha256').hexdigest()
             except Exception as exc:
                 logger.warning("Selected browser model could not load: %s", exc)
                 self._model = None
@@ -88,6 +94,8 @@ class BrowserInference:
             "model_kind": self.model_kind,
             "device": "cpu",
             "streaming_ready": False,
+            "model_version": self.model_version,
+            "confidence_calibrated": False,
         }
 
     @staticmethod
@@ -116,8 +124,8 @@ class BrowserInference:
         crops = [cv2.resize(crop, (46, 140), interpolation=cv2.INTER_AREA) for crop in BrowserInference.decode_jpegs(frames)]
         # The protected legacy checkpoint was trained with 30 frames. New
         # AV-HuBERT heads use their own explicit 29-frame metadata.
-        sequence = resample_temporal(crops, 30) / 255.0
-        return torch.from_numpy(sequence).unsqueeze(0).unsqueeze(2)
+        sequence = (resample_temporal(crops, 30) / 255.0).astype(np.float32)
+        return torch.from_numpy(sequence).float().unsqueeze(0).unsqueeze(2)
 
     def predict(self, frames):
         if not self.load():
@@ -130,11 +138,16 @@ class BrowserInference:
                 crops = np.stack([cv2.resize(crop, (96, 96)) for crop in self.decode_jpegs(frames)])
                 result = self._model.predict_frames(crops)
                 letter = result.pop("label")
+                margin = result['top3'][0]['prob'] - result['top3'][1]['prob']
+                uncertain = result['confidence'] < .5 or margin < .05
                 return {**result, "letter": letter, "model": self.model_kind,
+                        "uncertain": uncertain, "prediction": None if uncertain else letter,
+                        "model_version": self.model_version, "confidence_calibrated": False,
                         "temporal": {"frames": len(frames), "model_frames": self._model.metadata["target_frames"]},
                         "uncertainty": {"state": "UNCALIBRATED"},
                         "latency_ms": round((time.perf_counter() - started) * 1000, 2)}
             inputs = self.decode_frames(frames)
+            preprocessed = time.perf_counter()
             with torch.inference_mode():
                 probabilities = self._model(inputs).softmax(dim=-1)[0]
             if not torch.isfinite(probabilities).all():
@@ -143,7 +156,15 @@ class BrowserInference:
             values = scores.tolist()
             letters = [chr(ord("A") + index) for index in indices.tolist()]
             entropy = -(probabilities * probabilities.clamp_min(1e-12).log()).sum().item()
+            uncertain = values[0] < .5 or values[0] - values[1] < .05
             return {
+                "status": "uncertain" if uncertain else "success", "task": "alphabet_recognition",
+                "prediction": None if uncertain else letters[0], "uncertain": uncertain,
+                "display_text": "UNCERTAIN — PLEASE TRY AGAIN" if uncertain else letters[0],
+                "model_version": self.model_version, "vocabulary_id": "latin-A-Z-v1",
+                "confidence_calibrated": False,
+                "timings_ms": {"preprocessing": round((preprocessed-started)*1000, 2),
+                               "model": round((time.perf_counter()-preprocessed)*1000, 2)},
                 "letter": letters[0], "confidence": values[0],
                 "top3": [{"letter": letter, "prob": score} for letter, score in zip(letters, values)],
                 "probabilities": [{"letter": chr(65 + index), "prob": value} for index, value in enumerate(probabilities.tolist())],

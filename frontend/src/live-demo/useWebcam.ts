@@ -11,6 +11,9 @@ export function useWebcam() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
   const release = useCallback(() => {
     generation.current++
+    // getUserMedia has no abort API. A cancelled acquisition may settle later;
+    // its generation guard stops those tracks without blocking a new attempt.
+    pendingRef.current = null
     const stream = streamRef.current
     streamRef.current = null
     stream?.getTracks().forEach(track => track.stop())

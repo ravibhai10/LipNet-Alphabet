@@ -29,6 +29,12 @@ def audit_records(records, *, require_splits=True):
         if not all(isinstance(row.get(key), str) for key in ("id", "speaker_id", "label")):
             raise ValueError("id, speaker_id, and label must be strings.")
         split = row.get("split")
+        if "start_frame" in row or "end_frame" in row:
+            start, end = row.get("start_frame"), row.get("end_frame")
+            if type(start) is not int or type(end) is not int or start < 0 or end - start < 2 or end - start > 500:
+                raise ValueError("Annotated segments require integer start_frame/end_frame and 2-500 frames.")
+            if row.get("input_kind", "raw_video") != "raw_video":
+                raise ValueError("Annotated frame bounds currently require raw_video inputs.")
         if not identifier or not speaker or not label or split not in ("train", "valid", "test"):
             raise ValueError("Every clip needs id, speaker_id, label, and a train/valid/test split.")
         if any(row[key] != row[key].strip() for key in ("id", "speaker_id", "label")):

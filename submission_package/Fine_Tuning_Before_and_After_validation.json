@@ -1,0 +1,46 @@
+{
+  "created_at": "2026-10-30T12:20:41.714033+05:30",
+  "pdf_pages": 6,
+  "paired_ids_verified": 192,
+  "top1_before": 12.5,
+  "top1_after": 94.79166666666667,
+  "delta_percentage_points": 82.29166666666667,
+  "top5_correct": 191,
+  "confusion_matrix_verified": true,
+  "classifier_hashes_verified": true,
+  "new_training_run": false,
+  "baseline_selected_train_rows": 140,
+  "encoder_finetuned": false,
+  "rejection_config_matches_evaluated_policy": false,
+  "evidence_sha256": {
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\evaluation.json": "dc26a5e1c5183c9770f20d1c5a3d2b639dd1701d22e8e0ae1a34c94d800cccef",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\paired_comparison.json": "d72eb7f74df19a6098b33d8fe498f733cdafba756e696f031064b64a3adc93d2",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\selection.json": "873115c67cfc04830e612d8be1761fc079732b348fd89a956d348695d9803c0f",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\protocol.json": "58ae0afdf05e25772b1d9f45adc81848278f56d852ef39cd25cfd216eea99015",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\rejection_policy.json": "682273225abbc51fbc6c1711ae6f203c11fed36e0dc9014696fd84586b6d6759",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\test_predictions.jsonl": "1e9180739e11735ea27057f64c27709cade143592b5c37d3330683f7d91a6df6",
+    "runs\\word_accuracy\\avhubert_miracl8_v1\\preserved_scratch_test_predictions.jsonl": "8061eb279c2e5695213703c51e827775d430c05ec233712312c37476e45376d9"
+  },
+  "outputs": {
+    "submission_package\\Fine_Tuning_Before_and_After.pdf": {
+      "bytes": 123296,
+      "sha256": "c0753cfbaccb4a4e455a06165db3b8cb215f0bd5d8d5638594fe3f2df399fc5d"
+    },
+    "submission_package\\Fine_Tuning_Before_and_After.docx": {
+      "bytes": 128837,
+      "sha256": "809c87e5c7250c1d0cc9380aac121fb177125bfddedd10f231f61a81453f970b"
+    },
+    "submission_package\\Fine_Tuning_Before_and_After.md": {
+      "bytes": 11911,
+      "sha256": "b3bd822981fcf065aa325614d42f1892af88b6bddd3614b3513e1f31529241db"
+    },
+    "submission_package\\assets\\finetuning_comparison\\before_after_accuracy.png": {
+      "bytes": 29660,
+      "sha256": "b84c21f0d28732ccedbb7533fa34894d8d83bca0ab76baf927602a03736de76f"
+    },
+    "submission_package\\assets\\finetuning_comparison\\after_confusion_matrix.png": {
+      "bytes": 63144,
+      "sha256": "54cda2ddba0db85bb39ae7273a1ef248fc16000f714ba472ed28e34c8cd3945d"
+    }
+  }
+}

@@ -480,7 +480,10 @@ class LivePipeline:
     ) -> None:
         self._latest_result = result
         # Stabilize display
-        self._stabilizer.update(result.letter or "", result.confidence)
+        if result.state in {"LOW_CONFIDENCE", "ABSTAIN"}:
+            self._stabilizer.reset()
+        else:
+            self._stabilizer.update(result.letter or "", result.confidence, probability_margin=result.margin)
         display_letter = self._stabilizer.current or ""
 
         with self._state_lock:

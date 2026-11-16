@@ -35,10 +35,51 @@ export function OverviewPage() {
       {metrics.map(metric=><article className="ws-summary-card" key={metric.label}><div className="ws-summary-label"><span>{metric.label}</span><Icon name={metric.icon} size={17}/></div><div className="ws-summary-value">{metric.value?.toLocaleString() ?? '—'}</div><p>{metric.value == null ? online ? 'Metadata not available' : 'Connect backend to inspect' : metric.note}</p></article>)}
       <article className="ws-summary-card ws-model-summary"><div className="ws-summary-label"><span>Alphabet checkpoint</span><Icon name="cpu" size={17}/></div><div className="ws-summary-value ws-summary-status">{!online ? 'Unverified' : modelLoaded ? 'Loaded' : 'Not loaded'}</div><p>Inference readiness is checked in live studio.</p></article>
     </section>
+
+    <section className="ws-card ws-capstone-banner" style={{ marginTop: '24px', padding: '24px', border: '1px solid var(--ws-border, rgba(255,255,255,0.1))', borderRadius: '12px', background: 'var(--ws-card-bg, rgba(255,255,255,0.03))' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <span className="ws-eyebrow" style={{ color: '#10b981', fontWeight: 600 }}>ACADEMIC CAPSTONE · GROUP 12 SUBMISSION</span>
+          <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px' }}>LipNet-AI: Multimodal Silent Speech Recognition System</h2>
+          <p style={{ margin: 0, opacity: 0.8, maxWidth: '750px', fontSize: '14px', lineHeight: '1.5' }}>
+            Production-grade visual speech recognition engine combining localized landmark alignment, temporal frame sequencing, and deep neural lip reading across isolated letters, multi-speaker words, and continuous sentence benchmarks.
+          </p>
+        </div>
+        <Link to="/demo/docs" className="ws-btn ws-btn-primary ws-btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon name="download" size={14} /> View Submission Package (8/8)
+        </Link>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '20px' }}>
+        <div style={{ padding: '12px 16px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '8px', borderLeft: '3px solid #10b981' }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.7 }}>MIRACL-VC1 Word SOTA</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: '#10b981', marginTop: '2px' }}>94.79% Top-1</div>
+          <div style={{ fontSize: '12px', opacity: 0.75, marginTop: '2px' }}>182/192 correct (AV-HuBERT L9)</div>
+        </div>
+
+        <div style={{ padding: '12px 16px', background: 'rgba(59, 130, 246, 0.08)', borderRadius: '8px', borderLeft: '3px solid #3b82f6' }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.7 }}>GRID Corpus Benchmark</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: '#3b82f6', marginTop: '2px' }}>32,891 Clips</div>
+          <div style={{ fontSize: '12px', opacity: 0.75, marginTop: '2px' }}>33 speakers · 25 letter classes</div>
+        </div>
+
+        <div style={{ padding: '12px 16px', background: 'rgba(245, 158, 11, 0.08)', borderRadius: '8px', borderLeft: '3px solid #f59e0b' }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.7 }}>Alphabet Model</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: '#f59e0b', marginTop: '2px' }}>CNN-BiLSTM</div>
+          <div style={{ fontSize: '12px', opacity: 0.75, marginTop: '2px' }}>30 epochs · 26 A-Z classes</div>
+        </div>
+
+        <div style={{ padding: '12px 16px', background: 'rgba(168, 85, 247, 0.08)', borderRadius: '8px', borderLeft: '3px solid #a855f7' }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.7 }}>Continuous CTC</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: '#a855f7', marginTop: '2px' }}>38.89% WER</div>
+          <div style={{ fontSize: '12px', opacity: 0.75, marginTop: '2px' }}>38.20% CER sentence decoder</div>
+        </div>
+      </div>
+    </section>
+
     <div className="ws-overview-bottom">
       <section className="ws-card ws-workflow-card"><div className="ws-card-head"><h2>From pixels to prediction</h2><Link to="/demo/pipeline" className="ws-inline-link">View pipeline<Icon name="arrow" size={14}/></Link></div><p className="ws-note">The architecture, step by step. Availability depends on your camera and backend.</p><div className="ws-overview-flow">{[{name:'Capture',icon:'camera',note:'Browser camera'},{name:'Extract',icon:'scan',note:'Mouth landmarks'},{name:'Sequence',icon:'layers',note:'Temporal frames'},{name:'Decode',icon:'activity',note:'Alphabet model'}].map((step,i)=><div key={step.name}><span className="ws-flow-icon"><Icon name={step.icon} size={21}/></span><small>0{i+1}</small><h3>{step.name}</h3><p>{step.note}</p></div>)}</div></section>
       <section className="ws-card ws-next-card"><span className="ws-eyebrow">MODEL SCOPE</span><h2>Letters first.<br/><em>Language next.</em></h2><p>Alphabet classification and sentence lip reading are separate tasks. The sentence decoder is not connected to this workspace.</p><span className="ws-badge ws-badge-warning">Sentence inference unavailable</span><Link to="/demo/models" className="ws-inline-link">Inspect model registry<Icon name="arrow" size={14}/></Link></section>
     </div>
   </div>
 }
-

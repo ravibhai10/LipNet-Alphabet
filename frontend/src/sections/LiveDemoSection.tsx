@@ -9,6 +9,14 @@ import { useDemoPipeline } from '../live-demo/useDemoPipeline'
 
 export function LiveDemoSection() {
   const d = useDemoPipeline()
+  const wordMode = d.recognitionMode !== 'alphabet'
+  const selectedHealth = d.recognitionMode === 'lrw500' ? d.lrwHealth : d.recognitionMode === 'expanded' ? d.expandedHealth : d.wordHealth
+  const modes = [
+    { id: 'alphabet', label: 'Alphabet (A–Z)', ready: true },
+    { id: 'word', label: '8 words', ready: d.wordHealth.inference_ready && d.wordHealth.research_activation_gate_passed === true },
+    { id: 'expanded', label: '20 words', ready: d.expandedHealth.inference_ready && d.expandedHealth.research_activation_gate_passed === true },
+    { id: 'lrw500', label: '500 words', ready: d.lrwHealth.inference_ready },
+  ] as const
 
   return (
     <section
@@ -25,7 +33,7 @@ export function LiveDemoSection() {
               See what <em>the model sees.</em>
             </>
           }
-          lede="Landmark detection runs locally in your browser. When inference is ready, mouth crops are sent to your configured backend for experimental alphabet classification."
+          lede="Landmark detection runs locally in your browser. When inference is ready, captured video frames are sent to your configured backend for the selected recognition model."
         />
 
         <div className="demo-layout">
@@ -115,16 +123,52 @@ export function LiveDemoSection() {
 
           {/* ---------- side panel ---------- */}
           <aside className="demo-panel" aria-label="Live inference readout">
+
+            {/* Mode Selector */}
+            <div className="demo-panel-block" style={{ paddingBottom: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span className="mono-note" style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Recognition Task
+                </span>
+                <span style={{
+                  fontSize: '0.65rem',
+                  fontFamily: 'monospace',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  background: wordMode ? 'rgba(143, 223, 203, 0.15)' : 'rgba(255,255,255,0.08)',
+                  color: wordMode ? '#8fdfcb' : '#c5c6c7'
+                }}>
+                  {wordMode ? 'Whole words' : 'Alphabet'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {modes.map(mode => <button key={mode.id}
+                  type="button" aria-pressed={d.recognitionMode === mode.id}
+                  disabled={!mode.ready || d.predicting}
+                  onClick={() => { d.stop(); d.setRecognitionMode(mode.id) }}
+                  style={{ flex: '1 1 42%', padding: '6px 8px', fontSize: '0.75rem', borderRadius: '6px',
+                    border: d.recognitionMode === mode.id ? '1px solid #8fdfcb' : '1px solid rgba(255,255,255,0.1)',
+                    background: d.recognitionMode === mode.id ? 'rgba(143, 223, 203, 0.15)' : 'transparent',
+                    color: d.recognitionMode === mode.id ? '#edebe4' : '#888899', opacity: mode.ready ? 1 : .5,
+                    cursor: mode.ready ? 'pointer' : 'not-allowed' }}
+                >{mode.label}</button>)}
+              </div>
+              {wordMode && (
+                <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: '#888899', fontFamily: 'monospace' }}>
+                  {selectedHealth.vocabulary.length} supported words: <strong style={{ color: '#8fdfcb' }}>{selectedHealth.vocabulary.slice(0, 20).join(', ')}{selectedHealth.vocabulary.length > 20 ? ', …' : ''}</strong>
+                </div>
+              )}
+            </div>
             {(d.predictionError || d.pipelineError) && <p className="demo-status" role="alert">{d.predictionError || d.pipelineError}</p>}
             <div className="demo-panel-block demo-panel-block--primary">
-              <p className="mono-note">Detected letter</p>
+              <p className="mono-note">{wordMode ? 'Detected spoken word' : 'Detected letter'}</p>
               <p className="demo-letter" aria-live="polite">
-                {d.backendStatus !== 'online' || !d.modelLoaded
+                {d.backendStatus !== 'online' || !d.inferenceReady
                   ? '—'
                   : d.readout.detected ?? (d.predicting ? '…' : '—')}
               </p>
               <p className="mono-note demo-status" role="status">
-                {d.backendStatus === 'online' && d.modelLoaded
+                {d.backendStatus === 'online' && d.inferenceReady
                   ? 'Model ready'
                   : d.backendStatus === 'online'
                     ? 'Backend online · model unavailable'

@@ -139,7 +139,7 @@ export function MathematicsScene() {
         <div className="sci-card">
           <div className="sci-card-header">
             <h3 className="sci-card-title">Loss & Temporal Smoothing</h3>
-            <span className="sci-tag verified">LipNet Active Logic</span>
+            <span className="sci-tag illustrative">Loss sandbox · live EMA concept</span>
           </div>
 
           {/* Cross Entropy Loss Demo */}

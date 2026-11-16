@@ -32,18 +32,28 @@ export class PredictionStabilizer {
   private windows = 0
   private alpha: number
   private confirmations: number
-  constructor(alpha = .6, confirmations = 2) {
+  private threshold: number
+  private margin: number
+  constructor(alpha = .6, confirmations = 2, threshold = .5, margin = .05) {
     if (!(alpha > 0 && alpha <= 1) || confirmations < 1) throw new Error('Invalid stabilization settings.')
     this.alpha = alpha; this.confirmations = confirmations
+    if (!(threshold >= 0 && threshold <= 1 && margin >= 0 && margin <= 1)) throw new Error('Invalid rejection thresholds.')
+    this.threshold = threshold; this.margin = margin
   }
   reset() { this.average.clear(); this.candidate = null; this.repeats = 0; this.windows = 0 }
   update(raw: Prediction): { confirmed: boolean; prediction: Prediction | null; windows: number } {
+    const reject = () => { this.reset(); return { confirmed: false, prediction: null, windows: 0 } }
+    if (raw.uncertain || !raw.letter || !Number.isFinite(raw.confidence) || raw.confidence < this.threshold || raw.confidence > 1) return reject()
     this.windows++
     let prediction = raw
     const probabilities = raw.probabilities
     const total = probabilities?.reduce((sum, entry) => sum + entry.prob, 0) ?? 0
     const valid = probabilities && probabilities.length >= 2 && new Set(probabilities.map(entry => entry.letter)).size === probabilities.length &&
       probabilities.every(entry => Number.isFinite(entry.prob) && entry.prob >= 0 && entry.prob <= 1) && Math.abs(total - 1) < .001
+    if (probabilities && !valid) return reject()
+    const rawScores = (probabilities ?? raw.top3).map(entry => entry.prob).sort((a,b) => b-a)
+    const measuredMargin = rawScores.length >= 2 ? rawScores[0] - rawScores[1] : raw.uncertainty?.margin
+    if (measuredMargin !== undefined && (!Number.isFinite(measuredMargin) || measuredMargin < this.margin)) return reject()
     if (valid && probabilities) {
       if (this.average.size !== probabilities.length || probabilities.some(entry => !this.average.has(entry.letter))) {
         this.average.clear(); this.candidate = null; this.repeats = 0; this.windows = 1
