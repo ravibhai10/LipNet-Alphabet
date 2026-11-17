@@ -288,10 +288,10 @@ def build_plagiarism_report():
     
     checks = [
         [Paragraph("<b>Verification Criterion</b>", table_cell_bold), Paragraph("<b>Institutional Guideline</b>", table_cell_bold), Paragraph("<b>Group 12 Status</b>", table_cell_bold)],
-        [Paragraph("Acceptable Similarity Threshold", table_cell), Paragraph("Overall similarity index &lt; 15% excluding bibliography", table_cell), Paragraph("<font color='#2F855A'><b>COMPLIANT (Estimated &lt; 8%)</b></font>", table_cell)],
-        [Paragraph("Filter: Exclude Bibliography / References", table_cell), Paragraph("Standard academic references must be excluded from match", table_cell), Paragraph("CONFIGURED", table_cell)],
-        [Paragraph("Filter: Exclude Small Matches", table_cell), Paragraph("Matches &lt; 8 consecutive words or &lt; 1% to be filtered", table_cell), Paragraph("CONFIGURED", table_cell)],
-        [Paragraph("Filter: Exclude Quoted Material", table_cell), Paragraph("Properly enclosed citations to be excluded", table_cell), Paragraph("CONFIGURED", table_cell)],
+        [Paragraph("Acceptable Similarity Threshold", table_cell), Paragraph("Overall similarity index &lt; 15% excluding bibliography", table_cell), Paragraph("<font color='#2F855A'><b>NOT ASSESSED ? institutional report required</b></font>", table_cell)],
+        [Paragraph("Filter: Exclude Bibliography / References", table_cell), Paragraph("Standard academic references must be excluded from match", table_cell), Paragraph("TO BE VERIFIED", table_cell)],
+        [Paragraph("Filter: Exclude Small Matches", table_cell), Paragraph("Matches &lt; 8 consecutive words or &lt; 1% to be filtered", table_cell), Paragraph("TO BE VERIFIED", table_cell)],
+        [Paragraph("Filter: Exclude Quoted Material", table_cell), Paragraph("Properly enclosed citations to be excluded", table_cell), Paragraph("TO BE VERIFIED", table_cell)],
         [Paragraph("Verification File Format", table_cell), Paragraph("Single compiled text-searchable PDF (12_ResearchPaper.pdf)", table_cell), Paragraph("VERIFIED (Native PDF)", table_cell)]
     ]
     t_checks = Table(checks, colWidths=[2.2*inch, 3.2*inch, 1.6*inch])

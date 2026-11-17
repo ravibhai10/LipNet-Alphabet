@@ -24,7 +24,9 @@ class PretrainedWordInference:
             self._attempted=True
             try:
                 report=json.loads((self.path.parent/'evaluation.json').read_text())
-                personal = self.path.name == 'head.pt' and self.path.parent.name == 'personal_words'
+                personal = report.get('protocol') in {'personal_cross_session','personal_cross_session_v2'}
+                if self.path.parent.name=='personal_words' and not personal:
+                    raise ValueError('Personal activation requires explicit protocol metadata.')
                 minimum_samples = 4 if personal else 100
                 minimum_accuracy = .5 if personal else .7
                 if personal and report.get('eligible_for_manual_research_activation') is not True:

@@ -21,6 +21,7 @@ def studio_inventory():return studio.inventory()
 
 @router.post('/bundles',status_code=201)
 def save_studio_bundle(request:StudioBundle):
+    raise HTTPException(410, 'JPEG-only studio submission is archived. Use /api/adaptive/captures with original source video, consent and owner identity.')
     try:return studio.save(request.clips,request.configuration_sha256)
     except (ValueError,TypeError,KeyError) as error:raise HTTPException(422,str(error)) from error
 

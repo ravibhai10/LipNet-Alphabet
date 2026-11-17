@@ -188,20 +188,8 @@ class DatasetService:
         if self.is_custom_root or (self.RECORDINGS_ROOT.exists() and any(self.RECORDINGS_ROOT.iterdir())):
             validator = DatasetValidator(self.DATASET_ROOT)
             return validator.validate_all()
-        report = ValidationReport(results=[])
-        from data.validate import ValidationResult
-        report.add_result(ValidationResult("manifest_exists", True, "Benchmark manifest verified (grid_manifest.jsonl, 32,891 clips).", "info"))
-        report.add_result(ValidationResult("recordings_directory", True, "GRID multi-speaker dataset verified across 33 speakers.", "info"))
-        report.add_result(ValidationResult("manifest_entries", True, "32,891 valid letter/clip entries verified.", "info"))
-        report.add_result(ValidationResult("duplicate_recording_ids", True, "0 duplicate entries after deduplication screening.", "info"))
-        report.add_result(ValidationResult("letters", True, "25 letter classes available (A-Z except W).", "info"))
-        report.add_result(ValidationResult("missing_files", True, "0 missing source video files.", "info"))
-        report.add_result(ValidationResult("video_integrity", True, "All 32,891 source videos decoded without corruption.", "info"))
-        report.add_result(ValidationResult("metadata_validity", True, "Word alignment boundaries verified in 1/25000s time units.", "info"))
-        report.add_result(ValidationResult("splits", True, "Speaker-disjoint splits verified: 23 train, 5 validation, 5 test.", "info"))
-        report.add_result(ValidationResult("train_test_leakage", True, "Zero speaker overlap between partitions.", "info"))
-        report.add_result(ValidationResult("data_source", True, "Official real_camera recordings; 0 synthetic.", "info"))
-        return report
+        from app.services.evidence_registry import dataset_checks
+        return dataset_checks(self.BENCHMARK_ROOT / 'avhubert_letters.jsonl', self.PROJECT_ROOT)
 
     def build_manifest(self) -> int:
         if self.is_custom_root or (self.RECORDINGS_ROOT.exists() and any(self.RECORDINGS_ROOT.iterdir())):
@@ -213,7 +201,7 @@ class DatasetService:
                 for e in entries:
                     f.write(e.to_jsonl() + "\n")
             return len(entries)
-        return 32891
+        raise RuntimeError('Benchmark manifests are immutable; select an explicit new dataset output directory.')
 
     def create_splits(self) -> Dict[str, int]:
         if self.is_custom_root or (self.RECORDINGS_ROOT.exists() and any(self.RECORDINGS_ROOT.iterdir())):
@@ -233,7 +221,7 @@ class DatasetService:
                 if split_map.get(e.recording_id):
                     counts[split_map[e.recording_id]] += 1
             return counts
-        return {"train": 22891, "val": 5000, "test": 5000}
+        raise RuntimeError('Historical benchmark splits cannot be rewritten through this endpoint.')
 
     def has_real_data(self) -> bool:
         return self.get_stats()["recordings"] > 0

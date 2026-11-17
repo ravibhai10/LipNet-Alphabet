@@ -52,12 +52,13 @@ class LiveMouthCropper:
         if x2 - x1 < 5 or y2 - y1 < 5:
             return None
         mouth = bgr[y1:y2, x1:x2]
-        h, w = mouth.shape[:2]
+        gray = cv2.cvtColor(mouth, cv2.COLOR_BGR2GRAY)
+        return cv2.resize(gray, (MOUTH_W, MOUTH_H))
 
 
 def load_model(ckpt_path: Path, device: torch.device) -> AlphabetCNNBiLSTM:
     model = AlphabetCNNBiLSTM().to(device)
-    ck = torch.load(ckpt_path, map_location=device, weights_only=False)
+    ck = torch.load(ckpt_path, map_location=device, weights_only=True)
     model.load_state_dict(ck.get("model_state_dict", ck))
     model.eval()
     return model
@@ -89,7 +90,7 @@ def pad_or_sample(frames: list, length: int) -> np.ndarray:
             parts.append(np.repeat(frames[-1:], pr, axis=0))
         return np.concatenate(parts, axis=0)
     idx = np.linspace(0, t - 1, length, dtype=int)
-    idx[0] = 0
+    return np.stack([frames[i] for i in idx], axis=0)
 
 
 def parse_args() -> argparse.Namespace:

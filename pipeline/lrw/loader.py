@@ -134,6 +134,12 @@ class LRWDataset(Dataset):
         if use_mock:
             self.samples = [{"word": word, "label": self.word_to_idx[word], "file_path": None, "type": "mock"} for word in VOCABULARY]
             return
+        import hashlib
+        known_fixture='33be06600bab2ee0d28aeca31c467074278e83ad31311e1526e2687e2412db8c'
+        for clip in self.split_dir.glob('*/*.mp4'):
+            with clip.open('rb') as stream:signature=hashlib.file_digest(stream,'sha256').hexdigest()
+            if signature==known_fixture:
+                raise ValueError('Duplicated LRW development fixtures are not real data. Explicit use_mock=True is software-only; use the licensed whole-word pipeline for benchmarks.')
         seen = set()
 
         # 1. Search for preprocessed tensor clips if directory exists

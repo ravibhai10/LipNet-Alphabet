@@ -17,13 +17,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Annotated
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field
 from app.services.browser_inference import browser_inference, MODEL_KIND, CHECKPOINT_PATH
 from app.services.word_inference import word_inference
-if os.environ.get('LIPNET_WORD_BACKEND','legacy')=='avhubert':
+if os.environ.get('LIPNET_WORD_BACKEND','avhubert')=='avhubert':
     from app.services.pretrained_word_inference import word_inference
 from app.services.recognition_capabilities import router as recognition_capabilities_router
 from app.services.project_evidence import corpus_evidence
@@ -61,8 +61,10 @@ from app.studio_routes import router as studio_router
 app.include_router(studio_router)
 from app.adaptive_routes import router as adaptive_router, PrivateBodyLimit
 app.include_router(adaptive_router)
-app.add_middleware(PrivateBodyLimit)
-INFERENCE_TIMEOUT_SECONDS = 30.0
+from app.security import RequestBoundary
+from app.settings import settings
+app.add_middleware(RequestBoundary)
+INFERENCE_TIMEOUT_SECONDS = settings().inference_timeout_seconds
 
 
 @app.on_event('startup')
@@ -319,6 +321,7 @@ class PersonalTrainRequest(BaseModel):
 @app.post("/api/word/train-personal", status_code=202)
 def train_personal_words(req: PersonalTrainRequest):
     """Stage validated recordings; training/evaluation never mutates a live model."""
+    raise HTTPException(410, 'This collection-only legacy alias is archived. Submit original sources to /api/adaptive/captures; reviewed training is a separate job.')
     from app.services.recording_intake import save_bundle
     try:
         return save_bundle(PROJECT_ROOT, req.clips, req.vocabulary)
@@ -481,7 +484,7 @@ async def _try_acquire_ws_slot() -> bool:
 @app.get("/api/dataset/validate")
 async def dataset_validate():
     ds = get_dataset_service()
-    report = ds.validate()
+    report = await asyncio.to_thread(ds.validate)
     return {
         "passed": not report.has_critical_errors(),
         "critical_errors": report.critical_errors,
@@ -495,14 +498,20 @@ async def dataset_validate():
 @app.post("/api/dataset/build-manifest")
 async def dataset_build_manifest():
     ds = get_dataset_service()
-    n = ds.build_manifest()
+    try:
+        n = await asyncio.to_thread(ds.build_manifest)
+    except RuntimeError as exc:
+        raise HTTPException(409, str(exc)) from exc
     return {"entries": n}
 
 
 @app.post("/api/dataset/create-splits")
 async def dataset_create_splits():
     ds = get_dataset_service()
-    counts = ds.create_splits()
+    try:
+        counts = await asyncio.to_thread(ds.create_splits)
+    except RuntimeError as exc:
+        raise HTTPException(409, str(exc)) from exc
     return counts
 
 
@@ -577,7 +586,6 @@ async def training_status(job_id: str):
 
 
 @app.post("/api/training/cancel/{job_id}")
-@app.get("/api/training/cancel/{job_id}")
 async def training_cancel(job_id: str):
     jm = get_job_manager()
     job = jm.get(job_id)
@@ -654,181 +662,38 @@ async def training_checkpoints():
 
 @app.get("/api/inference/checkpoints")
 async def inference_checkpoints():
-    service = get_inference_service()
-    browser = await asyncio.to_thread(browser_inference.health)
-    checkpoints = [
-        {"path": str(directory), "name": directory.name,
-         "compatible": service.is_loaded(directory), "loaded": service.is_loaded(directory),
-         "note": "Loaded temporal checkpoint." if service.is_loaded(directory) else "Compatibility is checked when loaded by the local pipeline."}
-        for directory in service.list_checkpoints()
-    ]
-    if CHECKPOINT_PATH.is_file():
-        checkpoints.insert(0, {
-            "path": str(CHECKPOINT_PATH), "name": CHECKPOINT_PATH.name,
-            "compatible": True,
-            "loaded": True,
-            "model_kind": MODEL_KIND,
-            "note": "Alphabet CNN-BiLSTM (26 classes). Ready for letter classification.",
-        })
-    miracl_head = PROJECT_ROOT / "runs" / "word_accuracy" / "avhubert_miracl8_v1" / "head.pt"
-    if miracl_head.is_file():
-        checkpoints.append({
-            "path": str(miracl_head), "name": "head.pt (AV-HuBERT 8-Word)",
-            "compatible": True,
-            "loaded": True,
-            "model_kind": "AV-HuBERT Base + Linear Classifier (8 words)",
-            "note": "Frozen visual encoder plus supervised head; historical eight-word evaluation is separate from webcam accuracy. Inspect /api/word/health for selection; prediction endpoint: /api/predict/word.",
-        })
-    grid4_ckpt = PROJECT_ROOT / "runs" / "word_recognition_v1" / "e74f03d1fa9494bb" / "checkpoint.pt"
-    if grid4_ckpt.is_file():
-        checkpoints.append({
-            "path": str(grid4_ckpt), "name": "checkpoint.pt (WordVideoNet 4-Word)",
-            "compatible": True,
-            "loaded": False,
-            "model_kind": "WordVideoNet 3D-CNN + ResNet (4 words: bin, lay, place, set)",
-            "note": "GRID 4-class word recognition checkpoint (34.38% top-1, 62.5% top-2).",
-        })
-    lrw_path = PROJECT_ROOT / "models" / "external" / "lrw_tcn" / "resnet18_dctcn_video.pth"
-    if lrw_path.is_file():
-        checkpoints.append({
-            "path": str(lrw_path), "name": "resnet18_dctcn_video.pth (LRW 500-Word)",
-            "compatible": False,
-            "loaded": False,
-            "model_kind": "ResNet-18 + DCTCN (500 words)",
-            "note": "Lip Reading in the Wild (LRW) 500-class external benchmark model.",
-        })
-    avhubert_path = PROJECT_ROOT / "models" / "external" / "avhubert" / "base_vox_iter5.pt"
-    if avhubert_path.is_file():
-        checkpoints.append({
-            "path": str(avhubert_path), "name": avhubert_path.name,
-            "compatible": True,
-            "loaded": True,
-            "model_kind": "AV-HuBERT Base Encoder (Self-Supervised)",
-            "note": "Pretrained 12-layer visual speech representation encoder.",
-        })
-    return {"checkpoints": checkpoints, "model_loaded": True}
+    from app.services.evidence_registry import SPECS, fingerprint
+    from app.services.pretrained_word_inference import word_inference as reference
+    from app.services.lrw500_inference import lrw500_inference
+    selected = {'alphabet_cnn_bilstm': browser_inference._model is not None,
+                'avhubert_miracl8_v1': reference.model is not None}
+    checkpoints = []
+    for identifier, (_, relative, architecture, task) in SPECS.items():
+        path = PROJECT_ROOT / relative
+        loaded = selected.get(identifier, False)
+        checkpoints.append({'name': identifier, 'path': relative, 'model_kind': architecture,
+                            'task': task, 'artifact_present': path.is_file(), 'loaded': loaded,
+                            'compatible': loaded, 'compatibility': 'verified' if loaded else 'unchecked',
+                            'runtime_state': 'operational' if loaded else 'unloaded',
+                            'note': 'Loadability is not recognition validation.'})
+    checkpoints.append({'name': 'lrw500', **lrw500_inference.health(load=False)})
+    return {'schema_version': 2, 'checkpoints': checkpoints, 'model_loaded': any(selected.values())}
 
 
-@app.get("/api/evaluations")
+@app.get('/api/evaluations')
 async def list_evaluations():
-    """List all authentic labeled evaluations across models and benchmarks."""
-    return {
-        "evaluations": [
-            {
-                "id": "avhubert_miracl8_v1",
-                "name": "AV-HuBERT Base + Linear Classifier (8-Word MIRACL)",
-                "architecture": "AV-HuBERT Base Transformer (12 layers, 768-d) + Linear Head",
-                "task": "8-Class Isolated Silent Word Recognition",
-                "vocabulary": ["choose", "connection", "hello", "navigation", "next", "previous", "start", "stop"],
-                "test_samples": 192,
-                "correct": 182,
-                "top1_accuracy": 0.9479,
-                "top5_accuracy": 0.9948,
-                "macro_f1": 0.9467,
-                "wer": 0.0521,
-                "speaker_protocol": "Speaker-disjoint held-out test speakers (F07, F09, M03, M05)",
-                "checkpoint_path": "runs/word_accuracy/avhubert_miracl8_v1/head.pt",
-                "evaluated_at": "2026-10-30",
-            },
-            {
-                "id": "word_recognition_v1",
-                "name": "WordVideoNet 3D-CNN + ResNet (4-Word GRID)",
-                "architecture": "3D-CNN Front-end + 2D ResNet-18 + Temporal ConvNet",
-                "task": "4-Class Isolated Word Recognition",
-                "vocabulary": ["bin", "lay", "place", "set"],
-                "test_samples": 32,
-                "correct": 11,
-                "top1_accuracy": 0.3438,
-                "top2_accuracy": 0.6250,
-                "macro_f1": 0.2732,
-                "wer": 0.6562,
-                "speaker_protocol": "Speaker-disjoint held-out test speakers (s30, s31, s32, s33, s34)",
-                "checkpoint_path": "runs/word_recognition_v1/e74f03d1fa9494bb/checkpoint.pt",
-                "evaluated_at": "2026-10-29",
-            },
-            {
-                "id": "alphabet_cnn_bilstm",
-                "name": "Alphabet Classifier (CNN-BiLSTM)",
-                "architecture": "3D-CNN + 2D-CNN + 2-layer BiLSTM + Linear",
-                "task": "26-Class Isolated Letter Classification",
-                "vocabulary": list("ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
-                "test_samples": 100,
-                "correct": 12,
-                "top1_accuracy": 0.1200,
-                "best_val_accuracy": 0.2000,
-                "test_loss": 2.9523,
-                "checkpoint_path": "models/alphabet_classifier.pt",
-                "evaluated_at": "2026-10-27",
-            },
-            {
-                "id": "continuous_sequence_v2t",
-                "name": "Continuous Video-to-Text Track (LipNet / CTC Sequence)",
-                "architecture": "3D-CNN + BiGRU + CTC Loss Decoder",
-                "task": "Continuous Silent Speech Sentence Decoding",
-                "test_samples": 15,
-                "wer": 0.3889,
-                "cer": 0.3820,
-                "total_reference_words": 90,
-                "total_word_errors": 35,
-                "checkpoint_path": "runs/video_to_text/sequence_eval_report.json",
-                "evaluated_at": "2026-10-29",
-            },
-        ]
-    }
+    from app.services.evidence_registry import evaluations
+    return await asyncio.to_thread(evaluations, PROJECT_ROOT)
 
 
-@app.get("/api/evaluation/{eval_path:path}")
+@app.get('/api/evaluation/{eval_path:path}')
 async def get_evaluation_metrics(eval_path: str):
-    """Return detailed evaluation metrics and confusion matrix for a specific run."""
-    if "avhubert" in eval_path or "miracl" in eval_path:
-        p = PROJECT_ROOT / "runs" / "word_accuracy" / "avhubert_miracl8_v1" / "evaluation.json"
-        if p.is_file():
-            data = json.loads(p.read_text(encoding="utf-8"))
-            return {
-                "accuracy": data.get("top1_accuracy"),
-                "macro_f1": data.get("macro_f1"),
-                "top3": data.get("top5_accuracy"),
-                "top5": data.get("top5_accuracy"),
-                "wer": data.get("single_word_wer"),
-                "per_word": data.get("per_word"),
-                "evaluated_on": "192 held-out test clips across 4 speakers",
-                "evaluated_at": "2026-10-30",
-            }
-    if "word_recognition" in eval_path or "grid4" in eval_path:
-        p = PROJECT_ROOT / "runs" / "word_recognition_v1" / "evaluation_summary.json"
-        if p.is_file():
-            data = json.loads(p.read_text(encoding="utf-8"))
-            return {
-                "accuracy": data.get("word_accuracy"),
-                "macro_f1": data.get("classification_report", {}).get("macro avg", {}).get("f1-score"),
-                "top2": 0.625,
-                "wer": data.get("wer"),
-                "confusion_matrix": data.get("confusion_matrix"),
-                "per_word": data.get("per_word"),
-                "evaluated_on": "32 test clips across 5 held-out speakers",
-                "evaluated_at": "2026-10-29",
-            }
-    if "alphabet" in eval_path:
-        p = PROJECT_ROOT / "models" / "training_summary.json"
-        if p.is_file():
-            data = json.loads(p.read_text(encoding="utf-8"))
-            return {
-                "accuracy": data.get("test_accuracy"),
-                "macro_f1": 0.115,
-                "best_val": data.get("best_val_accuracy"),
-                "loss": data.get("test_loss"),
-                "per_class_accuracy": data.get("per_class_accuracy"),
-                "evaluated_on": "100 test samples",
-                "evaluated_at": "2026-10-27",
-            }
-    return {
-        "accuracy": 0.9479,
-        "macro_f1": 0.9467,
-        "top3": 0.9948,
-        "top5": 0.9948,
-        "evaluated_on": "Held-out test set",
-        "evaluated_at": "2026-10-30",
-    }
+    from app.services.evidence_registry import evaluation
+    try:
+        value = await asyncio.to_thread(evaluation, eval_path, PROJECT_ROOT)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return {**value, 'accuracy': value.get('top1_accuracy'), 'top5': value.get('top5_accuracy')}
 
 
 @app.get("/api/experiments")
@@ -887,6 +752,8 @@ class LiveSaveRequest(BaseModel):
 
 @app.post("/api/live/start")
 async def live_start(req: LiveStartRequest):
+    if not settings().server_camera_enabled:
+        raise HTTPException(503, 'Server camera is disabled; use the supported browser capture path.')
     isvc = get_inference_service()
     pipeline = get_live_pipeline()
     ckpt = Path(req.ckpt_dir).resolve()
@@ -900,6 +767,7 @@ async def live_start(req: LiveStartRequest):
     except IncompatibleCheckpointError as e:
         raise HTTPException(status_code=409, detail=str(e))
     try:
+        pipeline.configure_camera(req.camera_index, req.width, req.height, req.fps)
         pipeline.start()
     except CameraUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
@@ -950,9 +818,10 @@ async def live_state():
 @app.post("/api/live/save_recording")
 async def live_save(req: LiveSaveRequest):
     pipeline = get_live_pipeline()
-    out = Path(req.out_dir) if req.out_dir else (
-        PROJECT_ROOT / "test_recordings" / f"live_{int(__import__('time').time())}"
-    )
+    if req.out_dir is not None:
+        raise HTTPException(422, 'out_dir is no longer accepted; exports use server-generated identifiers.')
+    import uuid
+    out = settings().private_root / 'exports' / uuid.uuid4().hex
     try:
         n = pipeline.save_test_recording(out)
     except Exception as e:
@@ -1042,4 +911,4 @@ async def spa_fallback(full_path: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)

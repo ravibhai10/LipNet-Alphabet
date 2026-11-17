@@ -71,13 +71,13 @@ export function TestingPage() {
         </div>
         <div className="ws-card ws-metric">
           <span className="ws-metric-label">Evaluated Architectures</span>
-          <span className="ws-metric-value">{loading ? '…' : evaluations.length || 4}</span>
+          <span className="ws-metric-value">{loading ? '…' : evaluations.length}</span>
           <span className="ws-note">Separated whole-word, letter & sequence models</span>
         </div>
         <div className="ws-card ws-metric">
           <span className="ws-metric-label">Active Classifier</span>
-          <span className="ws-metric-value">{d.inferenceReady ? 'Loaded' : 'Ready'}</span>
-          <span className="ws-note">Live inference endpoint connected</span>
+          <span className="ws-metric-value">{d.inferenceReady ? 'Loaded' : 'Unavailable'}</span>
+          <span className="ws-note">{d.inferenceReady ? 'Live inference endpoint active' : 'Model not loaded'}</span>
         </div>
       </div>
 

@@ -9,7 +9,7 @@ const titles: Record<string, string> = {
   '/demo/overview': 'Overview',
   '/demo/live': 'Live lip reading',
   '/demo/feedback': 'Adaptive feedback lab',
-  '/demo/collect': 'Collect eight-word recordings',
+  '/demo/collect': 'Word Collection & Dataset Expansion',
   '/demo/dataset': 'Dataset explorer',
   '/demo/training': 'Training',
   '/demo/testing': 'Evaluation & testing',

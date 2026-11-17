@@ -24,8 +24,11 @@ IDENTIFIER = re.compile(r'^[a-zA-Z0-9_-]{1,80}$')
 def validate_clip(row, landmarker, allowed_words=None):
     if any(not isinstance(row.get(k),str) or not IDENTIFIER.fullmatch(row[k]) for k in ('id','speaker_id','session_id')):
         raise ValueError('Invalid recording/participant/session identifier.')
-    if row.get('label') not in (WORDS if allowed_words is None else allowed_words) or row.get('split') not in QUOTAS:
-        raise ValueError('Only the eight supported words and train/valid/test partitions are accepted.')
+    target_vocab = WORDS if allowed_words is None else allowed_words
+    if row.get('label') not in target_vocab:
+        raise ValueError(f"Word '{row.get('label')}' is not in configured vocabulary.")
+    if row.get('split') not in QUOTAS:
+        raise ValueError('Only train/valid/test partitions are accepted.')
     if row.get('consent') is not True or row.get('label_confirmed') is not True or row.get('source') != 'user_camera':
         raise ValueError('Explicit recording consent and user-confirmed word labels are required.')
     if row.get('preprocessing') != 'browser-eyeaxis96-jpeg-v1' or row.get('landmarker_sha256') != landmarker:

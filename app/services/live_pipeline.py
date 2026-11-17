@@ -40,7 +40,7 @@ from app.services.temporal_buffer import (
 )
 from app.services.inference_service import (
     InferenceService, ModelHandle, PredictionResult,
-    get_inference_service,
+    get_inference_service, IncompatibleCheckpointError,
 )
 
 logger = logging.getLogger(__name__)
@@ -148,12 +148,21 @@ class LivePipeline:
             self._state.error = None
             self._state.detail = f"Loaded {self._ckpt_dir.name}"
 
+    def configure_camera(self, camera_index=0, width=640, height=480, fps=25):
+        if self.is_running():
+            raise RuntimeError('Stop camera before changing capture settings.')
+        if not 0 <= camera_index <= 16 or not 96 <= width <= 1920 or not 96 <= height <= 1080 or not 1 <= fps <= 60:
+            raise ValueError('Unsupported camera settings.')
+        self._camera_settings = dict(camera_index=camera_index,width=width,height=height,fps=fps)
+
     def start(self) -> None:
         """Start the camera + worker."""
         if self._handle is None:
             raise RuntimeError("No model loaded. Call load_model() first.")
         if self._running.is_set():
             return
+        if self._ckpt_dir is None or not (self._ckpt_dir/'representation.pt').is_file():
+            raise RuntimeError('Research inference requires its trained representation.pt bundle; random feature fallback is forbidden.')
         try:
             self._init_phase_components()
         except Exception as exc:
@@ -163,7 +172,7 @@ class LivePipeline:
                 self._state.detail = "Phase 2-3 init failed"
             raise
         try:
-            self._camera.start()
+            self._camera.start(**getattr(self,'_camera_settings',{}))
         except CameraUnavailableError as e:
             with self._state_lock:
                 self._state.state = "ERROR"
@@ -297,7 +306,15 @@ class LivePipeline:
             fusion_cfg = FusionConfig(use_context=False)
             self._fusion = GatedFusion(fusion_cfg).eval()
 
-            self._load_dataset_stats()
+            bundle=torch.load(self._ckpt_dir/'representation.pt',map_location='cpu',weights_only=True)
+            if bundle.get('format')!='lipnet-trained-representation-v1':
+                raise RuntimeError('Unverified representation bundle contract.')
+            for name,module in [('appearance',self._appearance_extractor.model),('geometry',self._geometry_extractor.mlp),('motion',self._motion_extractor.mlp),('fusion',self._fusion)]:
+                module.load_state_dict(bundle[name],strict=True)
+            if 'geometry_mean' not in bundle or 'geometry_std' not in bundle:
+                raise RuntimeError('Training-fitted geometry statistics required.')
+            self._geometry_extractor.scalars_mean=np.asarray(bundle['geometry_mean'])
+            self._geometry_extractor.scalars_std=np.asarray(bundle['geometry_std'])
 
     def _load_dataset_stats(self) -> None:
         # Try to use cached mean/std from any existing representation in

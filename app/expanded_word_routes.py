@@ -41,6 +41,11 @@ def expanded_word_health():
 
 
 @router.post('/api/predict/word/expanded')
+async def predict_expanded_word_route(req:ExpandedWordRequest):
+    from app.main import bounded_inference
+    return await bounded_inference(predict_expanded_word,req)
+
+
 def predict_expanded_word(req:ExpandedWordRequest):
     if not word_cpu_lock.acquire(blocking=False):raise HTTPException(429,'A word model is already processing a CPU request.')
     try:

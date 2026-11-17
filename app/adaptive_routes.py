@@ -20,6 +20,7 @@ from pipeline.adaptive.quality import canonical, digest, validate_capture
 from pipeline.adaptive.store import FeedbackStore, ROOT
 from pipeline.adaptive.models import ModelRegistry, TASK_LABELS
 from pipeline.adaptive.training import BatchTrainer
+from pipeline.adaptive import lifecycle
 
 router=APIRouter(prefix='/api/adaptive',tags=['private adaptive feedback'])
 store=FeedbackStore(); registry=ModelRegistry(store); trainer=BatchTrainer(store)
@@ -57,6 +58,7 @@ class Review(Strict):
 
 class Version(Strict):
     task: Task
+    owner: Identifier
     assignments: dict[Identifier,Literal['train','valid','test']]=Field(min_length=3,max_length=1000)
 
 
@@ -68,16 +70,7 @@ class Deployment(Strict):
     approved: Literal[True]
 
 
-def access(authorization: Annotated[str|None,Header()]=None):
-    reviewers=[os.environ.get('LIPNET_REVIEW_TOKEN','')]
-    collectors=os.environ.get('LIPNET_FEEDBACK_TOKENS',os.environ.get('LIPNET_FEEDBACK_TOKEN','')).split(',')
-    configured=[(token.strip(),role) for tokens,role in ((reviewers,'reviewer'),(collectors,'collector'))
-                for token in tokens if len(token.strip())>=32]
-    if not configured:raise HTTPException(503,'Feedback access is disabled. Configure separate collector and reviewer keys of at least 32 characters.')
-    token=authorization[7:] if authorization and authorization.startswith('Bearer ') else ''
-    for expected,role in configured:
-        if hmac.compare_digest(token,expected):return {'actor':digest(token.encode()),'role':role}
-    raise HTTPException(401,'A valid private feedback access key is required.',headers={'WWW-Authenticate':'Bearer'})
+from app.security import access
 
 
 def reviewer(user=Depends(access)):
@@ -104,8 +97,10 @@ def call(action,*args,**kwargs):
 def config(user=Depends(access)):
     collection={**TASK_LABELS,'isolated_word':[*TASK_LABELS['isolated_word'],'help','i','am']}
     return {'tasks':TASK_LABELS,'correction_labels':collection,'unknown_label':'UNKNOWN',
+            'retention_days':__import__('app.settings',fromlist=['settings']).settings().retention_days,
+            'adaptation_scope':'per_user_cross_session', 'reference_default':True,
             'minimum_frames':8,'maximum_frames':76,'maximum_duration_ms':5000,'role':user['role'],
-            'recording_consent':'I consent to storing this bounded face/mouth recording for review and research training. I can withdraw it. Uncommitted clips expire after 30 days when maintenance runs; committed model lineage needs separate review.',
+            'recording_consent':'I consent to storing this bounded face/mouth recording for review and research training. I can withdraw it. Recordings expire after 90 days by default; renewal is explicit. Withdrawal or expiry invalidates affected private models.',
             'accuracy_notice':'Scores are uncalibrated. Alphabet and physical webcam accuracy remain unproven.',
             'training_support':{'isolated_word':'eight-word frozen-encoder batch adapter','alphabet_recognition':'preserved CNN-BiLSTM; complete reviewed A–Z partitions required'}}
 
@@ -117,7 +112,7 @@ def run_prediction(identifier, actor):
     rois=np.load(io.BytesIO(store.blob(identifier,'rois',actor)),allow_pickle=False)
     if not word_cpu_lock.acquire(blocking=False):raise BlockingIOError()
     try:
-        started=time.perf_counter();prediction=registry.predict(row['task'],rois)
+        started=time.perf_counter();prediction=registry.predict(row['task'],rois,owner=actor)
         prediction['latency_ms']=round(1000*(time.perf_counter()-started),2)
         return store.prediction(identifier,prediction,actor)
     finally:word_cpu_lock.release()
@@ -145,7 +140,12 @@ async def capture(request:Capture,user=Depends(access)):
                 existing=store.row(db,row['id'],user['actor'])
                 if existing['request_hash']!=request_hash:raise ValueError('Capture ID belongs to different source content.')
         else:
-            meta,media,rois=validate_capture(row,store.root)
+            try:
+                meta,media,rois=validate_capture(row,store.root)
+            except ValueError:
+                with store.db() as db:
+                    store.event(db,row['id'],user['actor'],'source_rejected',{'reason':'source_validation_failed','media_retained':False})
+                raise
             store.save_capture(row['id'],user['actor'],request_hash,meta,media,rois)
         # A failed model must not destroy a successfully retained consented source.
         try:return run_prediction(row['id'],user['actor'])
@@ -170,7 +170,9 @@ def feedback(identifier:Identifier,request:Feedback,user=Depends(access)):
 
 @router.post('/captures/{identifier}/withdraw')
 def withdraw(identifier:Identifier,user=Depends(access)):
-    return call(store.withdraw,identifier,user['actor'],user['role']=='reviewer')
+    result=call(store.withdraw,identifier,user['actor'],user['role']=='reviewer')
+    lifecycle.cleanup(store)
+    return result
 
 
 @router.get('/records')
@@ -224,7 +226,7 @@ def review(identifier:Identifier,request:Review,user=Depends(reviewer)):
 
 @router.post('/datasets',status_code=201)
 def dataset(request:Version,user=Depends(reviewer)):
-    return call(store.freeze,request.task,TASK_LABELS[request.task],request.assignments,user['actor'])
+    return call(lifecycle.freeze_personal,store,request.task,TASK_LABELS[request.task],request.owner,request.assignments,user['actor'])
 
 
 @router.get('/datasets/{identifier}')
@@ -240,7 +242,7 @@ def job(identifier:Identifier,user=Depends(reviewer)):return call(trainer.status
 
 
 @router.get('/models')
-def models(user=Depends(access)):return call(registry.list)
+def models(user=Depends(access)):return call(registry.list,owner(user))
 
 
 @router.get('/models/{identifier}/comparison')
@@ -264,7 +266,65 @@ def rollback(task:Task,user=Depends(reviewer)):return call(registry.rollback,tas
 
 
 @router.post('/retention/expire')
-def expire(user=Depends(reviewer)):return call(store.expire_uncommitted,user['actor'])
+def expire(user=Depends(reviewer)):return call(lifecycle.maintenance,store)
+
+
+class Participant(Strict):
+    owner: Identifier
+    participant_id: Identifier
+    permission_record: str=Field(min_length=3,max_length=1000)
+
+
+@router.post('/participants/verify')
+def verify_participant(request:Participant,user=Depends(reviewer)):
+    return call(lifecycle.verify_participant,store,request.owner,request.participant_id,user['actor'],request.permission_record)
+
+
+class Renewal(Strict):
+    consent: Literal[True]
+
+
+@router.post('/captures/{identifier}/renew')
+def renew(identifier:Identifier,request:Renewal,user=Depends(access)):
+    return call(lifecycle.renew,store,identifier,user['actor'],request.consent)
+
+
+@router.get('/retention/report')
+def retention_report(user=Depends(reviewer)):
+    return call(lifecycle.maintenance,store)
+
+
+class Selection(Strict):
+    task: Task
+    capture_id: Identifier
+    selection: Literal['reference','adaptive']='reference'
+
+
+@router.post('/predict')
+async def selected_prediction(request:Selection,user=Depends(access)):
+    def work():
+        from app.services.word_compute import word_cpu_lock
+        row=store.inspect(request.capture_id,user['actor'])
+        if row['task']!=request.task:raise ValueError('Capture task mismatch.')
+        rois=np.load(io.BytesIO(store.blob(request.capture_id,'rois',user['actor'])),allow_pickle=False)
+        if not word_cpu_lock.acquire(blocking=False):raise BlockingIOError()
+        try:return registry.predict(request.task,rois,owner=user['actor'],selection=request.selection)
+        finally:word_cpu_lock.release()
+    return await bounded(work)
+
+
+@router.post('/models/{identifier}/probe')
+async def candidate_probe(identifier:Identifier,user=Depends(reviewer)):
+    from pipeline.adaptive.integration import check_candidate
+    def work():
+        from app.services.word_compute import word_cpu_lock
+        model=registry.model(identifier)
+        if model.get('invalidated'):raise ValueError('Invalidated candidate.')
+        version=store.version(model['training_dataset_version'])
+        if not word_cpu_lock.acquire(blocking=False):raise BlockingIOError()
+        try:return check_candidate(store,model,version)
+        finally:word_cpu_lock.release()
+    return await bounded(work)
 
 
 class PrivateBodyLimit:

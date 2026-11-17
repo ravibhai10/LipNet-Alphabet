@@ -77,3 +77,6 @@ runs/
 
 # Consented biometric recordings and private feedback registry.
 data/adaptive_private/
+data/studio_v2/
+data/personal_recordings/
+test_recordings/

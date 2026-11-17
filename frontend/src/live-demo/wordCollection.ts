@@ -1,7 +1,11 @@
 /** Labelled recordings are data, never model predictions. Kept locally in IndexedDB. */
 export const EIGHT_WORDS = ['choose', 'connection', 'hello', 'navigation', 'next', 'previous', 'start', 'stop'] as const
+export const TWENTY_WORDS = [
+  'begin', 'bin', 'box', 'cancel', 'choose', 'close', 'connection', 'hello', 'help',
+  'navigate', 'navigation', 'next', 'no', 'open', 'place', 'previous', 'set', 'start', 'stop', 'yes'
+] as const
 export const EXTRA_WORDS = ['help', 'yes', 'no', 'water', 'doctor', 'please', 'thanks'] as const
-export const ALL_COLLECTION_WORDS = [...EIGHT_WORDS, ...EXTRA_WORDS] as const
+export const ALL_COLLECTION_WORDS = Array.from(new Set([...TWENTY_WORDS, ...EXTRA_WORDS])) as readonly string[]
 const VOCABULARY_KEY = 'lipnet-eight-word-vocabulary-v1'
 export type EightWordVocabulary = string[]
 export function getEightWordVocabulary(): EightWordVocabulary {
@@ -35,7 +39,10 @@ export interface WordRecording {
 }
 export const COLLECTION_QUOTAS = { train: 15, valid: 5, test: 13 } as const
 export function validateRecording(value: WordRecording, allowedWords: readonly string[] = EIGHT_WORDS) {
-  if (!allowedWords.includes(value.label) || !['train','valid','test'].includes(value.split)) throw new Error('Choose one supported word and dataset partition.')
+  if (allowedWords.length > 0 && !allowedWords.includes(value.label)) {
+    throw new Error('Choose one supported word and dataset partition.')
+  }
+  if (!['train','valid','test'].includes(value.split)) throw new Error('Choose one supported dataset partition.')
   if (![value.id,value.speaker_id,value.session_id].every(v => /^[a-zA-Z0-9_-]{1,80}$/.test(v))) throw new Error('Use letters, numbers, underscores or hyphens for participant and session IDs.')
   if (!value.consent || !value.label_confirmed || value.source !== 'user_camera' || value.preprocessing !== 'browser-eyeaxis96-jpeg-v1') throw new Error('Consent and the spoken-word confirmation are required.')
   if (!/^[a-f0-9]{64}$/.test(value.landmarker_sha256) || !/^[a-f0-9]{64}$/.test(value.frames_sha256)) throw new Error('Recording fingerprint is missing.')
@@ -73,8 +80,8 @@ export async function readRecordings(): Promise<WordRecording[]> {
   try { return await new Promise((resolve,reject)=>{const tx=db.transaction('clips','readonly'),q=tx.objectStore('clips').getAll();q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)}) }
   finally { db.close() }
 }
-export async function saveRecording(clip: WordRecording) {
-  validateCollection([...(await readRecordings()),clip])
+export async function saveRecording(clip: WordRecording, vocabulary?: readonly string[]) {
+  validateCollection([...(await readRecordings()),clip], vocabulary)
   const db=await database()
   try { await new Promise<void>((resolve,reject)=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').add(clip);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(new Error('Could not save this recording. Storage may be full; export your data first.'));tx.onabort=()=>reject(new Error('Recording save was cancelled. Retry before leaving the page.'))}) }
   finally { db.close() }

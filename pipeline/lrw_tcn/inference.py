@@ -39,7 +39,7 @@ class LRWTemporalClassifier:
             raise ValueError('Publisher configuration/ordered labels mismatch.')
         words=[s.strip() for s in (PACKAGE/'vocabulary.txt').read_text().splitlines() if s.strip()]
         if len(words)!=500 or len(set(words))!=500:raise ValueError('Exactly 500 unique ordered publisher labels required.')
-        checkpoint=torch.load(str(self.path),map_location='cpu',weights_only=False,mmap=True)
+        checkpoint=torch.load(str(self.path),map_location='cpu',weights_only=True,mmap=True)
         with torch.device('meta'):model=build(json.loads((PACKAGE/'config.json').read_text()))
         state=checkpoint['model_state_dict']
         if state['tcn.tcn_output.weight'].shape[0]!=len(words):raise ValueError('Checkpoint classifier output does not match the label mapping.')

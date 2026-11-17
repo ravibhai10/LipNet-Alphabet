@@ -12,7 +12,7 @@ const groups: { label: string; items: { path: string; href?: string; label: stri
   ]},
   { label: 'RESEARCH', items: [
     { path: 'dataset', label: 'Dataset explorer', icon: 'database' },
-    { path: 'collect', label: 'Recording studio', icon: 'camera' },
+    { path: 'collect', label: 'Word Collection & Train', icon: 'camera' },
     { path: 'training', label: 'Training', icon: 'activity' },
     { path: 'testing', label: 'Evaluation & testing', icon: 'chart' },
     { path: 'models', label: 'Model registry', icon: 'layers' },

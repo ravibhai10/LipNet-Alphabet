@@ -72,6 +72,8 @@ def validate_recording(row, config):
         try:raw=base64.b64decode(frame.split(',',1)[1],validate=True)
         except (ValueError,TypeError):raise ValueError('Invalid base64 JPEG.')
         if not raw.startswith(b'\xff\xd8\xff'):raise ValueError('Invalid JPEG file type.')
+        from app.services.image_validation import jpeg_geometry
+        jpeg_geometry(raw)
         image=cv2.imdecode(np.frombuffer(raw,np.uint8),cv2.IMREAD_GRAYSCALE)
         if image is None or image.shape!=(96,96):raise ValueError('Every saved mouth frame must decode at 96×96.')
         mean=float(image.mean());std=float(image.std())

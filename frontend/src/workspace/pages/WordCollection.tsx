@@ -5,8 +5,7 @@ import { useLandmarker } from '../../live-demo/useLandmarker'
 import { mouthAlignment } from '../../live-demo/mouthUtils'
 import {
   COLLECTION_QUOTAS,
-  EIGHT_WORDS,
-  EXTRA_WORDS,
+  TWENTY_WORDS,
   collectionCounts,
   deleteRecording,
   digest,
@@ -63,7 +62,7 @@ export function WordCollectionPage() {
   const locked = phase !== 'ready'
   const live = cam.status === 'live'
 
-  const allWords = Array.from(new Set([...EIGHT_WORDS, ...customWords]))
+  const allWords = Array.from(new Set([...TWENTY_WORDS, ...customWords]))
 
   const refresh = useCallback(async () => {
     const saved = await readRecordings()
@@ -287,7 +286,7 @@ export function WordCollectionPage() {
         ...draft,
         label_confirmed: true,
         frames_sha256: await digest(new TextEncoder().encode(JSON.stringify(draft.frames)))
-      })
+      }, allWords)
       if (!mounted.current) return
       await refresh()
       if (!mounted.current) return
@@ -457,21 +456,16 @@ export function WordCollectionPage() {
                 onChange={e => setLabel(e.target.value)}
                 style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--ws-border)', background: 'var(--ws-card-bg, #111)', color: 'inherit' }}
               >
-                <optgroup label="⭐ High Priority Words">
-                  <option value="help">help (User Requested ⭐)</option>
-                  <option value="yes">yes</option>
-                  <option value="no">no</option>
-                  <option value="water">water</option>
-                  <option value="doctor">doctor</option>
-                  <option value="please">please</option>
-                  <option value="thanks">thanks</option>
+                <optgroup label="🔥 20-Word Production Vocabulary (AV-HuBERT)">
+                  {TWENTY_WORDS.map(w => (
+                    <option key={w} value={w}>
+                      {w} {w === 'help' ? '⭐ (User Target)' : ''}
+                    </option>
+                  ))}
                 </optgroup>
-                <optgroup label="Standard 8-Word Baseline">
-                  {EIGHT_WORDS.map(w => <option key={w} value={w}>{w}</option>)}
-                </optgroup>
-                {customWords.filter(w => !EXTRA_WORDS.includes(w as any) && !EIGHT_WORDS.includes(w as any)).length > 0 && (
-                  <optgroup label="Custom Words">
-                    {customWords.filter(w => !EXTRA_WORDS.includes(w as any) && !EIGHT_WORDS.includes(w as any)).map(w => (
+                {customWords.filter(w => !TWENTY_WORDS.includes(w as any)).length > 0 && (
+                  <optgroup label="✨ Custom Words">
+                    {customWords.filter(w => !TWENTY_WORDS.includes(w as any)).map(w => (
                       <option key={w} value={w}>{w}</option>
                     ))}
                   </optgroup>

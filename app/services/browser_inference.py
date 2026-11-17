@@ -113,6 +113,8 @@ class BrowserInference:
             # Browsers send JPEG crops. Restrict format before decoding.
             if not payload.startswith(b"\xff\xd8\xff"):
                 raise ValueError("Mouth crops must be JPEG images.")
+            from app.services.image_validation import jpeg_geometry
+            jpeg_geometry(payload)
             crop = cv2.imdecode(np.frombuffer(payload, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
             if crop is None or crop.size == 0 or max(crop.shape) > 1024:
                 raise ValueError("A mouth crop has invalid dimensions.")

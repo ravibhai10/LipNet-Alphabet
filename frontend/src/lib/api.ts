@@ -43,9 +43,37 @@ export async function fetchWithTimeout(url: string, init: RequestInit = {}, ms =
   const abort = () => ctrl.abort(init.signal?.reason)
   if (init.signal?.aborted) abort()
   else init.signal?.addEventListener('abort', abort, { once: true })
-  const timer = setTimeout(() => ctrl.abort(), ms)
-  try { return await fetch(url, { ...init, signal: ctrl.signal }) }
-  finally { clearTimeout(timer); init.signal?.removeEventListener('abort', abort) }
+  const timer = setTimeout(() => ctrl.abort(new DOMException(`Request timed out after ${ms}ms`, 'TimeoutError')), ms)
+  try {
+    const res = await fetch(url, { ...init, signal: ctrl.signal })
+    let bodyConsumed = false
+    const cleanup = () => {
+      if (!bodyConsumed) {
+        bodyConsumed = true
+        clearTimeout(timer)
+        init.signal?.removeEventListener('abort', abort)
+      }
+    }
+    if (typeof res.json === 'function') {
+      const origJson = res.json.bind(res)
+      res.json = async () => {
+        try { return await origJson() }
+        finally { cleanup() }
+      }
+    }
+    if (typeof res.text === 'function') {
+      const origText = res.text.bind(res)
+      res.text = async () => {
+        try { return await origText() }
+        finally { cleanup() }
+      }
+    }
+    return res
+  } catch (err) {
+    clearTimeout(timer)
+    init.signal?.removeEventListener('abort', abort)
+    throw err
+  }
 }
 export async function responseError(res: Response): Promise<ApiError> {
   let detail = `Request failed (${res.status}).`

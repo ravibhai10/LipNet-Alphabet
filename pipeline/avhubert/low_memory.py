@@ -14,6 +14,10 @@ def load_encoder(path):
     from fairseq.dataclass.utils import convert_namespace_to_omegaconf
     path=Path(path)
     # Trusted local official checkpoint only, never an uploaded pickle.
+    import hashlib
+    with __import__('pathlib').Path(path).open('rb') as stream:actual=hashlib.file_digest(stream,'sha256').hexdigest()
+    if actual!='dee8b0651dbea3a21cda0f2c52b956e3a878d5f6ee503d427d6a4044bb95c9cc':
+        raise ValueError('Unregistered encoder pickle rejected; only the preserved trusted encoder is supported.')
     state=torch.load(str(path),map_location='cpu',mmap=True,weights_only=False)
     # Fairseq's compatibility upgrade needs the small history/extra metadata.
     # Only the large optimizer tensors are unnecessary for frozen inference.

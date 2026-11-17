@@ -93,7 +93,7 @@ class BatchTrainer:
         identifier=uuid.uuid4().hex
         try:
             with self.store.db() as db:
-                if db.execute('SELECT 1 FROM jobs WHERE version=?',(version_id,)).fetchone():
+                if db.execute("SELECT 1 FROM jobs WHERE version=? AND status NOT IN ('FAILED','INTERRUPTED')",(version_id,)).fetchone():
                     raise ValueError('This immutable dataset already has a training attempt. Preserve its evidence and collect a new version.')
                 db.execute('INSERT INTO jobs VALUES(?,?,?,?,NULL,NULL)',(identifier,version_id,'QUEUED',now()))
                 self.store.event(db,identifier,actor,'training_requested',{'dataset_version':version_id})
@@ -134,7 +134,8 @@ class BatchTrainer:
             # Match the deployed browser/service JPEG boundary before encoding.
             from .models import jpeg_frames
             from app.services.browser_inference import BrowserInference
-            rois=np.stack(BrowserInference.decode_jpegs(jpeg_frames(rois)))
+            from .models import encoder_rois
+            rois=encoder_rois(rois)
             if not hasattr(encoder,'_adaptive_checkpoint_sha256'):
                 import hashlib
                 with encoder.ckpt_path.open('rb') as stream:encoder._adaptive_checkpoint_sha256=hashlib.file_digest(stream,'sha256').hexdigest()
@@ -163,7 +164,9 @@ class BatchTrainer:
         from pipeline.word_recognition.pretrained import pool
         registry=ModelRegistry(self.store); registry.seed()
         with self.store.db() as db:
-            champion_id=db.execute("SELECT model FROM champions WHERE task='isolated_word'").fetchone()[0]
+            from .models import champion_key
+            current=db.execute('SELECT model FROM champions WHERE task=?',(champion_key('isolated_word',version.get('owner')),)).fetchone()
+            champion_id=current[0] if current else BASE_WORD
         champion_meta=registry.model(champion_id)
         path=self.store.root/champion_meta['checkpoint']
         if digest(path.read_bytes())!=champion_meta['checkpoint_sha256']:raise ValueError('Champion integrity failed.')
@@ -220,7 +223,7 @@ class BatchTrainer:
         value={'id':identifier,'task':'isolated_word','version':digest((output/'head.pt').read_bytes()),
                'checkpoint':str((output/'head.pt').relative_to(self.store.root)),
                'checkpoint_sha256':digest((output/'head.pt').read_bytes()),'vocabulary':WORDS,
-               'training_dataset_version':version['id'],'training_configuration':configuration,
+               'training_dataset_version':version['id'],'owner':version.get('owner'),'protocol':version.get('protocol'),'preprocessing_id':'adaptive-eyeaxis96-jpeg75-v2','training_configuration':configuration,
                'input_spec':champion_meta['input_spec'],'preprocessing':champion_meta['preprocessing'],
                'validation_report':challenger_report,'test_report':None,'comparison':comparison,
                'cpu_latency_ms':float(np.mean(latency)),'latency_scope':'Frozen encoder extraction on approved validation ROIs',
@@ -238,16 +241,32 @@ class BatchTrainer:
 
     def finalize(self, identifier, actor):
         model=ModelRegistry(self.store).model(identifier)
-        if model['id'] in {BASE_WORD,BASE_ALPHABET} or model.get('test_report') is not None:
+        if model['id'] in {BASE_WORD,BASE_ALPHABET} or model.get('final_evaluation_status') == 'COMPLETED':
             raise ValueError('Final held-out evaluation is one-time and only available for new challengers.')
         version=self.store.version(model['training_dataset_version'])
         if not self.lock.acquire(blocking=False):raise BlockingIOError('A batch job is already running.')
         try:
             output=self.store.root/Path(model['checkpoint']).parent
-            self.store.claim_test(version['id'],actor)
-            # Claim before opening held-out values. A failure cannot be used to retune.
-            with (output/'test_access.json').open('xb') as stream:
-                stream.write(canonical({'actor':actor,'model':identifier,'at':now(),'checkpoint_sha256':model['checkpoint_sha256']}))
+            binding={'model':identifier,'checkpoint_sha256':model['checkpoint_sha256'],
+                     'manifest_sha256':version['manifest_sha256'],'preprocessing_id':model.get('preprocessing_id'),
+                     'policy':model.get('policy',{'threshold':.5,'margin':.05})}
+            if digest((self.store.root/model['checkpoint']).read_bytes())!=model['checkpoint_sha256']:
+                raise ValueError('Frozen candidate changed; final evaluation cannot resume.')
+            encoded=canonical(binding).decode()
+            with self.store.db(write=False) as db:
+                previous=db.execute('SELECT * FROM attempts WHERE model=?',(identifier,)).fetchone()
+            if previous and previous['binding']!=encoded:
+                raise ValueError('Final evaluation binding changed; retuning after test access is forbidden.')
+            with self.store.db() as db:
+                db.execute('INSERT OR REPLACE INTO attempts VALUES(?,?,?,?)',(identifier,encoded,'PREPARED',now()))
+            self.store.claim_test(version['id'],actor,resume_model=identifier)
+            receipt=output/'test_access.json'
+            if receipt.is_file():
+                if receipt.read_bytes()!=canonical(binding):raise ValueError('Frozen test access receipt changed.')
+            else:
+                with receipt.open('xb') as stream:stream.write(canonical(binding))
+            with self.store.db() as db:
+                db.execute("UPDATE attempts SET state='RUNNING',updated=? WHERE model=?",(now(),identifier))
             model['final_evaluation_status']='RUNNING'
             with self.store.db() as db:
                 db.execute('UPDATE models SET payload=? WHERE id=?',(json.dumps(model),identifier))
@@ -259,48 +278,57 @@ class BatchTrainer:
         try:
             import torch
             head=torch.load(self.store.root/model['checkpoint'],map_location='cpu',weights_only=True)
-            if version['task']=='alphabet_recognition':
-                from .alphabet_training import load_alphabet, load_partition, predict
-                net=load_alphabet(head)
-                with _training_encoder_lock():
-                    x,y=load_partition(self.store,version,'test')
-                    probabilities,_=predict(net,x)
-                report=metrics(probabilities,y,.5,.05,version['labels'])
+            if (output/'test_report.json').is_file():
+                report=json.loads((output/'test_report.json').read_text())
+                if report['checkpoint_sha256']!=model['checkpoint_sha256'] or report['dataset_version']!=version['id']:
+                    raise ValueError('Final report binding mismatch.')
             else:
-                encoder=baseline_adapter('isolated_word').load().service.model.encoder
-                with _training_encoder_lock():x,y,_=self.features(version,'test',encoder,output)
-                probabilities=np.stack([head_probabilities(head,f) for f in x])
-                report=metrics(probabilities,y)
-                accepted=np.array([word_acceptance(head,f) for f in x])
-                report.update(coverage=float(accepted.mean()),rejection_rate=float(1-accepted.mean()),
-                    accepted_subset_accuracy=float(np.mean(probabilities[accepted].argmax(1)==y[accepted])) if accepted.any() else None,
-                    rejection_scope='Fixed score/margin plus overlapping temporal agreement')
-            negatives=[r for r in version.get('negative_records',[]) if r['split']=='test']
-            if negatives:
                 if version['task']=='alphabet_recognition':
-                    with _training_encoder_lock():nx,_=load_partition(self.store,version,'test',negative=True);npred,_=predict(net,nx)
-                    order=np.argsort(-npred,axis=1)
-                    accepted=[p[o[0]]>=.5 and p[o[0]]-p[o[1]]>=.05 for p,o in zip(npred,order)]
+                    from .alphabet_training import load_alphabet, load_partition, predict
+                    net=load_alphabet(head)
+                    with _training_encoder_lock():
+                        x,y=load_partition(self.store,version,'test')
+                        probabilities,_=predict(net,x)
+                    report=metrics(probabilities,y,.5,.05,version['labels'])
                 else:
-                    from pipeline.word_recognition.consensus import temporal_consensus
-                    with _training_encoder_lock():nx,_,_=self.features(version,'test',encoder,output,negative=True)
-                    accepted=[]
-                    for f in nx:
-                        accepted.append(word_acceptance(head,f))
-                report.update(false_acceptance_rate=float(np.mean(accepted)),negative_samples=len(negatives),
-                              negative_evaluation='Frozen held-out UNKNOWN recordings; not used for selection')
-            report.update(dataset_version=version['id'],scope='Consent-reviewed held-out recording speakers; not general physical webcam accuracy',
-                          checkpoint_sha256=model['checkpoint_sha256'],test_used_for_selection=False)
-            (output/'test_report.json').write_bytes(canonical(report));model['test_report']=report
+                    encoder=baseline_adapter('isolated_word').load().service.model.encoder
+                    with _training_encoder_lock():x,y,_=self.features(version,'test',encoder,output)
+                    probabilities=np.stack([head_probabilities(head,f) for f in x])
+                    report=metrics(probabilities,y)
+                    accepted=np.array([word_acceptance(head,f) for f in x])
+                    report.update(coverage=float(accepted.mean()),rejection_rate=float(1-accepted.mean()),
+                        accepted_subset_accuracy=float(np.mean(probabilities[accepted].argmax(1)==y[accepted])) if accepted.any() else None,
+                        rejection_scope='Fixed score/margin plus overlapping temporal agreement')
+                negatives=[r for r in version.get('negative_records',[]) if r['split']=='test']
+                if negatives:
+                    if version['task']=='alphabet_recognition':
+                        with _training_encoder_lock():nx,_=load_partition(self.store,version,'test',negative=True);npred,_=predict(net,nx)
+                        order=np.argsort(-npred,axis=1)
+                        accepted=[p[o[0]]>=.5 and p[o[0]]-p[o[1]]>=.05 for p,o in zip(npred,order)]
+                    else:
+                        from pipeline.word_recognition.consensus import temporal_consensus
+                        with _training_encoder_lock():nx,_,_=self.features(version,'test',encoder,output,negative=True)
+                        accepted=[]
+                        for f in nx:
+                            accepted.append(word_acceptance(head,f))
+                    report.update(false_acceptance_rate=float(np.mean(accepted)),negative_samples=len(negatives),
+                                  negative_evaluation='Frozen held-out UNKNOWN recordings; not used for selection')
+                report.update(dataset_version=version['id'],scope='Consent-reviewed held-out recording speakers; not general physical webcam accuracy',
+                              checkpoint_sha256=model['checkpoint_sha256'],test_used_for_selection=False)
+                with (output/'test_report.json').open('xb') as stream:stream.write(canonical(report))
+            model['test_report']=report
             interpreter=self.store.root/'.venv-word-recognition/Scripts/python.exe'
             if not interpreter.is_file():raise RuntimeError('Verified regression environment is unavailable.')
             with (output/'regression.txt').open('w',encoding='utf-8') as stream:
                 result=subprocess.run([str(interpreter),'-m','pytest','tests','pipeline/eval/tests','pipeline/grid/tests','pipeline/avhubert/tests'],
                                       cwd=self.store.root,stdout=stream,stderr=subprocess.STDOUT,timeout=1800)
             model['regression_passed']=result.returncode==0
-            model['integration_passed']=bool(report['samples'] and np.isfinite(report['top1_accuracy']))
+            from .integration import check_candidate
+            model['integration_evidence']=check_candidate(self.store,model,version)
+            model['integration_passed']=model['integration_evidence']['passed']
             model['regression_log_sha256']=digest((output/'regression.txt').read_bytes())
             model['final_evaluation_status']='COMPLETED'
+            with self.store.db() as db:db.execute("UPDATE attempts SET state='COMPLETED',updated=? WHERE model=?",(now(),model['id']))
             with self.store.db() as db:
                 db.execute('UPDATE models SET payload=? WHERE id=?',(json.dumps(model),model['id']))
                 self.store.event(db,model['id'],'evaluation-worker','final_evaluation',{'regression_passed':model['regression_passed']})
@@ -308,6 +336,7 @@ class BatchTrainer:
             import logging
             logging.getLogger(__name__).exception('Final feedback evaluation failed')
             model['final_evaluation_status']='FAILED';model['regression_passed']=False
+            with self.store.db() as db:db.execute("UPDATE attempts SET state='FAILED',updated=? WHERE model=?",(now(),model['id']))
             with self.store.db() as db:
                 db.execute('UPDATE models SET payload=? WHERE id=?',(json.dumps(model),model['id']))
                 self.store.event(db,model['id'],'evaluation-worker','final_evaluation_failed',{'production_changed':False})

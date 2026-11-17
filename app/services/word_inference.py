@@ -48,7 +48,7 @@ class WordInferenceService:
                 if not CHECKPOINT_PATH.is_file():
                     raise FileNotFoundError(f"Word recognition checkpoint not found at {CHECKPOINT_PATH}")
 
-                checkpoint = torch.load(CHECKPOINT_PATH, map_location="cpu", weights_only=False)
+                checkpoint = torch.load(CHECKPOINT_PATH, map_location="cpu", weights_only=True)
                 words = checkpoint.get("vocabulary", checkpoint.get("words"))
                 if (not isinstance(words,list) or len(words)<2 or len(set(words))!=len(words)
                         or any(not isinstance(word,str) or not word.strip() or len(word.split())!=1 for word in words)):
@@ -114,6 +114,8 @@ class WordInferenceService:
                 raise ValueError("A mouth crop is not valid base64.") from exc
             if not payload.startswith(b"\xff\xd8\xff"):
                 raise ValueError("Mouth crops must be JPEG images.")
+            from app.services.image_validation import jpeg_geometry
+            jpeg_geometry(payload)
             crop = cv2.imdecode(np.frombuffer(payload, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
             if crop is None or crop.size == 0 or max(crop.shape) > 1024:
                 raise ValueError("A mouth crop has invalid dimensions.")

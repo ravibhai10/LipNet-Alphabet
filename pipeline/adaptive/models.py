@@ -65,6 +65,18 @@ def jpeg_frames(rois):
     return ['data:image/jpeg;base64,'+base64.b64encode(cv2.imencode('.jpg',roi,[cv2.IMWRITE_JPEG_QUALITY,75])[1]).decode() for roi in rois]
 
 
+PREPROCESSING_ID = 'adaptive-eyeaxis96-jpeg75-v2'
+
+
+def encoder_rois(rois):
+    from app.services.browser_inference import BrowserInference
+    return np.stack(BrowserInference.decode_jpegs(jpeg_frames(rois)))
+
+
+def champion_key(task, owner=None):
+    return task if owner is None else owner + ':' + task
+
+
 class ModelRegistry:
     def __init__(self, store):
         self.store = store
@@ -98,11 +110,14 @@ class ModelRegistry:
                 db.execute('INSERT OR IGNORE INTO models VALUES(?,?,?)',(identifier,task,json.dumps(value)))
                 db.execute('INSERT OR IGNORE INTO champions VALUES(?,?,NULL)',(task,identifier))
 
-    def list(self):
+    def list(self, owner=None):
         self.seed()
         with self.store.db() as db:
             models = [json.loads(r[0]) for r in db.execute('SELECT payload FROM models')]
             champions = {r['task']:dict(r) for r in db.execute('SELECT * FROM champions')}
+        if owner is not None:
+            models = [m for m in models if m['id'] in {BASE_WORD,BASE_ALPHABET} or m.get('owner') == owner]
+            champions = {k:v for k,v in champions.items() if k.startswith(owner+':')}
         for model in models: model.pop('checkpoint',None)
         return {'models':models,'champions':champions,
                 'physical_webcam_evaluation':None,'webcam_replay_evaluation':None,
@@ -115,17 +130,20 @@ class ModelRegistry:
             if not row: raise LookupError('Model not found.')
             return json.loads(row[0])
 
-    def predict(self, task, rois):
+    def predict(self, task, rois, owner=None, selection='reference', candidate_id=None):
         self.seed()
         with self.store.db() as db:
-            row = db.execute('SELECT model FROM champions WHERE task=?',(task,)).fetchone()
-        identifier = row[0] if row else BASE_WORD if task=='isolated_word' else BASE_ALPHABET
+            row = db.execute('SELECT model FROM champions WHERE task=?',(champion_key(task,owner),)).fetchone()
+        baseline = BASE_WORD if task=='isolated_word' else BASE_ALPHABET
+        identifier = candidate_id or (row[0] if row and owner and selection == 'adaptive' else baseline)
         if identifier in {BASE_WORD,BASE_ALPHABET}:
             value=baseline_adapter(task).predict(jpeg_frames(rois))
             if value['model_version']!=self.model(identifier)['checkpoint_sha256']:
                 raise ValueError('Selected backend differs from the registered preserved model.')
             return value
         meta = self.model(identifier)
+        if meta.get('invalidated') or (meta.get('owner') is not None and meta.get('owner') != owner):
+            raise ValueError('Model unavailable for this owner or invalidated by source removal.')
         if meta['task']!=task or meta['vocabulary']!=TASK_LABELS[task]: raise ValueError('Champion task contract mismatch.')
         self.store.version(meta['training_dataset_version'])
         if task=='alphabet_recognition':
@@ -152,7 +170,7 @@ class ModelRegistry:
         # Share the existing singleton encoder; challenger head work stays under one CPU lock.
         with _word_adapter_lock:
             base=baseline_adapter(task).load().service.model
-            features=base.encoder.encode_frames(rois,source_fps=None,target_frames=29,output_layer=9)
+            features=base.encoder.encode_frames(encoder_rois(rois),source_fps=None,target_frames=29,output_layer=9)
             head=torch.load(path,map_location='cpu',weights_only=True)
             p=head_probabilities(head,features);order=np.argsort(-p);policy=meta['policy']
             consensus=temporal_consensus(head,features,policy)
@@ -166,6 +184,8 @@ class ModelRegistry:
     def deploy(self, identifier, actor, approved):
         if approved is not True: raise ValueError('Explicit reviewer approval is required.')
         model = self.model(identifier)
+        if model.get('invalidated'):
+            raise ValueError('Invalidated models cannot be deployed.')
         gates = model.get('comparison',{})
         if gates.get('eligible') is not True or model.get('test_report') is None or model.get('regression_passed') is not True or model.get('integration_passed') is not True:
             raise ValueError('Challenger lacks passing validation comparison, final held-out evidence or regression results.')
@@ -175,18 +195,23 @@ class ModelRegistry:
         path = self.store.root/model['checkpoint']
         if digest(path.read_bytes())!=model['checkpoint_sha256']: raise ValueError('Checkpoint integrity failed.')
         with self.store.db() as db:
-            prior = db.execute('SELECT model FROM champions WHERE task=?',(model['task'],)).fetchone()
+            key = champion_key(model['task'],model.get('owner'))
+            baseline = BASE_WORD if model['task']=='isolated_word' else BASE_ALPHABET
+            db.execute('INSERT OR IGNORE INTO champions VALUES(?,?,NULL)',(key,baseline))
+            prior = db.execute('SELECT model FROM champions WHERE task=?',(key,)).fetchone()
             if not prior or prior[0]!=gates['champion_id']: raise ValueError('Champion changed; a new paired comparison is required.')
-            db.execute('UPDATE champions SET model=?,previous=? WHERE task=?',(identifier,prior[0],model['task']))
+            db.execute('UPDATE champions SET model=?,previous=? WHERE task=?',(identifier,prior[0],key))
             self.store.event(db,identifier,actor,'deploy',{'previous':prior[0],'comparison_sha256':digest(canonical(gates))})
         return {'champion':identifier,'previous':prior[0],'task':model['task']}
 
-    def rollback(self, task, actor):
+    def rollback(self, task, actor, owner=None):
         with self.store.db() as db:
-            row=db.execute('SELECT * FROM champions WHERE task=?',(task,)).fetchone()
+            row=db.execute('SELECT * FROM champions WHERE task=?',(champion_key(task,owner),)).fetchone()
             if not row or not row['previous']: raise ValueError('No previous champion is available.')
             model_row=db.execute('SELECT payload FROM models WHERE id=?',(row['previous'],)).fetchone()
             model=json.loads(model_row[0]);path=self.store.root/model['checkpoint']
+            if model.get('invalidated') or (model.get('owner') is not None and model['owner'] != owner):
+                raise ValueError('Rollback model is invalidated or belongs to another owner.')
             if digest(path.read_bytes())!=model['checkpoint_sha256']: raise ValueError('Rollback checkpoint integrity failed.')
             if model['deployment_status']=='challenger':
                 version=db.execute('SELECT payload FROM versions WHERE id=?',(model['training_dataset_version'],)).fetchone()
@@ -195,6 +220,6 @@ class ModelRegistry:
                 for identifier in identifiers:
                     if self.store.row(db,identifier)['status']=='WITHDRAWN':
                         raise ValueError('Rollback model contains withdrawn feedback; review its lineage first.')
-            db.execute('UPDATE champions SET model=?,previous=? WHERE task=?',(row['previous'],row['model'],task))
+            db.execute('UPDATE champions SET model=?,previous=? WHERE task=?',(row['previous'],row['model'],champion_key(task,owner)))
             self.store.event(db,row['previous'],actor,'rollback',{'from':row['model'],'task':task})
         return {'champion':row['previous'],'previous':row['model'],'task':task}

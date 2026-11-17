@@ -113,6 +113,10 @@ def validate_capture(row, root: Path, tracker=track_frames):
     original_video=None
     if row.get('original_video'):
         original_video=decode_original_video(row['original_video'],geometry)
+    correspondence_report=None
+    if original_video:
+        from .quality_policy import correspondence
+        correspondence_report=correspondence(original_video[0],Path(original_video[1]).suffix,images,times)
     landmarks = tracker(images, root)
     rois, evidence, warnings = [], [], []
     for image, faces in zip(images, landmarks):
@@ -126,6 +130,8 @@ def validate_capture(row, root: Path, tracker=track_frames):
             raise ValueError('The complete mouth crop must lie inside the source image.')
         roi = cv2.cvtColor(cv2.warpAffine(image, matrix, (96, 96)), cv2.COLOR_BGR2GRAY)
         brightness, contrast = float(roi.mean()), float(roi.std())
+        if float(cv2.Laplacian(roi,cv2.CV_64F).var()) < 10:
+            warnings.append('blur_review_required')
         if not 15 <= brightness <= 240 or contrast < 8:
             warnings.append('low_light_or_contrast')
         evidence.append({'face_count': 1, 'mouth_landmarks': True, 'transform': matrix.tolist(),
@@ -153,6 +159,10 @@ def validate_capture(row, root: Path, tracker=track_frames):
                     landmarker_sha256=digest((root/'frontend/public/models/face_landmarker.task').read_bytes()),
                     roi_sha256=digest(roi_stream.getvalue()), device_attestation=False,
                     recording_format='ordered original PNG sequence; exact timestamps; lossless ZIP')
+    from .quality_policy import similarity_signature,VERSION
+    metadata['quality_policy']=VERSION
+    metadata['similarity_signature']=similarity_signature(rois)
+    metadata['correspondence']=correspondence_report
     metadata['original_video']=original_video[2] if original_video else None
     if original_video:
         metadata['source_sha256']=digest(canonical({'original_pngs':source_hash,'original_video':original_video[2]['sha256']}))

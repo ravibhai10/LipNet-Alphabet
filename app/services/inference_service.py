@@ -210,7 +210,7 @@ class InferenceService:
         )
         if not best_path.exists():
             raise FileNotFoundError(f"No checkpoint in {ckpt_dir}")
-        ck = torch.load(best_path, map_location=self._device, weights_only=False)
+        ck = torch.load(best_path, map_location=self._device, weights_only=True)
         cfg = ck.get("decoder_config") or {}
         tcfg_dict = cfg.get("temporal_config") or {}
         # ── Compatibility check ────────────────────────────────────────

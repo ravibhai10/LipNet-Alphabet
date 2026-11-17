@@ -52,12 +52,14 @@ def train_alphabet(trainer,identifier,version):
     from .training import metrics,compare,_training_encoder_lock
     registry=ModelRegistry(trainer.store);registry.seed()
     with trainer.store.db() as db:
-        champion_id=db.execute("SELECT model FROM champions WHERE task='alphabet_recognition'").fetchone()[0]
+        from .models import champion_key,BASE_ALPHABET
+        current=db.execute('SELECT model FROM champions WHERE task=?',(champion_key('alphabet_recognition',version.get('owner')),)).fetchone()
+        champion_id=current[0] if current else BASE_ALPHABET
     champion_meta=registry.model(champion_id);source=trainer.store.root/champion_meta['checkpoint']
     if digest(source.read_bytes())!=champion_meta['checkpoint_sha256']:raise ValueError('Alphabet champion changed.')
     torch.manual_seed(42);np.random.seed(42)
     champion=torch.load(source,map_location='cpu',weights_only=True);net=load_alphabet(champion)
-    output=trainer.store.root/'runs/adaptive'/identifier;output.mkdir(parents=True,exist_ok=False)
+    output=trainer.store.directory/'derivatives'/identifier;output.mkdir(parents=True,exist_ok=False)
     (output/'dataset.json').write_bytes(canonical(version))
     history=[];best_loss=float('inf');best_state=None;stale=0
     with _training_encoder_lock():
@@ -106,7 +108,7 @@ def train_alphabet(trainer,identifier,version):
     value={'id':identifier,'task':'alphabet_recognition','version':digest((output/'head.pt').read_bytes()),
            'checkpoint':str((output/'head.pt').relative_to(trainer.store.root)),
            'checkpoint_sha256':digest((output/'head.pt').read_bytes()),'vocabulary':version['labels'],
-           'training_dataset_version':version['id'],'training_configuration':configuration,
+           'training_dataset_version':version['id'],'owner':version.get('owner'),'protocol':version.get('protocol'),'preprocessing_id':'adaptive-eyeaxis96-jpeg75-v2','training_configuration':configuration,
            'input_spec':champion_meta['input_spec'],'preprocessing':champion_meta['preprocessing'],
            'validation_report':report,'test_report':None,'comparison':comparison,'cpu_latency_ms':float(np.mean(latency)),
            'latency_scope':'Alphabet model forward pass on approved validation inputs; preprocessing excluded',
