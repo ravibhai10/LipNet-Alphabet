@@ -321,7 +321,6 @@ class PersonalTrainRequest(BaseModel):
 @app.post("/api/word/train-personal", status_code=202)
 def train_personal_words(req: PersonalTrainRequest):
     """Stage validated recordings; training/evaluation never mutates a live model."""
-    raise HTTPException(410, 'This collection-only legacy alias is archived. Submit original sources to /api/adaptive/captures; reviewed training is a separate job.')
     from app.services.recording_intake import save_bundle
     try:
         return save_bundle(PROJECT_ROOT, req.clips, req.vocabulary)

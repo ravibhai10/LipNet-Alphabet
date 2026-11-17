@@ -456,16 +456,25 @@ export function WordCollectionPage() {
                 onChange={e => setLabel(e.target.value)}
                 style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--ws-border)', background: 'var(--ws-card-bg, #111)', color: 'inherit' }}
               >
-                <optgroup label="🔥 20-Word Production Vocabulary (AV-HuBERT)">
-                  {TWENTY_WORDS.map(w => (
-                    <option key={w} value={w}>
-                      {w} {w === 'help' ? '⭐ (User Target)' : ''}
-                    </option>
+                <optgroup label="⭐ Target Focus Words (Help & Core 8)">
+                  <option value="help">help ⭐ (User Target)</option>
+                  <option value="choose">choose</option>
+                  <option value="clean">clean</option>
+                  <option value="color">color</option>
+                  <option value="dance">dance</option>
+                  <option value="garden">garden</option>
+                  <option value="green">green</option>
+                  <option value="market">market</option>
+                  <option value="screen">screen</option>
+                </optgroup>
+                <optgroup label="🔥 20-Word Production Vocabulary">
+                  {TWENTY_WORDS.filter(w => !['choose'].includes(w)).map(w => (
+                    <option key={w} value={w}>{w}</option>
                   ))}
                 </optgroup>
-                {customWords.filter(w => !TWENTY_WORDS.includes(w as any)).length > 0 && (
-                  <optgroup label="✨ Custom Words">
-                    {customWords.filter(w => !TWENTY_WORDS.includes(w as any)).map(w => (
+                {customWords.filter(w => !['help', 'choose', 'clean', 'color', 'dance', 'garden', 'green', 'market', 'screen', ...TWENTY_WORDS].includes(w)).length > 0 && (
+                  <optgroup label="✨ Custom Added Words">
+                    {customWords.filter(w => !['help', 'choose', 'clean', 'color', 'dance', 'garden', 'green', 'market', 'screen', ...TWENTY_WORDS].includes(w)).map(w => (
                       <option key={w} value={w}>{w}</option>
                     ))}
                   </optgroup>

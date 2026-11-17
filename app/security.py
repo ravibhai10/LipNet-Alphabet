@@ -69,7 +69,6 @@ class RequestBoundary:
             return await self.app(scope, receive, send)
         path, method = scope.get('path', ''), scope['method']
         sensitive = (path.startswith(('/api/studio', '/api/adaptive', '/api/live/')) or
-                     path == '/api/word/train-personal' or
                      path.startswith('/api/training/') or
                      (method != 'GET' and path.startswith('/api/dataset/')) or
                      path.startswith(('/api/recording/', '/api/recordings/')))
