@@ -33,6 +33,10 @@ COPY repr ./repr
 COPY temporal ./temporal
 COPY tracking ./tracking
 COPY models ./models
+COPY pipeline ./pipeline
+COPY src ./src
+COPY runs ./runs
+COPY scripts ./scripts
 
 RUN useradd --create-home --uid 10001 appuser \
     && chown -R appuser:appuser /app

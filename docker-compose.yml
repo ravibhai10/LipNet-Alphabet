@@ -10,6 +10,8 @@ services:
     volumes:
       - ./models:/app/models:ro
       - ./data:/app/data:ro
+      - ./data/adaptive_private:/app/data/adaptive_private:rw
+      - ./test_recordings:/app/test_recordings:rw
       - ./runs:/app/runs:rw
     restart: unless-stopped
     healthcheck:

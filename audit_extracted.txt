@@ -1,0 +1,95 @@
+The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provided by the system as important information to pay attention to.
+
+<SYSTEM_MESSAGE>
+[Message] timestamp=2026-11-17T07:41:36Z sender=1f7d1e12-95f3-47ca-8409-7537d1510ab1/task-5411 priority=MESSAGE_PRIORITY_HIGH content=Task id "1f7d1e12-95f3-47ca-8409-7537d1510ab1/task-5411" finished with result:
+Command exited with code 0.
+
+Command output:
+
+
+    Directory: C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----        29-10-2026     19:51          30318 MODEL_CAPABILITIES_AUDIT.md                                          
+-a----        25-10-2026     18:02           2080 phase6_step0_audit.py                                                
+-a----        09-11-2026     12:22           7417 RELIABILITY_AUDIT.md                                                 
+
+
+    Directory: C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\.qa
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+d-----        30-10-2026     20:23                allenye66-audit                                                      
+-a----        29-10-2026     13:00           4005 lrw-word-audit.json                                                  
+-a----        28-10-2026     06:09           7092 model-audit-tests.txt                                                
+-a----        28-10-2026     06:19          39171 model-capabilities-audit.json                                        
+-a----        29-10-2026     14:48          20748 multidataset-final-audit.json                                        
+
+
+    Directory: C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\.qa\adaptive_20261116
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+d-----        16-11-2026     18:01                final_audit                                                          
+-a----        16-11-2026     17:54           2577 artifact_audit.json                                                  
+
+
+    Directory: C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\.qa\adaptive_20261116\final_audit
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----        16-11-2026     18:01           2630 artifact_audit.json                                                  
+
+
+    Directory: C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\.qa\adaptive_20261116\final_integrity
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----        16-11-2026     18:22           2630 artifact_audit.json                                                  
+
+
+    Directory: C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\.qa\reliability_20261109
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----        09-11-2026     12:25       11698099 grid_audit.json                                                      
+-a----        09-11-2026     12:25           6030 grid_audit.txt                                                       
+-a----        09-11-2026     13:05        1389764 miracl_audit.json                                                    
+-a----        09-11-2026     13:05           3266 miracl_audit.txt                                                     
+
+
+    Directory: C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\scripts
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----        16-11-2026     17:56           3304 audit_adaptive.py                                                    
+-a----        29-10-2026     12:59           6558 audit_lrw_words.py                                                   
+-a----        29-10-2026     13:02          16366 audit_model_capabilities.py                                          
+-a----        09-11-2026     12:25           8272 audit_recognition_dataset.py                                         
+-a----        27-10-2026     22:20           1355 _audit_models.py                                                     
+-a----        29-10-2026     16:52           3621 _deep_audit_collapse.py                                              
+
+
+    Directory: C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\scripts\__pycache__
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----        29-10-2026     13:08          13578 audit_lrw_words.cpython-311.pyc                                      
+-a----        29-10-2026     13:08          32098 audit_model_capabilities.cpython-311.pyc                             
+-a----        09-11-2026     13:11          17709 audit_recognition_dataset.cpython-311.pyc                            
+-a----        30-10-2026     23:22           2232 _audit_models.cpython-311.pyc                                        
+-a----        30-10-2026     23:22           9079 _deep_audit_collapse.cpython-311.pyc                                 
+
+
+
+Log: file:///C:/Users/Dell/.gemini/antigravity/brain/1f7d1e12-95f3-47ca-8409-7537d1510ab1/.system_generated/tasks/task-5411.log
+</SYSTEM_MESSAGE>

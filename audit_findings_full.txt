@@ -1,0 +1,1502 @@
+<USER_REQUEST>
+isko thik kar juo bhi galti hai The project contains a credible eight-word offline recognition experiment, but it is not yet a dependable live lip-reading system. Its strongest numerical result is reproducible. Its largest engineering weakness is that some APIs and dashboards report verification, readiness, and capabilities that the active implementation does not establish.
+This audit was read-only. I did not edit project files, install dependencies, train models, change checkpoints, alter datasets, or start a camera.
+A. Executive Summary
+Audit date: 17 November 2026, Asia/Calcutta.
+Audited repository:
+C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main
+Paths below are relative to that directory unless stated otherwise.
+Evidence labels used throughout:
+Verified: established by source inspection, artifact inspection, or a fresh check.
+Observed defect: incorrect behavior established directly.
+Risk: a failure mechanism exists; its practical impact was not reproduced.
+Missing evidence: the repository does not establish the claim within the inspected evidence.
+Recommendation: proposed direction; nothing was implemented.
+The most important results are:
+Area
+Audit conclusion
+Eight-word offline classification
+Reproduced: 182/192 correct; macro F1 0.9466803
+Current rejection policy
+Reproduced: accepts 123/192 known words; all 123 accepted classifications correct; falsely accepts 5/60 phrase negatives
+Physical webcam recognition
+Unverified
+Alphabet checkpoint
+Loads successfully; 913,274 parameters; historical 12% accuracy is an artifact claim, not a freshly reproduced benchmark
+Publisher 500-word model
+Loads and executes; no comprehensive local 500-class or webcam accuracy established
+Twenty-word route
+Configured route exists, but its configured trained head is absent
+Personal adaptation
+Actual classifier fitting and alphabet fine-tuning code exist; no genuine feedback-trained challenger or improvement established
+Dataset validation dashboard
+Defective: returns hardcoded successful verification statements
+Evaluation APIs
+Defective: include hardcoded results, incorrect architecture descriptions, wrong test-speaker names, and a fabricated fallback for unknown evaluation names
+Security
+Private adaptive routes have access controls; several older sensitive routes do not
+Docker deployment
+Source packaging is incomplete for the current backend
+Fresh verification
+120 backend tests passed; 73 frontend tests passed; both TypeScript checks passed
+Dependency checks
+npm reports three vulnerable packages; AV-HuBERT environment has broken dependency requirements
+Readiness assessment: suitable for a carefully scoped, locally supervised research demonstration after correcting evidence presentation and rehearsing the actual hardware. Unsuitable for claims of reliable A–Z recognition, general speech recognition, validated unknown-word detection, or proven personalized improvement.
+B. Verified Project Inventory
+Repository structure and inspection scope
+The filesystem inventory excluded virtual environments, Git internals, installed frontend dependencies, bytecode, and generated frontend output.
+Area
+Files inventoried
+Approximate size
+Purpose
+alphabet/
+21
+143 KB
+CLI, experimental decoder training, losses, calibration, inference
+app/
+28
+260 KB
+FastAPI backend, services, routes, legacy frontend
+config/, configs/
+4
+48 KB
+Multiple configuration systems
+data/
+148,357
+42.24 GB
+Raw corpora, manifests, tensors, derived datasets
+external/
+1,083
+79.19 MB
+AV-HuBERT/Fairseq and publisher reference code
+frontend/
+148
+38.45 MB
+React application, browser inference, local assets
+models/
+12
+1.46 GB
+Alphabet, AV-HuBERT, publisher LRW weights and assets
+pipeline/
+98
+570 KB
+Word, dataset, adaptive, AV-HuBERT, evaluation pipelines
+repr/
+5
+78 KB
+Experimental appearance/geometry/motion fusion
+runs/
+5,658
+746 MB
+Checkpoints, feature caches, experiment evidence
+scripts/
+77
+686 KB
+Acquisition, experiments, QA, document generation
+tests/
+52
+353 KB
+Main Python test suite
+.qa/
+20,720
+2.08 GB
+Historical logs, browser evidence, snapshots
+submission_package/
+109
+9.98 MB
+Papers, manuals, presentation, generated reports
+tracking/, temporal/, src/
+6
+65 KB
+Tracking, Conformer components, shared preprocessing
+A static Python scan parsed 260 files containing 44,048 lines, with no syntax errors. That establishes parseability, not correctness. Detailed review concentrated on the active workflows, their alternatives, model/data contracts, security boundaries, tests, and conflicting claims.
+No applicable AGENTS.md was found in the searched locations.
+The working tree already contained eight modified files and an untracked ADAPTIVE_RESULTS.md. The final Git status retained the same entries.
+Major modules and actual functionality
+Module
+Implementation and caller
+Dependencies
+Failure behavior and actual status
+Browser camera
+frontend/src/live-demo/useWebcam.ts; live, collection, feedback pages
+Browser media APIs
+Handles denial, unavailable/busy devices, delayed acquisition, playback timeout and disconnection; physical hardware untested
+Browser landmarks
+useLandmarker.ts, mouthUtils.ts
+Local MediaPipe WASM and model
+Detects up to two faces; active capture requires one; load failure exposed
+Browser inference
+useDemoPipeline.ts, wordAssistant.ts, lib/api.ts
+Camera, landmarks, backend
+Bounded capture and stale-response handling exist; behavior depends on selected mode
+Alphabet HTTP inference
+app/services/browser_inference.py; /api/predict
+Alphabet weights, PyTorch, OpenCV
+Loads successfully; returns uncertainty; recognition reliability unproven
+Eight-word inference
+pretrained_word_inference.py, pretrained_inference.py
+AV-HuBERT, Fairseq, logistic head, policy/evaluation files
+Loads successfully in dedicated CPU environment; failure closes prediction
+Legacy four-word inference
+word_inference.py, legacy_word_model.py
+Separate GRID checkpoint
+Loads successfully; different model and preprocessing from eight-word service
+Publisher LRW500
+lrw500_inference.py, pipeline/lrw_tcn/
+Publisher weights, pinned geometry, vocabulary
+Loads and executes; rejects the smoke input; local broad accuracy unverified
+Expanded twenty-word mode
+expanded_word_routes.py
+Separate expanded head and evaluation
+Configured directory contains protocol/source files but no head; unavailable
+Word collection
+WordCollection.tsx, wordCollection.ts
+IndexedDB, localStorage, recording intake
+Persistent browser recordings and export exist; not automatic training
+Recording studio
+studio_routes.py, recording_studio.py
+SQLite, JPEG validation, configuration
+Data-only workflow; unauthenticated export and write routes
+Private feedback
+adaptive_routes.py, pipeline/adaptive/store.py
+SQLite, original media, independent tracking
+Consent, ownership, review, immutable manifests and withdrawal implemented
+Adaptive training
+training.py, alphabet_training.py
+Frozen encoder/logistic regression or CNN-BiLSTM
+Bounded worker and challenger gates exist; no real feedback-trained outcome established
+Adaptive registry
+pipeline/adaptive/models.py
+SQLite champion pointers and hashed artifacts
+Transactional promotion/rollback; applies to adaptive prediction path
+Legacy research training
+training_service.py, alphabet/train.py
+Separate representation/decoder pipeline
+Different training system from protected browser alphabet model
+Server webcam pipeline
+live_pipeline.py, camera_service.py
+Server camera, experimental representation modules
+Separate from browser webcam; representation restoration problems identified
+Evidence dashboards
+main.py, dataset_service.py, workspace pages
+Historical JSON and constants
+Several misleading hardcoded outputs
+Sequence recognition
+CTC utilities and sequence scorer
+A real trained decoder would be required
+No verified active sentence recognizer
+Model inventory
+Model/artifact
+Actual purpose
+Fresh finding
+models/alphabet_classifier.pt
+26-output isolated-letter CNN-BiLSTM
+3,664,980 bytes; loads; 913,274 parameters
+models/external/avhubert/base_vox_iter5.pt
+Frozen visual representation encoder
+1,240,185,329 bytes; successfully loaded for fresh word inference
+runs/word_accuracy/avhubert_miracl8_v1/head.pt
+Eight-class scaled logistic regression
+66,488 bytes; layer 9; mean/std pooling; 1,536 input features
+runs/word_recognition_v1/checkpoints/best_word_model.pt
+Legacy four-word GRID model
+Loads; vocabulary bin, lay, place, set
+models/external/lrw_tcn/resnet18_dctcn_video.pth
+Publisher ResNet18/DC-TCN, 500 words
+210,597,729 bytes; loads and executes
+runs/finetune/lrw_500words/best_model.pt
+Legacy 500-output alphabet-derived experiment
+Epoch 1; stored validation accuracy 0.06667; not the publisher model
+runs/reliability_20261109/temporal_v2/...
+Two rejected temporal candidates
+Historical comparison artifacts; not selected live models
+runs/word_accuracy/avhubert_combined20_v1/
+Expanded experiment
+No configured head.pt present
+runs/video_to_text/sequence_eval_report.json
+Historical sequence report
+A report is present; no corresponding verified active decoder established
+The eight-word head SHA-256 is:
+bc07a9eca0979e556af573a387733396a891fe41faa10715c9f4d323e9c4cc74
+Dataset inventory and forensic findings
+Dataset
+Actual purpose
+Samples/classes/speakers verified
+Split strategy
+Limitations
+MIRACL indexed words
+Eight-word recognition
+1,200 sequences; 8 labels; 15 speakers; 150/class
+720 train, 240 validation, 240 original test
+Publisher labels; native FPS unknown
+MIRACL indexed phrases
+Phrase negatives/research
+1,500 sequences; 10 phrase classes
+900/300/300
+Not isolated-word supervision
+Selected AV-HuBERT known words
+Actual eight-word experiment
+704 usable train, 240 validation, 192 test
+Speaker-disjoint; first two repetitions of prior test speakers quarantined
+Prior test-speaker exposure remains
+Selected phrase negatives
+Rejection diagnostic
+60 validation, 60 test
+Separate phrase subsets
+Does not establish unseen isolated-word rejection
+GRID letter slots
+Coarticulated letter classification
+32,891 segments; 25 letters; 33 speakers
+22,891/5,000/5,000; 23/5/5 speakers
+W absent; constrained sentence context
+GRID four commands
+Small word experiment
+160 records; 4 classes; 33 speakers
+96/32/32
+Very small class-specific evaluation
+Local LRW MP4s
+Development fixtures
+45 files; 15 label folders
+15/15/15
+All files have identical bytes across labels and splits
+Legacy LRW split manifests
+Nominal 500-class index
+500 entries per split
+Train/valid/test
+485 missing video paths per split
+Allenye complete reference
+Expanded-vocabulary source
+685 indexed records
+Expanded protocol
+Speaker/session/FPS missing; reuse provenance unresolved
+Allenye hello reference
+Quarantined reference
+48 clips
+Quarantine
+Missing speaker identity and compatible preprocessing evidence
+Private feedback/studio/personal server stores
+New user data
+Store directories absent during this audit
+No live records counted
+No genuine new adaptation outcome available
+Fresh structural checks found:
+GRID letter manifest: zero missing video paths, zero invalid basic frame bounds, zero speaker overlap, zero cross-split groups sharing the declared video hash.
+MIRACL manifest: 2,700 sequences and 31,894 frame paths, zero missing paths, zero lexical frame-order violations, zero speaker overlap, zero cross-split groups sharing the declared source hash.
+Selected test feature replay: zero hash mismatches.
+Local LRW: identical SHA-256 across all 45 MP4s.
+These checks do not establish that all raw media are decodable, all labels are correct, all landmarks are valid, or near-duplicates are absent.
+The MIRACL publisher describes 3,000 total instances and research-only availability. The project’s 2,700 indexed sequences reflect its resolved-label subset, not the complete publisher collection. [MIRACL publisher](https://abenhamadou.github.io/miraclvc1/)
+API inventory and contracts
+For the public routes below, no authentication dependency is attached. Standard request-model failures become HTTP 422. Most responses are dictionaries rather than enforced response models.
+Method and route
+Request → response
+Side effects, timeout, consumers
+GET /health, /api/health
+None → backend/alphabet readiness
+Can lazy-load alphabet; backend context/status UI
+GET /api/model/availability
+None → capability flags
+Alphabet-focused; does not describe all loaded word encoders
+GET /api/recognition/capabilities
+None → offline evidence summary
+Reads saved metadata; capability notices
+GET /api/evidence
+None → corpus facts
+Reads manifests; overview/evidence displays
+GET /api/dataset/stats, /api/overview
+None → counts
+Dataset/overview pages
+GET /api/recordings/{letter}
+A–Z → recording list
+Reads local recordings or benchmark index
+GET /api/video/{video_path}
+Path → media
+Restricted to recording/data roots, excludes adaptive-private; legacy media browsing
+GET /api/recording/{letter}/{speaker}/{session}/{recording_id}
+Identifiers → metadata JSON
+Containment check; raw exception can appear in error
+POST /api/predict
+8–76 bounded JPEG strings → alphabet result
+30-second response deadline; live alphabet
+GET /api/word/health
+None → selected word readiness/vocabulary
+Lazy-loads selected legacy/eight-word service
+POST /api/predict/word
+Same bounded frame request → word result
+Shared CPU lock; 30-second deadline; live words
+POST /api/word/train-personal
+Speaker, clips, vocabulary → staging receipt
+Saves bundles; does not train; speaker field not forwarded
+GET /api/models
+None → model tracks
+Model/status consumers; may load services
+GET /api/word/expanded/health
+None → twenty-word readiness
+Missing head currently prevents readiness
+POST /api/predict/word/expanded
+8–76 frame strings → expanded result
+CPU lock; no equivalent route-level 30-second wrapper
+GET /api/word/lrw500/health
+load boolean → status
+Can start a background model load
+POST /api/predict/word/lrw500
+Frames, convention, landmarks, timestamps, face counts, final flag → result
+CPU lock; mode-specific validation; no equivalent 30-second wrapper
+WS /ws/inference
+Frames/ping → lifecycle messages
+Bounded connections/buffer; does not classify
+GET /api/dataset/validate
+None → validation report
+Hardcoded success fallback
+POST /api/dataset/build-manifest
+None → count
+Can rewrite manifest; fallback only returns constant
+POST /api/dataset/create-splits
+None → split counts
+Can rewrite splits; fallback only returns constants
+GET /api/training/check
+None → precheck
+Legacy research trainer
+POST /api/training/start
+Epochs/batch size/LR → job ID
+Starts legacy training; bounded numeric fields
+GET /api/training/status/{job_id}
+ID → state/progress/error
+In-memory legacy job state
+GET or POST /api/training/cancel/{job_id}
+ID → cancellation/error
+GET mutation; running jobs explicitly cannot be safely cancelled
+GET /api/training/checkpoints, /api/inference/checkpoints
+None → metadata
+Some readiness flags hardcoded
+GET /api/evaluations
+None → fixed evaluation list
+Testing dashboard
+GET /api/evaluation/{eval_path}
+String → metrics
+Substring dispatch; unknown values return eight-word-like constants
+GET /api/experiments
+None → saved-run summaries
+Experiments page; synchronous filesystem scans
+POST /api/live/start
+Checkpoint/camera settings → started
+Loads research model and starts server camera; camera settings not applied
+POST /api/live/stop
+None → stopped
+Stops shared server pipeline
+GET /api/live/state
+None → pipeline state
+Exposes shared server-camera state
+POST /api/live/save_recording
+Optional output directory → saved count/path
+Filesystem writes to caller-selected directory
+GET /api/live/cameras
+None → indices
+Returns four suggestions with available: null; no physical probe
+GET /, GET/HEAD SPA paths
+Path → frontend
+Serves existing build or legacy fallback
+Private routes use Bearer keys. Collectors receive an owner scope based on the key hash; reviewers receive broader access.
+/api/adaptive route
+Contract and role
+GET /config
+Collector/reviewer → task labels, consent text, limits
+POST /captures
+Strict capture schema, consent, ordered PNGs/timestamps, optional original video → retained source/prediction; 120-second worker deadline
+POST /captures/{id}/predict
+Owner → source-bound prediction
+POST /captures/{id}/feedback
+Owner; explicit verdict and label → persistent feedback
+POST /captures/{id}/withdraw
+Owner/reviewer → media removal and lineage warning
+GET /records, /records/{id}
+Scoped records, filters, source metadata, audit events
+GET /records/{id}/frames/{index}
+Scoped original PNG
+GET /records/{id}/original-video
+Scoped bounded original video
+GET /records/{id}/source
+Scoped source ZIP
+GET /stats, /hard-examples
+Scoped statistics/review suggestions
+POST /records/{id}/review
+Reviewer; decision/reason → reviewed record
+POST /datasets
+Reviewer; task and speaker assignments → frozen manifest
+GET /datasets/{id}
+Reviewer → integrity-checked version
+POST /training/jobs
+Reviewer; version ID → queued job
+GET /training/jobs/{id}
+Reviewer → persistent job state
+GET /models
+Authenticated → registry/champion metadata
+GET /models/{id}/comparison
+Reviewer → comparison evidence
+POST /models/{id}/final-evaluation
+Reviewer → one-time evaluation job
+POST /models/{id}/deploy
+Reviewer; explicit approval → champion pointer
+POST /models/{task}/rollback
+Reviewer → previous champion pointer
+POST /retention/expire
+Reviewer → operator-triggered expiration
+The adaptive middleware authenticates before buffering the body and enforces a 90 MiB body limit. Source-media responses use no-store. Generic operation failures are logged and converted to a protected error response.
+C. Critical Bugs
+C1. Dataset “verification” does not perform verification
+Observed defect.
+app/services/dataset_service.py:187 returns successful checks with fixed statements when ordinary local recordings are absent.
+These include:
+“0 missing source video files.”
+“All 32,891 source videos decoded without corruption.”
+“Zero speaker overlap.”
+The branch does not perform those operations. build_manifest():206 and create_splits():218 similarly return benchmark constants.
+I called the validation function in the current checkout and reproduced all those successful statements.
+Failure scenario: a corpus is moved, damaged, or deleted, but the UI continues showing successful validation.
+Severity: P1.
+Direction: calculate current checks or show a clearly dated historical receipt with its scope and integrity status.
+[Dataset service (line 187)](C:/Users/Dell/Downloads/LipNet-Alphabet-main/LipNet-Alphabet-main/app/services/dataset_service.py:187)
+C2. Unknown evaluation names receive plausible benchmark results
+Observed defect.
+app/main.py:824 returns hardcoded accuracy/F1/top-k values when no recognized evaluation is found.
+Fresh probe:
+get_evaluation_metrics("__audit_nonexistent_run__") → accuracy 0.9479 → macro_f1 0.9467 → top3 0.9948 → evaluated_on "Held-out test set"
+That is fabricated evidence for an unknown identifier.
+The same function also maps eight-word top-5 to top-3 at app/main.py:790.
+Severity: P1.
+Direction: exact registered experiment IDs; artifact-bound results; 404 for unknown IDs; unavailable metrics remain null.
+[Evaluation endpoint (line 780)](C:/Users/Dell/Downloads/LipNet-Alphabet-main/LipNet-Alphabet-main/app/main.py:780)
+C3. Sensitive older APIs bypass the private feedback security boundary
+Verified exposure mechanism; no existing user-record leak demonstrated.
+app/studio_routes.py:28 exports recordings, including stored frames, without authentication. Bundle creation, personal intake, legacy training, and server-camera controls also lack authentication.
+The current studio/private data directories were absent, so this audit did not expose existing user recordings. The vulnerability becomes material once recordings exist.
+start_server.bat binds to 0.0.0.0.
+Severity: P0 when reachable by untrusted clients and holding biometric recordings; otherwise P1 deployment risk.
+Direction: one explicit local-only boundary or consistent authorization for all sensitive routes.
+C4. Server recording export accepts an unrestricted destination
+Verified code path; write exploit deliberately not executed.
+app/main.py:950 accepts out_dir without containment enforcement. live_pipeline.py:231 creates that directory and writes fixed-name landmark files and metadata.json.
+Failure scenario: a reachable client redirects exports into another writable directory, overwrites matching files, or causes unwanted filesystem growth.
+Severity: P0 under untrusted network access.
+Direction: server-selected IDs beneath a fixed export root; no caller-selected filesystem path.
+C5. Legacy webcam CLI has missing returns
+Observed defect, reproduced without hardware.
+In alphabet/infer.py:
+LiveMouthCropper.crop():38 calculates the mouth ROI but never returns it.
+pad_or_sample():75 calculates indices for an overlong clip but never returns the sampled clip.
+Fresh checks returned None for both a valid mocked face and 31→30 frame sampling.
+Severity: P1 for that CLI.
+Direction: repair the legacy executable path or explicitly retire it from supported launch/documentation paths.
+C6. Docker backend omits required source packages
+Verified packaging defect; Docker build/start not executed.
+Dockerfile.backend copies app, alphabet, repr, and other directories, but omits pipeline/ and src/. Current backend imports require both.
+The ordinary requirements also omit important word-runtime dependencies, and Compose mounts data read-only despite recording APIs requiring writes.
+Severity: P1.
+Direction: define one supported deployment profile and test it from a clean checkout.
+D. Major Architectural Weaknesses
+Several independent “model status” systems disagree.
+main.py:130, main.py:655, recognition_capabilities.py:12, word health, and the adaptive registry answer different questions. Some are historical evidence, some lazy-loading checks, and some hardcoded flags.
+Three collection systems implement different governance.
+Browser IndexedDB collection, unauthenticated studio storage, and authenticated adaptive feedback have different consent, identity, validation, retention, export, and training rules.
+“Training” does not identify one training pipeline.
+The workspace’s legacy trainer, standalone alphabet trainer, personal cross-session trainer, and adaptive batch trainer target different models. Starting training does not imply improvement of the model currently used by /api/predict.
+Adaptive deployment affects a separate prediction path.
+ModelRegistry.predict():118 reads adaptive champion pointers. Ordinary /api/predict and /api/predict/word continue using their own services. This separation can be retained, but the UI must state exactly which path changed.
+Configuration is scattered.
+config.yaml, configs/alphabet_dataset.yaml, studio JSON, pipeline JSON, environment variables, and checkpoint metadata describe different contracts.
+Several manifests embed absolute developer-machine paths.
+MIRACL source/cache manifests and experiment contracts contain the current Windows path. Moving the repository can break otherwise valid artifacts.
+Experimental representation weights are not restored into the server live path.
+live_pipeline.py:293 constructs new appearance/geometry/motion modules and a new fusion module. The decoder checkpoint loader does not establish restoration of those same representation weights.
+Risk: trained decoder inputs and live inputs occupy different feature spaces.
+Inference and training share one process and CPU resources.
+The adaptive encoder lock is useful, but the legacy training system is separate. Global Torch thread settings also change during model loading.
+Historical experiments remain exposed as ordinary product modes.
+Missing twenty-word weights, weak legacy models, incomplete CLI paths, and sentence evaluation artifacts increase the number of ways a demonstration can contradict itself.
+Decisions worth retaining:
+Explicit task separation.
+Frozen AV-HuBERT with a small supervised classifier.
+Checkpoint/vocabulary/preprocessing fingerprints.
+Explicit abstention.
+Bounded browser work and stale-response rejection.
+New challenger artifacts instead of overwriting preserved weights.
+Transactional adaptive champion pointers and rollback.
+Locally packaged MediaPipe assets.
+Clear distinction between candidates and accepted predictions.
+E. AI/ML Problems
+Alphabet model
+Verified architecture:
+[B,T,1,140,46] → three framewise Conv2D stages → one bidirectional LSTM, hidden size 96 → Linear 192→128→26
+This is isolated classification, not CTC spelling or sentence decoding.
+Important weaknesses:
+models/training_summary.json records 12% test accuracy, but the protected checkpoint does not contain enough training/speaker provenance to reconstruct that experiment independently.
+GRID supplies 25 letters, excluding W. A 26-output head does not prove 26 learned classes.
+Current browser crops are square aligned mouth ROIs resized to a tall 140×46 tensor. Shape compatibility does not establish compatibility with the checkpoint’s original training distribution.
+Runtime .5 confidence and .05 margin thresholds are heuristic.
+Browser stabilization does not establish accuracy or calibration.
+models/alphabet_model.py:73 uses the last BiLSTM output. The reverse component at that position does not summarize the whole sequence as the final reverse hidden state would.
+Spatial pooling reduces features to 1×1 before expanding them back to 4×4. This repeats spatial values and warrants an ablation in a future retrained model.
+Live cross-speaker, lighting, head-pose, occlusion, and camera generalization remain unmeasured.
+Verdict: a loadable experimental alphabet classifier, not a verified dependable A–Z webcam recognizer.
+Eight-word model
+Verified:
+Frozen AV-HuBERT visual encoder.
+Selected transformer layer: 9.
+Feature sequence: 29×768.
+Mean and standard deviation concatenation: 1,536 features.
+Training-only StandardScaler parameters.
+Eight-class logistic regression, selected C=1.
+Serialized numeric parameters loaded with weights_only=True.
+Audio absent from runtime encoder inputs.
+Fresh replay of historical test features:
+Measure
+Result
+Known-word clips
+192
+Correct
+182
+Top-1
+94.7917%
+Top-5
+191/192 = 99.4792%
+Macro F1
+0.94668027495
+Accepted after current gate/agreement
+123/192 = 64.0625%
+Correct among accepted
+123/123
+Known-word rejection
+35.9375%
+Phrase false acceptance
+5/60 = 8.3333%
+The accepted subset result must always be accompanied by coverage. It is not “100% accurate lip-reading.”
+Scientific limitations:
+Test speakers had prior pilot exposure. Quarantining repetitions does not create a new untouched population.
+The effective number of independent test speakers is small.
+Phrase rejection is not a general unknown-word test.
+Three overlapping temporal feature views share encoder context; they are correlated.
+Pooling discards detailed temporal order.
+Historical cached evaluation bypasses several live stages.
+No uncertainty interval or fresh participant replication was established.
+Visual ambiguity can explain plausible confusions, but the repository does not establish causal explanations for individual errors.
+The API names four purported test speakers: F07, F09, M03, M05. Actual feature manifests use F10, F11, M08 for test, with F08, F09, M07 for validation.
+Preprocessing contradictions resolved
+Apparent contradiction
+Actual implementation
+96×96 versus 88×88
+Eight-word aligned ROI is 96×96; encoder center-crops to 88×88
+29 versus 30 frames
+Eight-word encoder uses 29; protected alphabet classifier uses 30
+24-frame word model
+Separate legacy four-word model, [B,1,24,64,64]
+LRW500 temporal length
+Browser timestamps resample at 25 Hz; not every utterance is stretched to 29
+140×46 versus square crops
+Alphabet model input is tall; browser preprocessing resizes square aligned ROIs
+RGB versus grayscale
+Browser JPEG decoding and encoder input use grayscale; RGB source handling is a separate earlier stage
+The 96/88 distinction is intentional and coherent. It should not be “fixed” by forcing every stage to one size.
+Personal adaptation: what is actually implemented
+There are two substantive word workflows:
+pipeline/word_recognition/personalized.py:
+Fits a new logistic head using personal recordings plus original MIRACL training features.
+Selects on personal validation sessions.
+Performs a separate paired test.
+Is personal cross-session evaluation, not speaker-independent evaluation.
+pipeline/adaptive/training.py:
+Fits a new logistic head on reviewed, frozen feedback training records.
+Compares with the champion on validation.
+Uses separate one-time final evaluation.
+Controls promotion through reviewer approval and saved gates.
+Alphabet adaptation fine-tunes the CNN-BiLSTM in alphabet_training.py.
+Therefore:
+Prototype/centroid adaptation: not the active method in these inspected workflows.
+Classifier refitting: implemented for words.
+Encoder fine-tuning: not performed by the word adaptation.
+Alphabet fine-tuning: implemented.
+Vocabulary expansion: not supplied by the fixed eight-word adaptive trainer.
+Full foundation-model retraining: not implemented here.
+A single recording cannot immediately replace the private champion through the normal workflow. Dataset freezing requires at least two approved examples per class in each partition; promotion also requires negative evaluation and other gates.
+However:
+The adaptive champion is global per task, not per user.
+Collectors’ recordings can contribute to a pooled reviewer-created dataset.
+New word fitting does not automatically retain original MIRACL training examples.
+Catastrophic regression on older populations remains possible despite paired new-validation checks.
+No genuine feedback-trained challenger or improvement was established.
+Adaptive training/inference mismatch
+Verified contract difference; accuracy impact unmeasured.
+training.py:134 JPEG-encodes and decodes stored ROIs before extracting features. Challenger inference at models.py:155 passes lossless stored ROIs directly to the encoder.
+The evaluated preprocessing boundary and deployed challenger boundary therefore differ.
+This should be resolved before promotion.
+Publisher LRW500
+The publisher model is real and separate from the weak legacy 500-output experiment.
+Fresh smoke execution produced:
+500 output classes.
+Input [1,1,29,88,88].
+Uncertain result.
+Approximately 702 ms model execution on the supplied MIRACL ROI.
+That input was not a labeled LRW benchmark example. No accuracy inference follows.
+The local diagnostic covers only four known samples and two classes, according to its saved report.
+The publisher LRW dataset contains 500 words and requires approved non-commercial academic access; the 45 local duplicated fixtures are not that dataset. [Oxford LRW documentation](https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrw1.html)
+F. Hidden Loopholes
+A nonexistent evaluation can appear successful.
+Unknown evaluation identifiers return benchmark constants.
+Historical evidence can masquerade as current validation.
+Dataset validation does not even require the files it claims to verify.
+Ordinary checkpoint status can claim loaded models without loading them.
+main.py:675, main.py:700, and the return at :709 contain misleading flags.
+Per-user media ownership does not imply per-user learning.
+Adaptive champions are task-global.
+A reviewer identity check is procedural.
+Speaker IDs are self-declared. Renaming a participant can bypass speaker-disjoint assumptions.
+Exact duplicate detection is not near-duplicate detection.
+A small pixel change or altered capture can evade full-sequence hashes.
+Native video and PNG samples are not proven to show the same utterance.
+Both are checked and hashed, but correspondence is not established.
+Audio absence is declared rather than independently verified.
+The stored metadata correctly admits this limitation.
+“Integration passed” is weaker than its name.
+training.py:301 sets it from a nonempty, finite evaluation result. That is not a deployed challenger browser/API test.
+Successful regression can coexist with a failed scientific protocol.
+Tests do not replace independent speakers, negatives, or source verification.
+Withdrawal can invalidate an active challenger’s lineage.
+ModelRegistry.predict() calls store.version(), which rejects versions containing withdrawn records. This can make adaptive inference unavailable until an operator intervenes.
+One-time test access is sealed before evaluation completes.
+A crash or environment failure can consume the test attempt without producing a usable report.
+Private SQLite reads acquire write-oriented transactions.
+store.py:28 performs schema setup and BEGIN IMMEDIATE for every database context, including reads. Large BLOB reads can block other operations.
+Browser local validation is not atomic across tabs.
+wordCollection.ts:76 reads, validates, then writes in separate transactions. Concurrent tabs can bypass collection-level duplicate/session checks.
+Personal-model activation checks depend partly on directory naming.
+pretrained_word_inference.py:27 applies special paired-personal checks only when the parent directory is named personal_words. Launcher checks are stronger, but direct environment configuration follows a different gate.
+G. Missing Features and Safeguards
+The highest-value missing safeguards are modest:
+One authoritative, artifact-bound evidence registry.
+One explicit supported launcher/runtime profile.
+Consistent protection of recording, export, training, and server-camera routes.
+A complete independent physical-webcam evaluation protocol.
+Genuine isolated A–Z data including W, if alphabet reliability remains a goal.
+Independent unknown isolated words and nonspeech negatives.
+Exact deployed preprocessing regression checks.
+Real challenger inference integration checks.
+Explicit pooled-learning versus per-user-learning semantics.
+Bounded storage quotas and operator-visible disk usage.
+Recovery of interrupted training/evaluation jobs.
+A withdrawal procedure covering derived artifacts and active model lineage.
+Clean-machine setup evidence.
+Short model/data cards identifying the scope of each experiment.
+A concise, dated demo readiness checklist.
+A distributed job platform, Kubernetes, or a large commercial model registry is unnecessary for this capstone.
+H. Wrong or Questionable Decisions
+Decision
+Assessment
+Returning success constants from validation routes
+Incorrect; defeats the purpose of validation
+Returning a benchmark for an unknown experiment
+Incorrect; creates false evidence
+Exposing sentence WER as a verified trained-model result
+Unsupported and contradicted by other project material
+Maintaining several collection/governance paths
+Too much inconsistent behavior for the project’s scope
+Using filenames/directories to distinguish activation protocols
+Fragile; provenance should be explicit metadata
+Treating classifier loading as recognition readiness
+Useful operational signal, insufficient scientific evidence
+Keeping weak/missing models in the main demo selector
+Adds failure risk without demonstrated value
+Comparing scratch and pretrained systems as an isolated fine-tuning gain
+Incorrect unless framed as a broader system comparison
+Retaining frozen AV-HuBERT and a small logistic head
+Appropriate and defensible
+Rejecting temporal candidates that did not beat validation baseline
+Appropriate
+Preserving historical artifacts
+Appropriate; misleading historical artifacts need quarantine labels
+Stronger rejection rather than cosmetic threshold lowering
+Appropriate, provided lost coverage is displayed
+I. Performance and Reliability
+Fresh measurements
+Probe
+Result
+Scope
+Eight-word load including warmup
+13.17 s
+One process/run
+Eight-word request
+1,112.91 ms
+One genuine saved validation ROI through JPEG service boundary
+Feature extraction within that request
+1,075.27 ms
+Dominant measured stage
+Preprocessing
+14.15 ms
+Same request
+Classification/consensus
+8.93 ms
+Same request
+JPEG decode/readiness
+13.59 ms
+Same request
+Publisher LRW model execution
+702.32 ms
+Shape/runtime smoke on MIRACL ROI; no accuracy claim
+The fresh eight-word probe was miracl:F08:words:02:01, labeled choose.
+It returned:
+candidate: choose confidence: 0.70268 accepted word: null uncertain: true
+The corresponding cached-feature score was 0.75157. This is evidence that a live-boundary execution need not reproduce the cache score exactly. It is not a measured population-level degradation.
+Historical measurements
+.qa/reliability_20261109/cpu_benchmark_controlled.json records approximately 444 ms mean updated ASGI latency and 5.75 s loading/warmup. Those are historical measurements from a different run, not current guarantees.
+Reliability concerns
+Capture duration, landmarking, network time and confirmation add to model latency.
+At approximately 15 samples/sec, collecting 29 samples spans roughly 1.87 seconds.
+Full-frame PNG feedback capture creates substantial browser memory, encoding and upload work.
+Private validation retains raw frames, decoded frames, ZIP bytes and ROIs during processing.
+JSON/base64 amplifies memory and transport size.
+Some async legacy routes run synchronous filesystem/validation work.
+Model loading can be triggered by health/status requests.
+All major live word adapters are CPU-oriented.
+No GPU performance measurement was made.
+No sustained concurrency, RAM/VRAM, thermal-throttling or long-session leak benchmark was run.
+Optimization priority: measure encoder cost, browser capture cost and memory first. Avoid architecture changes or threshold reductions without an accuracy/coverage comparison.
+J. Frontend and UX Issues
+Verified problems:
+Testing.tsx hardcodes the headline 94.79% and detailed historical per-class tables.
+Its architecture count falls back to 4 when no results are available.
+It renders “Ready” when inferenceReady is false.
+It describes labeled evaluations as rigorously verified/disjoint despite contradictory source evidence.
+The fixed sequence result appears alongside genuine model experiments.
+Multiple health systems can show contradictory model status.
+“Train personal” stages data rather than training; the endpoint name remains misleading.
+“Deploy” in the adaptive lab does not replace ordinary live endpoints.
+Generic fetchWithTimeout() clears its timer after receiving headers; subsequent JSON-body parsing is not protected by that timer. The word-specific predictionJson() is stronger.
+The service worker uses a constant cache name, does not purge previous entries, and can return cached HTML for failed asset fetches.
+Workspace pages are eagerly imported despite lazy top-level presentation pages.
+Collection recordings persist in origin-wide IndexedDB and are not isolated by user accounts.
+Strengths to retain:
+Camera permission and failure messages.
+One-face requirements.
+Separate word capture/retry/next states.
+Stale-response cancellation.
+Bounded pending inference.
+Explicit uncertain results.
+Reduced-motion support and local assets.
+Media URL cleanup in the adaptive page.
+Explicit feedback correction and UNKNOWN options.
+Accessibility, mobile layout and browser behavior have historical automated evidence, but I did not freshly run browser automation or inspect every rendered page.
+K. Security and Privacy
+Concrete risks
+Unauthenticated studio export can disclose stored biometric recordings.
+Unauthenticated recording/training APIs permit resource consumption.
+Server-camera controls are not covered by private feedback authentication.
+Caller-selected recording export paths lack containment.
+JPEG geometry is checked after decoding, leaving a memory-expansion risk before rejection.
+Private adaptive storage has a body cap, but older JSON routes lack equivalent early limits.
+data/studio_v2/ and data/personal_recordings/ are not covered by the inspected Git ignore rules.
+.dockerignore does not establish exclusion of all private recording stores.
+Several loaders use torch.load(..., weights_only=False). These require trusted local artifacts; they are not safe general upload formats.
+Bearer keys identify possession, not a verified person.
+Regenerating collector keys changes the ownership hash and can make earlier records inaccessible to that collector.
+Recordings in IndexedDB can remain on shared browser profiles.
+Retention is operator-triggered.
+Withdrawal does not erase trained-model influence, feature files in experiment directories, backups, or all retained metadata.
+Audit hash chaining is tamper-evident under its assumptions, not tamper-proof against an operator rewriting the database.
+Dependency results
+Fresh:
+npm audit --json --package-lock-only --ignore-scripts
+Reported three vulnerable packages: two high, one moderate:
+vite
+source-map-js
+esbuild
+These are package findings, not three proven exploitable paths in the deployed static application. Development-server exposure is particularly relevant. The Vite and esbuild maintainers publish the corresponding traversal and cross-origin development-server advisories. [Vite advisory](https://github.com/vitejs/vite/security/advisories/GHSA-4w7w-66w2-5vf9), [esbuild advisory](https://github.com/evanw/esbuild/security/advisories/GHSA-67mh-4wv8-2f99)
+The word-recognition environment passed pip check.
+The AV-HuBERT CPU environment failed because of:
+Missing lxml and tabulate for sacrebleu.
+Fairseq/Hydra requirement mismatch.
+Fairseq/OmegaConf requirement mismatch.
+JAX, jaxlib and ml-dtypes requiring newer NumPy than installed.
+Successful encoder inference shows that one path works despite this inconsistent environment. It does not establish reproducible installation.
+Licensing
+No top-level license file was found.
+MIRACL publisher availability is research-only.
+Publisher LRW access requires its agreement.
+The vendored TCN license is not an unrestricted general commercial grant.
+Allenye source inventories explicitly identify missing licensing/participant metadata.
+Attribution, dataset access permission, and permission to redistribute media are separate questions.
+No legal-compliance claim is established.
+L. Testing Gaps
+Fresh tests executed
+Backend:
+.\.venv-word-recognition\Scripts\python.exe -B -m pytest -p no:cacheprovider tests/test_adaptive_feedback.py tests/test_reliability.py tests/test_backend_contract.py tests/test_live_assistant_api.py tests/test_temporal_buffer.py tests/test_alphabet_preprocess.py tests/test_alphabet_training_split.py -k 'not batch_challenger_fits' -q
+120 passed; 1 deselected; 58.27 seconds.
+The excluded test fits a synthetic challenger. It was excluded to honor the no-training instruction.
+Frontend, from frontend/:
+node --experimental-strip-types --test tests/adaptive-feedback.test.mjs tests/live-stability.test.mjs tests/socket-lifecycle.test.mjs tests/word-consensus.test.mjs tests/word-capture.test.mjs tests/word-assistant.test.mjs tests/prediction-api.test.mjs tests/word-collection.test.mjs tests/math-rendering.test.mjs
+73 passed; zero failures.
+TypeScript:
+node node_modules/typescript/bin/tsc --project tsconfig.app.json --noEmit --incremental false node node_modules/typescript/bin/tsc --project tsconfig.node.json --noEmit --incremental false
+Both passed.
+Other fresh checks:
+Historical head replay on 192 known-word and 60 phrase-negative test features.
+Hash verification of those feature files.
+Alphabet checkpoint loading/parameter inspection.
+Legacy four-word checkpoint loading.
+Legacy 500-output metadata/head inspection.
+Genuine eight-word CPU inference on one saved validation ROI.
+Publisher 500-word model load/forward smoke.
+Missing-return reproductions without hardware.
+Dataset manifest/path/split/hash-group checks.
+LRW duplicate hashes and missing-path counts.
+Direct validation and unknown-evaluation behavior probes.
+Python static parsing.
+pip check in two environments.
+npm lockfile vulnerability audit.
+Git status/diff inspection and ignore-rule checks.
+One inspection attempt had a PowerShell/Python quoting SyntaxError; it was corrected using standard-input Python. One rg glob failed under Windows path handling and was replaced by directory/glob searches. Neither was a project test failure.
+No production build was run because it would generate replacement artifacts. No dependencies were installed.
+Coverage matrix
+Module
+Existing evidence
+Main missing test
+Risk
+Alphabet model
+Shape/load/preprocess checks
+Genuine independent A–Z evaluation
+High
+Eight-word model
+Reproducible cached benchmark
+Fresh full browser-boundary evaluation
+High
+Unknown rejection
+Phrase negatives
+Unseen isolated words, nonspeech, occlusion
+High
+Private feedback
+Strong synthetic contract tests
+Real participant longitudinal workflow
+High
+Adaptive deployment
+Registry/gate tests
+Actual challenger API/browser execution
+High
+Dataset dashboard
+Route tests
+Remove corpus and require failure
+High
+Evaluation API
+Contract tests
+Unknown ID, missing artifact, hash mismatch, correct speakers/top-k
+High
+Legacy CLI
+Some CLI tests
+Valid mouth output and overlong clip return
+High
+Docker
+Configuration
+Clean image startup and persistence
+High
+Recording privacy
+Adaptive auth tests
+Legacy route authorization and export denial
+Critical when exposed
+Browser capture
+Pure logic/historical browser tests
+Fresh physical devices and cross-browser runs
+High
+Concurrency
+CPU locks/capacity tests
+Concurrent training, health, inference and withdrawal
+Medium–high
+Recovery
+Failure-state tests
+Process kill/restart during jobs/evaluation
+Medium
+Local collection
+Helper tests
+Two-tab transactions and storage exhaustion
+Medium
+Historical logs include 691 passed, 3 skipped in an earlier full regression run. That is a historical result, not this audit’s fresh test count.
+M. External Examiner Risks
+Claims most likely to be challenged
+Sentence WER: the API advertises 38.89%, while scripts/build_whitebook.py:374 explicitly explains a static dummy sentence behind that historical diagnostic.
+Wrong test speakers: API speaker names disagree with the actual feature manifest.
+Wrong architectures: the evaluation API describes a 3D-CNN/two-layer alphabet model; actual protected model uses framewise Conv2D and one BiLSTM layer.
+Dataset verification: the displayed successful checks can be returned without examining data.
+“Fine-tuning gain”: the principal word encoder remains frozen, and the scratch comparison is not an equal-data single-variable ablation.
+Personalization: implementation exists, but genuine improved personal recognition has not been demonstrated.
+Originality report: scripts/build_plagiarism_report.py:291 generates “COMPLIANT (Estimated <8%)” without an institutional similarity result. This must not be presented as an actual plagiarism-check certificate.
+Dataset counts: README, status reports, current manifests and UI describe different project generations.
+Full vocabulary: 26 or 500 outputs do not prove useful recognition of those classes.
+Difficult viva questions and defensible answer direction
+Question
+Defensible answer
+Why is lip-reading ambiguous?
+Several speech sounds have similar visible articulation; important acoustic information is invisible
+How is it different from audio recognition?
+It estimates speech from visual motion and appearance, with different ambiguities and failure modes
+Why AV-HuBERT?
+Reuses pretrained speech-related visual representations; local fitting trains a small downstream classifier
+Why logistic regression?
+Low-cost, inspectable head suitable for the available small fixed-vocabulary dataset
+What does 94.79% measure?
+Raw top-1 on 192 specified historical eight-word utterances
+Does that include rejection?
+No; current accepted coverage is 123/192 in replay
+How do you prevent leakage?
+Speaker partitions, hashes and frozen protocols; prior pilot test-speaker exposure remains a limitation
+Is personalization full retraining?
+Word path refits a classifier over frozen features; alphabet path fine-tunes its CNN-BiLSTM
+Can you recognize unknown words?
+Reliable general unknown-word detection is not established
+What if words look similar?
+They can be confused; inspect class errors and reject uncertain inputs
+Why no sentences?
+No verified trained active visual sentence decoder
+Can alphabet mode spell arbitrary words?
+Not established; it is isolated-letter classification
+Does Correct immediately train?
+No; it records explicit feedback for review and later controlled fitting
+How is poisoning prevented?
+Consent, task labels, independent quality checks, review, deduplication and frozen datasets; identity and near-duplicate loopholes remain
+Why does the UI show a sentence benchmark?
+It is misleading legacy evidence and should be quarantined
+Is the plagiarism report official?
+No institutional similarity evidence was established by this audit
+N. Independent Recommendations
+First change: make every evidence/readiness screen truthful and artifact-bound.
+Retain: the preserved eight-word encoder/head as the reference baseline.
+Remove from the main demonstration: missing twenty-word mode, unsupported sentence benchmark, and broken legacy CLI launch paths.
+Simplify: choose one recording workflow and one supported launcher.
+Redesign: access control around all recording/export/training routes.
+Biggest technical risk: multiple incompatible runtime and training paths presented as one system.
+Biggest scientific weakness: lack of independent physical-webcam evaluation after extensive historical model/protocol work.
+Biggest demo risk: a correct candidate is rejected, or the selected mode is unavailable, while the UI implies readiness.
+Biggest hidden loophole: evidence endpoints can manufacture apparent success.
+Most impressive credible improvement: an untouched participant study reporting raw accuracy, accepted accuracy, coverage, false acceptance and total latency through the real browser path.
+Stop immediately: reusing historical scores as live capability evidence, treating output vocabulary as achieved coverage, and presenting estimated originality as certification.
+Do not lower thresholds to rescue the demo. Measure and explain the existing trade-off.
+O. Prioritized Issue Register
+Evidence paths use the repository root stated above.
+ID
+Issue
+Category
+Severity
+Evidence
+Affected files
+Consequence
+Recommended direction
+01
+Unauthenticated recording export
+Privacy
+P0 conditional
+Export returns stored frames without auth
+app/studio_routes.py:28; recording_studio.py:150
+Biometric disclosure when populated/exposed
+Protect or disable
+02
+Unrestricted export destination
+Security
+P0 conditional
+Caller controls output directory
+app/main.py:950; live_pipeline.py:231
+Unauthorized filesystem writes
+Fixed export root
+03
+Hardcoded dataset verification
+Evidence
+P1
+Fresh function probe
+dataset_service.py:187
+False integrity assurance
+Real checks/dated receipts
+04
+Unknown evaluation returns scores
+Evidence
+P1
+Fresh nonexistent-ID probe
+app/main.py:824
+Fabricated benchmark
+Exact IDs; 404
+05
+Top-5 mislabeled top-3
+Metrics
+P1
+Direct mapping
+app/main.py:790
+Incorrect reported metric
+Preserve correct top-k
+06
+Unsupported sentence benchmark exposed
+Science
+P1
+API versus documented dummy sentence
+app/main.py:764; build_whitebook.py:374
+Misleading research claim
+Quarantine diagnostic
+07
+Incorrect MIRACL test speakers
+Provenance
+P1
+Manifest test IDs disagree
+app/main.py:729
+Invalid experiment explanation
+Derive from manifest
+08
+Wrong model architecture descriptions
+Documentation
+P2
+API differs from model definitions
+app/main.py:734, :752; models/alphabet_model.py:25
+Viva/reproducibility failure
+Derive metadata
+09
+False loaded flags
+Operations
+P1
+Constants despite no service load
+app/main.py:675, :700, :709
+False readiness
+Runtime-owned status
+10
+Broken webcam crop return
+Functionality
+P1
+Fresh valid-face mock returns None
+alphabet/infer.py:38
+CLI never obtains crop
+Repair/retire
+11
+Broken overlong sampling return
+Functionality
+P1
+31→30 returns None
+alphabet/infer.py:75
+Inference failure
+Repair/retire
+12
+Incomplete Docker source
+Deployment
+P1
+Required pipeline, src omitted
+Dockerfile.backend; app/main.py:26
+Startup failure
+Clean deployment test
+13
+Docker persistence mismatches APIs
+Deployment
+P1
+Read-only data mount; recording writes
+docker-compose.yml; store.py:25
+Recording failure
+Explicit writable private volume
+14
+Proxy upload limit incompatible
+Deployment
+P1
+No configured body-size override
+frontend/nginx.conf
+Feedback uploads rejected
+Bounded compatible limit
+15
+Legacy sensitive mutations unprotected
+Security
+P1
+No auth dependencies
+app/main.py:319, :495, :532, :888
+Training/storage/camera misuse
+Shared authorization
+16
+Missing twenty-word head
+Availability
+P1
+Directory inventory
+expanded_word_routes.py:15
+Selected mode unavailable
+Hide until ready
+17
+Alphabet reliability unestablished
+ML
+P1
+Historical low score; missing independent test
+models/training_summary.json
+Core recognition failure
+Complete isolated-letter study
+18
+Missing W training coverage
+Data
+P1
+25 labels in GRID manifest
+avhubert_letters.jsonl
+Unsupported full A–Z claim
+Genuine W and A–Z data
+19
+Duplicated LRW fixtures
+Data
+P1
+All 45 MP4 hashes identical
+data/lrw/
+Invalid training/evaluation
+Enforce fixture quarantine
+20
+LRW manifests reference absent clips
+Data
+P1
+485 missing paths per split
+data/processed/lrw/lrw_*_manifest.jsonl
+Loader failures/false counts
+Validate actual membership
+21
+Prior test-speaker exposure
+Science
+P1
+Explicit original protocol
+pretrained.py:38, :49
+Limited independence
+Fresh untouched speakers
+22
+General unknown rejection unproven
+ML
+P1
+5/60 phrase false accepts
+consensus.py; saved test features
+False vocabulary membership
+Independent negatives
+23
+Challenger JPEG mismatch
+ML
+P1
+Train JPEG versus raw ROI inference
+training.py:134; models.py:155
+Evaluation/deployment mismatch
+One preprocessing function
+24
+Global champion presented as personal
+Architecture
+P1
+Champion key is task
+store.py:47; models.py:118
+Misunderstood isolation
+Explicit pooled/per-user design
+25
+Integration gate is not integration testing
+QA
+P1
+Finite report sets flag
+training.py:301
+Untested challenger promoted
+Actual endpoint test
+26
+Research live representation not restored
+ML architecture
+P1
+Fresh module construction
+live_pipeline.py:293; inference_service.py:201
+Incompatible decoder inputs
+Persist/load full feature contract
+27
+Vulnerable frontend dependencies
+Security
+P1
+Fresh npm audit
+frontend/package-lock.json
+Relevant advisory exposure
+Reviewed dependency update
+28
+Inconsistent encoder environment
+Reproducibility
+P1
+Fresh pip check failure
+.venv-avhubert-cpu; dependency manifests
+Clean-machine failure
+Reproducible supported environment
+29
+Unsupported similarity compliance
+Academic evidence
+P1
+Generated estimated <8%
+build_plagiarism_report.py:291
+Misrepresentation
+Actual institutional report
+30
+UI says Ready when unavailable
+UX
+P1
+Conditional displays Ready on false
+Testing.tsx
+Demo confusion
+Explicit unavailable state
+31
+Unprotected recording paths in Git rules
+Privacy
+P1
+Fresh check-ignore
+.gitignore; studio/personal paths
+Accidental biometric commit
+Ignore all private stores
+32
+JPEG dimensions checked after decode
+Security
+P1
+Decode precedes dimension check
+browser_inference.py:113
+Memory exhaustion
+Predecode geometry limits
+33
+Key-based ownership lacks migration
+Privacy/operations
+P2
+Owner is token digest
+adaptive_routes.py:79
+Lost collector access after rotation
+Stable identity/recovery
+34
+Crash can consume final test
+Reliability
+P2
+Claim precedes execution
+training.py:247; store.py:306
+Missing final evidence
+Controlled recovery protocol
+35
+Jobs lack restart recovery
+Reliability
+P2
+Thread executor/persisted running state
+training.py:82
+Stale queued/running jobs
+Startup reconciliation
+36
+Withdrawal can invalidate champion
+Reliability
+P1
+Prediction validates withdrawn lineage
+models.py:130; store.py:300
+Adaptive inference outage
+Operator-safe fallback policy
+37
+Self-declared identity permits aliases
+Data governance
+P2
+Speaker IDs supplied by collector
+adaptive_routes.py:38; store.py:240
+Leakage/poisoning
+Reviewer identity procedure
+38
+No near-duplicate guarantee
+Data governance
+P2
+Exact full-sequence hashes
+store.py:81; quality.py:140
+Repeated utterances dominate
+Review similarity groups
+39
+Native video/PNG correspondence unchecked
+Provenance
+P2
+Separate validation paths
+quality.py:113, :143
+Misleading source evidence
+Bind sampled frames to video
+40
+SQLite reads serialize writers
+Performance
+P2
+BEGIN IMMEDIATE for every context
+store.py:28
+Read/write contention
+Separate read transactions
+41
+Generic timeout excludes body parsing
+Reliability
+P2
+Timer cleared after fetch headers
+frontend/src/lib/api.ts:41
+Hanging dashboard/feedback parse
+Full-operation deadline
+42
+Inconsistent route deadlines
+API
+P2
+Expanded/LRW lack common wrapper
+expanded_word_routes.py:43; lrw500_routes.py:27
+Long occupied workers
+Uniform bounded execution
+43
+Browser multi-tab validation race
+Storage
+P2
+Read then separate write
+wordCollection.ts:76
+Duplicate/leakage checks bypassed
+Transactional constraints
+44
+Absolute developer paths
+Portability
+P2
+Source/cache manifests
+runs/.../features.jsonl; MIRACL manifest
+Relocation failure
+Relative roots and receipts
+45
+Model activation depends on directory name
+Governance
+P2
+personal_words special case
+pretrained_word_inference.py:27
+Inconsistent activation assurance
+Explicit protocol metadata
+46
+Constant service-worker cache
+Frontend
+P2
+No version cleanup; HTML fallback
+frontend/public/sw.js:1
+Stale/mis-typed assets
+Versioned cache strategy
+47
+Server camera settings ignored
+API
+P2
+Fields declared but unused
+app/main.py:872, :889
+Request does not control advertised settings
+Apply or remove fields
+48
+Configuration/provenance fragmentation
+Maintainability
+P2
+Multiple conflicting systems
+Configs, manifests, launchers, reports
+Wrong model/protocol selected
+One supported profile
+For issue 14, Nginx’s documented default body limit is 1 MiB. The checked configuration does not override it, while adaptive requests can be much larger. This is a static deployment finding; it was not reproduced through a running proxy. [Nginx directive documentation](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
+P. Recommended Roadmap
+No changes below have been implemented.
+Stage
+Work
+Dependencies
+Change risk
+Immediate fixes
+Remove fabricated evaluation fallback, hardcoded validation success and false readiness
+None
+Low implementation risk; reveals unavailable evidence
+Immediate security
+Protect studio/export/training/server-camera routes; constrain export paths
+Decide local-only versus networked use
+Medium; frontend credentials may need coordination
+Core reliability
+Select one launcher and exact model/profile; hide unavailable modes
+Intended demo scope
+Low
+Core reliability
+Resolve challenger preprocessing and real integration gate
+Frozen reference inputs
+Medium; requires paired comparison
+AI/ML
+Evaluate full JPEG/browser boundary with fixed model/policy
+Existing genuine source clips
+Low artifact risk; findings may be unfavorable
+AI/ML
+Fresh participant evaluation with negatives
+Consent, hardware, protocol
+High scheduling cost; essential evidence
+Dataset
+Validate real membership, label coverage, source grouping and relative paths
+Selected experiment
+Medium
+Alphabet
+Collect complete genuine A–Z including W before retraining
+Goal decision and participants
+High time/data risk
+Frontend
+Derive all metrics/status from exact artifact/runtime sources
+Backend evidence contract
+Medium
+Security/privacy
+Exclude private stores from Git/images; quotas and deletion procedure
+Storage policy
+Low–medium
+Testing
+Add negative evidence tests, real challenger API tests, deployment smoke
+Corrected contracts
+Medium
+Deployment
+Repair clean setup/Docker only if actually required
+Supported platform decision
+Medium–high
+Final demo
+Physical camera rehearsal, cold start, unavailable mode, permission denial, rejection and recovery
+Frozen release
+Low code risk; high practical value
+Suggested seven-day allocation:
+Day 1: evidence truthfulness and security boundaries.
+Day 2: launcher/runtime consolidation and missing-mode cleanup.
+Day 3: preprocessing and challenger integration verification.
+Days 4–5: fresh physical-webcam evaluation with untouched participants and negatives.
+Day 6: error analysis, source-bound reports, documentation reconciliation.
+Day 7: frozen release and full external-demo rehearsal.
+Do not promise alphabet retraining, broad vocabulary expansion and sentence recognition within the same week without first resolving data and hardware constraints.
+Q. Questions Requiring Human Decisions
+Ten decisions are listed at the end. They determine the appropriate scope, privacy boundary, evaluation protocol and deployment work. No implementation approval is assumed.
+R. Claims We Can and Cannot Make
+Defensible claims
+The repository implements visual-only isolated-letter and isolated-word research paths.
+The protected alphabet classifier loads and has 26 outputs.
+A frozen AV-HuBERT encoder plus scaled logistic classifier recognizes eight specified classes in a reproducible historical experiment.
+Fresh cached-feature replay gives 182/192 correct and macro F1 0.94668.
+Current rejection replay accepts 123/192 known clips, with 5/60 phrase false accepts.
+The publisher 500-word model loads and executes separately.
+Private feedback supports explicit consent, source retention, correction, review, frozen datasets and controlled challenger management.
+Word adaptation code fits a real classifier over frozen representations.
+Physical-webcam accuracy and personalized improvement remain unproven.
+No verified active continuous-sentence recognizer was established.
+Claims requiring further evidence
+“Reliable A–Z lip-reading.”
+“94.79% webcam accuracy.”
+“100% accurate recognition.”
+“Recognizes arbitrary English words.”
+“Accurately recognizes 500 words on this laptop’s webcam.”
+“Reliable unknown-word detection.”
+“Clicking Correct immediately improves the model.”
+“Personal vocabulary expansion is deployed.”
+“AV-HuBERT was fine-tuned in the principal eight-word experiment.”
+“Continuous sentence WER is 38.89% for a verified trained decoder.”
+“All videos have just passed integrity validation.”
+“All models shown as loaded are actually loaded.”
+“The project is production-ready or legally compliant.”
+“The generated plagiarism dossier is an official similarity certificate.”
+S. Final Engineering Verdict
+Current maturity: an extensive research prototype with one reproducible limited-vocabulary result, substantial testing infrastructure, and useful controlled-feedback scaffolding. It also contains incompatible generations of implementation and misleading evidence presentation.
+Demo readiness: conditional. A supervised eight-word research demonstration is plausible. Dependable alphabet recognition, arbitrary speech recognition and demonstrated personalization are not established.
+Research credibility: strongest where the project preserves source IDs, feature hashes, classifier parameters and per-clip predictions. Weakest where constants or legacy diagnostics are presented as verified results.
+Biggest weakness: the gap between measured offline classification and the capabilities implied by parts of the application.
+Highest-value next improvement: one truthful, frozen, end-to-end physical-webcam evaluation—not another model or dashboard.
+Lead-engineer recommendation: narrow the supported demonstration to the preserved eight-word model plus transparent feedback collection. Correct the evidence and security defects before adding capability.
+Audit closure
+Inspected: repository-wide structure; 260 parsed Python files; active frontend/backend workflows; route contracts; model definitions and selected checkpoints; raw/processed manifests; feature cache integrity; training/evaluation/adaptation code; launchers; Docker/Nginx configuration; dependency manifests; tests; historical QA evidence; principal documentation and submission-generation claims.
+Could not fully inspect or establish: every raw media file’s decode integrity; every label’s correctness; every PDF/Office page’s rendered content; every third-party implementation line; complete license/consent authorization; every historical checkpoint’s training provenance.
+Actually ran: 120 selected backend tests, 73 frontend tests, two TypeScript checks, cached model replay, genuine saved-ROI inference, model-loading/shape probes, manifest/path/hash checks, static parsing, dependency checks, and direct defect reproductions.
+Remains unverified: physical webcam operation and accuracy, cross-browser behavior, full raw-corpus integrity, independent unknown-word performance, genuine adaptation improvement, long-session stability, sustained concurrency, GPU performance, clean installation and Docker execution.
+No project fixes or replacement files were generated.
+The 10 most important decisions requiring your approval
+What is the final assessed capability: eight-word recognition, dependable A–Z recognition, or personalized recognition?
+Which platform must be supported: this Windows laptop only, another machine, or Docker/Linux too?
+Will anyone access the server over a network, or must it remain loopback-only?
+Should adaptation be private per user, or explicitly pooled across consenting participants?
+May full-face source video be retained, for how long, and who may review/export it?
+Can genuinely new participants be recruited for an untouched physical-webcam test?
+Should the final demo hide the missing twenty-word mode and unsupported sentence benchmark?
+Should the alphabet mode remain explicitly experimental until complete isolated A–Z evidence exists?
+What is the withdrawal policy for trained derivatives, backups and an active model containing withdrawn data?
+Do you authorize a subsequent implementation phase prioritizing evidence correctness, access controls, preprocessing consistency and demo reliability before new features?
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-11-17T12:36:22+05:30.
+
+The user's current state is as follows:
+Other open documents:
+- c:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\_check_avhubert2.py (LANGUAGE_UNSPECIFIED)
+- c:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\_check_avhubert3.py (LANGUAGE_UNSPECIFIED)
+- c:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\AVHUBERT_PLAN.md (LANGUAGE_UNSPECIFIED)
+- c:\tmp\check_env.py (LANGUAGE_UNSPECIFIED)
+- c:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main\AVHUBERT_EXECUTION_LOG.md (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>
