@@ -8,7 +8,7 @@ interface FrameInspectorProps {
   label?: string | null
 }
 
-export function FrameInspector({ frames, durationMs, fps = 30, label }: FrameInspectorProps) {
+export function FrameInspector({ frames, durationMs, fps, label }: FrameInspectorProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const animRef = useRef<number | null>(null)
@@ -26,7 +26,7 @@ export function FrameInspector({ frames, durationMs, fps = 30, label }: FrameIns
   useEffect(() => {
     if (!isPlaying || frames.length <= 1) return
 
-    const intervalMs = 1000 / (fps || 30)
+    const intervalMs = 1000 / (fps || 10)
 
     const step = (time: number) => {
       if (time - lastTimeRef.current >= intervalMs) {
@@ -60,8 +60,8 @@ export function FrameInspector({ frames, durationMs, fps = 30, label }: FrameIns
   }
 
   const currentFrame = frames[selectedIndex]
-  const calculatedDuration = durationMs ?? (frames.length > 0 ? (frames.length / fps) * 1000 : 0)
-  const timestampOffsetMs = Math.round((selectedIndex / Math.max(1, frames.length - 1)) * calculatedDuration)
+  const calculatedDuration = durationMs && durationMs > 0 ? durationMs : null
+  const timestampOffsetMs = calculatedDuration === null ? null : Math.round((selectedIndex / Math.max(1, frames.length - 1)) * calculatedDuration)
 
   return (
     <div className="ws-frame-inspector" aria-label="Temporal Frame Sequence Inspector">
@@ -70,11 +70,11 @@ export function FrameInspector({ frames, durationMs, fps = 30, label }: FrameIns
           <Icon name="layers" size={16} />
           <span>TEMPORAL MOUTH SEQUENCE</span>
           <span className="ws-inspector-count-badge">
-            {frames.length} FRAMES · {(calculatedDuration / 1000).toFixed(2)}s
+            {frames.length} FRAMES · {calculatedDuration === null ? 'duration unmeasured' : `${(calculatedDuration / 1000).toFixed(2)}s capture`}
           </span>
           {label && (
             <span className="ws-inspector-target-badge">
-              TARGET: <strong>{label}</strong>
+              MODEL CANDIDATE: <strong>{label}</strong>
             </span>
           )}
         </div>
@@ -140,7 +140,7 @@ export function FrameInspector({ frames, durationMs, fps = 30, label }: FrameIns
               </div>
               <div className="ws-inspector-meta-row">
                 <span>Timeline Offset:</span>
-                <strong>+{timestampOffsetMs} ms</strong>
+                <strong>{timestampOffsetMs === null ? 'Source timing unmeasured' : `Approx. position +${timestampOffsetMs} ms`}</strong>
               </div>
               <div className="ws-inspector-meta-row">
                 <span>Standardized Dim:</span>

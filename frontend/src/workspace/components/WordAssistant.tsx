@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { AssistantState, WordAssistant as Controller } from '../../live-demo/wordAssistant'
 import { WORD_LIMITS } from '../../live-demo/wordAssistant'
 import { Icon } from '../Icon'
@@ -68,6 +69,7 @@ export function WordAssistantPanel({
   const result = state.result
   const busy = ['CAPTURING', 'PROCESSING', 'CAMERA_STARTING', 'STOPPING'].includes(state.phase)
   const [correctedWord, setCorrectedWord] = useState<string>('')
+  useEffect(() => { setCorrectedWord('') }, [result?.id])
 
   return (
     <div className="ws-assistant" aria-busy={state.phase === 'PROCESSING'}>
@@ -121,6 +123,7 @@ export function WordAssistantPanel({
             <button
               type="button"
               className={`ws-btn ws-btn-sm ${result.feedback === 'correct' ? 'ws-btn-primary' : 'ws-btn-ghost'}`}
+              disabled={!result.word}
               onClick={() => controller.send({ type: 'FEEDBACK', id: result.id, feedback: result.feedback === 'correct' ? null : 'correct' })}
               aria-pressed={result.feedback === 'correct'}
             >
@@ -142,20 +145,22 @@ export function WordAssistantPanel({
               <select
                 id={`correct-val-${result.id}`}
                 className="ws-select"
-                value={correctedWord || result.candidate}
+                value={correctedWord}
                 onChange={e => setCorrectedWord(e.target.value)}
               >
+                <option value="">Choose the actual spoken word</option>
                 {vocabulary.map(w => (
                   <option key={w} value={w}>
                     {w}
                   </option>
                 ))}
+                <option value="UNKNOWN">UNKNOWN / OTHER</option>
               </select>
             </div>
           )}
 
           <p className="ws-feedback-disclaimer">
-            Feedback is logged in session telemetry. Baseline model weights are preserved.
+            This feedback stays in session memory. <Link to="/demo/feedback">Use the adaptive lab to record, verify and save a dataset sample.</Link>
           </p>
         </div>
       )}

@@ -420,3 +420,24 @@ def test_batch_challenger_fits_only_train_valid_and_preserves_champion(store,mon
     assert all((output/name).is_file() for name in ['head.pt','final.pt','config.json','history.json','comparison.json'])
     with store.db() as db:assert db.execute('SELECT model FROM champions').fetchone()[0]=='avhubert-miracl8-preserved'
     trainer.executor.shutdown(wait=True)
+
+
+def test_final_test_access_is_one_time_and_exposed_speakers_quarantined(store,source):
+    version=frozen(store,source)
+    assert store.claim_test(version['id'],'reviewer')['claimed']==4
+    with pytest.raises(FileExistsError):store.claim_test(version['id'],'reviewer')
+    # Existing train/validation data can grow versions, but exposed test speakers
+    # cannot masquerade as a fresh independent test population.
+    with pytest.raises(ValueError,match='Historical evaluation speaker'):
+        store.freeze('isolated_word',['hello','stop'],{'a':'train','b':'valid','c':'test'},'reviewer')
+
+
+def test_temporal_agreement_must_match_full_window_candidate(monkeypatch):
+    import pipeline.adaptive.training as training
+    import pipeline.word_recognition.consensus as consensus
+    p=np.zeros(8);p[2]=.99;p[0]=.01
+    monkeypatch.setattr(training,'head_probabilities',lambda head,features:p)
+    monkeypatch.setattr(consensus,'temporal_consensus',lambda *args:{'confirmed':True,'views':[{'candidate':'stop'}]})
+    assert not training.word_acceptance({},np.zeros((29,768)))
+    monkeypatch.setattr(consensus,'temporal_consensus',lambda *args:{'confirmed':True,'views':[{'candidate':'hello'}]})
+    assert training.word_acceptance({},np.zeros((29,768)))

@@ -244,6 +244,7 @@ class BatchTrainer:
         if not self.lock.acquire(blocking=False):raise BlockingIOError('A batch job is already running.')
         try:
             output=self.store.root/Path(model['checkpoint']).parent
+            self.store.claim_test(version['id'],actor)
             # Claim before opening held-out values. A failure cannot be used to retune.
             with (output/'test_access.json').open('xb') as stream:
                 stream.write(canonical({'actor':actor,'model':identifier,'at':now(),'checkpoint_sha256':model['checkpoint_sha256']}))
@@ -268,7 +269,12 @@ class BatchTrainer:
             else:
                 encoder=baseline_adapter('isolated_word').load().service.model.encoder
                 with _training_encoder_lock():x,y,_=self.features(version,'test',encoder,output)
-                report=metrics(np.stack([head_probabilities(head,f) for f in x]),y)
+                probabilities=np.stack([head_probabilities(head,f) for f in x])
+                report=metrics(probabilities,y)
+                accepted=np.array([word_acceptance(head,f) for f in x])
+                report.update(coverage=float(accepted.mean()),rejection_rate=float(1-accepted.mean()),
+                    accepted_subset_accuracy=float(np.mean(probabilities[accepted].argmax(1)==y[accepted])) if accepted.any() else None,
+                    rejection_scope='Fixed score/margin plus overlapping temporal agreement')
             negatives=[r for r in version.get('negative_records',[]) if r['split']=='test']
             if negatives:
                 if version['task']=='alphabet_recognition':

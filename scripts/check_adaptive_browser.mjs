@@ -83,6 +83,9 @@ try{
  for(const tab of ['Prediction & feedback','Dataset Feedback Studio','Models & training','Examiner walkthrough']){await click(tab);check(await page.eval('document.documentElement.scrollWidth<=innerWidth+1'),'no mobile overflow '+tab)}
  const {data}=await page.call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(path.join(output,'adaptive-mobile.png'),Buffer.from(data,'base64'))
  await click('Lock workspace');check(await wait(`!document.body.innerText.includes('reviewer access')`),'locking clears access and dataset views')
+ await input('.af-access input','z'.repeat(32));await click('Connect')
+ check(await wait(`document.body.innerText.includes('reviewer access')`),'a new access session can connect after locking')
+ check(await page.eval(`!document.querySelector('.af-check input').checked&&document.querySelector('input[placeholder="Stable pseudonymous ID"]').value===''`),'locking clears recording consent and prior speaker identity')
  check(page.errors.length===0,'no uncaught browser exceptions')
  await writeFile(path.join(output,'browser_checks.json'),JSON.stringify({scope:'UI integration with explicit API and preview fixtures, plus real MediaPipe/MediaRecorder on a genuine prerecorded AFTERNOON camera replay. Not recognition or physical webcam evidence.',checks_passed:checks.length,checks,uncaught_errors:page.errors},null,2))
  console.log(checks.length+' checks passed')

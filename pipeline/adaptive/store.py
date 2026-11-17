@@ -45,6 +45,8 @@ class FeedbackStore:
           created TEXT NOT NULL, result TEXT, error TEXT);
         CREATE TABLE IF NOT EXISTS models(id TEXT PRIMARY KEY, task TEXT NOT NULL, payload TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS champions(task TEXT PRIMARY KEY, model TEXT NOT NULL, previous TEXT);
+        CREATE TABLE IF NOT EXISTS test_locks(record TEXT PRIMARY KEY, version TEXT NOT NULL, at TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS evaluation_speakers(speaker TEXT PRIMARY KEY, version TEXT NOT NULL, at TEXT NOT NULL);
         ''')
         try:
             db.execute('BEGIN IMMEDIATE')
@@ -78,7 +80,8 @@ class FeedbackStore:
                 return self.public(prior)
             duplicate = db.execute('SELECT id FROM captures WHERE source=? OR pixels=?',
                                    (meta['source_sha256'], meta['pixels_sha256'])).fetchone()
-            status = 'DUPLICATE' if duplicate else 'QUARANTINED' if meta['warnings'] else 'PENDING_REVIEW'
+            exposed=db.execute('SELECT 1 FROM evaluation_speakers WHERE speaker=?',(meta['speaker_id'],)).fetchone()
+            status = 'DUPLICATE' if duplicate else 'QUARANTINED' if meta['warnings'] or exposed else 'PENDING_REVIEW'
             db.execute('INSERT INTO captures VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
                        (identifier, owner, request_hash, meta['task'], meta['speaker_id'], meta['session_id'],
                         meta['source_sha256'], meta['pixels_sha256'], json.dumps(meta), media, rois,
@@ -164,6 +167,8 @@ class FeedbackStore:
             if row['status'] in {'WITHDRAWN', 'TRAINING_INCLUDED', 'DUPLICATE'}:
                 raise ValueError('This record cannot be relabelled or approved.')
             meta = json.loads(row['metadata'])
+            if decision=='APPROVED' and db.execute('SELECT 1 FROM evaluation_speakers WHERE speaker=?',(row['speaker'],)).fetchone():
+                raise ValueError('A previously evaluated test speaker remains quarantined from the independent feedback protocol.')
             if decision == 'APPROVED' and (not row['verdict'] or meta['warnings']):
                 raise ValueError('Approval requires a verified label and passing recording quality. UNKNOWN records are negative evaluation only. Rerecord failed quality.')
             db.execute('UPDATE captures SET status=?,reason=? WHERE id=?', (decision, reason, identifier))
@@ -226,7 +231,7 @@ class FeedbackStore:
         if set(assignments.values()) != {'train', 'valid', 'test'}:
             raise ValueError('Assign genuinely independent speakers to train, valid and test.')
         with self.db() as db:
-            rows = db.execute("SELECT * FROM captures WHERE task=? AND status='APPROVED'", (task,)).fetchall()
+            rows = db.execute("SELECT * FROM captures WHERE task=? AND status IN ('APPROVED','TRAINING_INCLUDED')", (task,)).fetchall()
             rows = [r for r in rows if r['speaker'] in assignments]
             if not rows:
                 raise ValueError('No approved feedback is available.')
@@ -236,7 +241,7 @@ class FeedbackStore:
             forbidden = self.historical_evaluation_speakers()
             for row in rows:
                 split = assignments[row['speaker']]
-                if row['speaker'] in forbidden:
+                if row['speaker'] in forbidden or db.execute('SELECT 1 FROM evaluation_speakers WHERE speaker=?',(row['speaker'],)).fetchone():
                     raise ValueError('Historical evaluation speaker must be quarantined from new independent protocols.')
                 negative=row['label']=='UNKNOWN'
                 if row['label'] not in labels and not negative:
@@ -297,6 +302,23 @@ class FeedbackStore:
                 if r['status']=='WITHDRAWN' or r['rois'] is None:
                     raise ValueError('A dataset recording was withdrawn. Freeze a new reviewed version.')
             return value
+
+    def claim_test(self,identifier,actor):
+        version=self.version(identifier)
+        records=[r for r in version['records']+version.get('negative_records',[]) if r['split']=='test']
+        if not records:raise ValueError('A complete held-out partition is required.')
+        with self.db() as db:
+            for row in records:
+                if db.execute('SELECT 1 FROM test_locks WHERE record=?',(row['id'],)).fetchone():
+                    raise FileExistsError('The held-out recording was already accessed by final evaluation.')
+                speaker=db.execute('SELECT version FROM evaluation_speakers WHERE speaker=?',(row['speaker'],)).fetchone()
+                if speaker and speaker[0]!=identifier:
+                    raise FileExistsError('This held-out speaker was already evaluated in another version.')
+            for row in records:
+                db.execute('INSERT INTO test_locks VALUES(?,?,?)',(row['id'],identifier,now()))
+                db.execute('INSERT OR IGNORE INTO evaluation_speakers VALUES(?,?,?)',(row['speaker'],identifier,now()))
+            self.event(db,identifier,actor,'claim_final_test',{'recordings':len(records),'purpose':'one final report; not selection'})
+        return {'claimed':len(records),'dataset_version':identifier}
 
     def expire_uncommitted(self, actor='retention', days=30):
         cutoff = (datetime.now(timezone.utc)-timedelta(days=days)).isoformat()

@@ -168,6 +168,7 @@ npm --prefix frontend run test:math
 npm --prefix frontend run test:adaptive
 npm --prefix frontend run build
 .\.venv-avhubert-cpu\Scripts\python.exe scripts/probe_adaptive.py --out .qa/new-adapter-probe.json
+.\.venv-avhubert-cpu\Scripts\python.exe scripts/probe_adaptive_api.py --out .qa/new-real-api-probe.json
 .\.venv-word-recognition\Scripts\python.exe scripts/audit_adaptive.py --out .qa/new-artifact-audit
 ```
 
@@ -175,3 +176,9 @@ The adapter probe uses one real historical validation HELLO recording and three 
 per task. Its alphabet input is a word ROI, so that result is runtime evidence only. The temporary
 API and browser tests use explicit software fixtures where stated; they do not count as verified
 human feedback, a training dataset, or physical webcam accuracy. See [results](ADAPTIVE_RESULTS.md).
+
+With the app serving a current production build on port 8018, run
+`node scripts/check_adaptive_browser.mjs` for the new lab. The retained live-demo regression copy is
+`.qa/adaptive_20261116/legacy_browser/browser_qa.mjs`. Those browser tests need the installed Chrome
+and existing genuine `.qa/afternoon-paced-replay.y4m`; all prediction API fixtures in those tests
+are explicitly software fixtures. They never submit their camera replay to a real dataset store.
