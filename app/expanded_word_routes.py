@@ -37,11 +37,18 @@ class ExpandedWordRequest(BaseModel):
 
 @router.get('/api/word/expanded/health')
 def expanded_word_health():
+    if os.environ.get('LIPNET_ENABLE_RESEARCH_INFERENCE') != '1':
+        return {'model_loaded': expanded_word_inference.model is not None, 'inference_ready': False,
+                'research_only': True, 'available': expanded_word_inference.path.is_file(),
+                'reason': 'Unsupported twenty-word serving disabled; explicit research opt-in required.',
+                'webcam_accuracy_validated': False}
     return expanded_word_inference.health()
 
 
 @router.post('/api/predict/word/expanded')
 async def predict_expanded_word_route(req:ExpandedWordRequest):
+    if os.environ.get('LIPNET_ENABLE_RESEARCH_INFERENCE') != '1':
+        raise HTTPException(503, 'Twenty-word inference is research-only and disabled in the supported profile.')
     from app.main import bounded_inference
     return await bounded_inference(predict_expanded_word,req)
 

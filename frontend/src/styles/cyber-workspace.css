@@ -1,0 +1,513 @@
+/* ============================================================
+   LIPNET MASTER 1000x VISUAL ELEVATION SYSTEM
+   Deep Space Obsidian · Luminous Indigo & Cyan Aurora · Holographic HUD
+   ============================================================ */
+
+/* ---------- Global Deep-Space Atmosphere ---------- */
+.workspace {
+  --ws-bg: #07080b;
+  --ws-surface: #0e121c;
+  --ws-surface2: #141926;
+  --ws-surface3: #1b2234;
+  --ws-border: rgba(99, 102, 241, 0.16);
+  --ws-border-hi: rgba(99, 102, 241, 0.38);
+  --ws-accent: #4f46e5;
+  --ws-accent2: #38bdf8;
+  background-color: #07080b !important;
+  background-image: none !important;
+}
+
+/* Subtle High-Tech Coordinate Grid */
+.ws-content {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+}
+
+/* Headings: Tight Letter Spacing */
+.ws-title,
+.ws-page-head > h1,
+.ws-overview-copy h2,
+.ws-next-card h2,
+.ws-card h2,
+.ws-section-heading h2 {
+  letter-spacing: -0.025em;
+}
+
+/* Tabular Numbers for Metrics, Values and Monospace Data */
+.ws-metric-value,
+.ws-summary-value,
+.ws-value,
+.ws-inspector-meta-row strong,
+.ws-mono,
+.ws-table td,
+.ws-letter-tile {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Master Glassmorphic Matte Cards ---------- */
+.ws-card,
+.ws-summary-card,
+.ws-frame-inspector,
+.ws-system-card,
+.word-collection .ws-card {
+  position: relative;
+  background: #0d1019 !important;
+  border: 1px solid #1f2536 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 12px !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.ws-card:hover,
+.ws-summary-card:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6) !important;
+  transform: translateY(-2px);
+}
+
+/* Top Specular Sheen line disabled in matte mode */
+.ws-card::before,
+.ws-summary-card::before {
+  display: none !important;
+}
+
+/* ---------- Aerospace HUD Corner Accents ---------- */
+.ws-hud-bracket {
+  position: relative;
+}
+
+.ws-hud-bracket::before,
+.ws-hud-bracket::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  border-color: #6366f1;
+  border-style: solid;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 6px #6366f1);
+  z-index: 5;
+}
+
+.ws-hud-bracket::before {
+  top: 0; left: 0;
+  border-width: 2px 0 0 2px;
+  border-top-left-radius: 4px;
+}
+
+.ws-hud-bracket::after {
+  bottom: 0; right: 0;
+  border-width: 0 2px 2px 0;
+  border-bottom-right-radius: 4px;
+}
+
+/* ---------- Laser Scanner Beam ---------- */
+.ws-laser-scanner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #6366f1 20%, #38bdf8 50%, #6366f1 80%, transparent);
+  box-shadow: 0 0 14px 2px rgba(99, 102, 241, 0.8), 0 0 28px 4px rgba(56, 189, 248, 0.6);
+  pointer-events: none;
+  z-index: 12;
+  opacity: 0;
+}
+
+.is-streaming .ws-laser-scanner {
+  animation: ws-laser-sweep 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes ws-laser-sweep {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 0.95; }
+  90% { opacity: 0.95; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* ---------- High-Precision Biometric Reticle & Crosshairs ---------- */
+.ws-reticle-overlay {
+  position: absolute;
+  inset: 14px;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.ws-reticle-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(99, 102, 241, 0.55);
+  transition: all 0.3s ease;
+}
+
+.ws-reticle-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+.ws-reticle-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+.ws-reticle-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+.ws-reticle-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+.is-streaming .ws-reticle-corner {
+  border-color: #38bdf8;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.7));
+}
+
+.ws-reticle-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border: 1px dashed rgba(99, 102, 241, 0.45);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: all 0.4s ease;
+}
+
+.is-streaming .ws-reticle-center {
+  border-color: rgba(56, 189, 248, 0.85);
+  animation: ws-reticle-spin 12s linear infinite;
+}
+
+@keyframes ws-reticle-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ---------- Shimmering Specular Probability Bar ---------- */
+.ws-shimmer-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.ws-shimmer-bar::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: ws-shimmer 2.2s infinite;
+}
+
+@keyframes ws-shimmer {
+  0% { left: -100%; }
+  60% { left: 100%; }
+  100% { left: 100%; }
+}
+
+/* ---------- Pulsing Luminous Badges ---------- */
+.ws-pulse-cyan {
+  box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+  animation: ws-pulse-cyan-anim 2s infinite;
+}
+
+@keyframes ws-pulse-cyan-anim {
+  0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+
+.ws-pulse-emerald {
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: ws-pulse-emerald-anim 2s infinite;
+}
+
+@keyframes ws-pulse-emerald-anim {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* ---------- Cryptographic Prediction Decode Effect ---------- */
+.ws-cyber-prediction {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.4));
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ws-cyber-prediction.is-revealed {
+  animation: ws-reveal-shockwave 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes ws-reveal-shockwave {
+  0% { transform: scale(0.92); opacity: 0; filter: blur(6px); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.5)); }
+}
+
+/* ---------- Master Primary & Cyber Buttons ---------- */
+.ws-btn-primary,
+.ws-btn-solid {
+  background: #4f46e5 !important;
+  color: #ffffff !important;
+  border: 1px solid #6366f1 !important;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35) !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.ws-btn-primary:hover:not(:disabled),
+.ws-btn-solid:hover:not(:disabled) {
+  background: #4338ca !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.5) !important;
+  transform: translateY(-1.5px) !important;
+}
+
+.ws-btn-primary:active:not(:disabled),
+.ws-btn-solid:active:not(:disabled) {
+  transform: scale(0.96) !important;
+  background: #3730a3 !important;
+}
+
+.ws-btn-cyber {
+  position: relative;
+  overflow: hidden;
+  background: #121624 !important;
+  border: 1px solid #38bdf8 !important;
+  color: #38bdf8 !important;
+  font-weight: 600;
+  box-shadow: none !important;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.18s ease !important;
+}
+
+.ws-btn-cyber:hover:not(:disabled) {
+  background: #162035 !important;
+  border-color: #7dd3fc !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35) !important;
+  transform: translateY(-1.5px) !important;
+}
+
+.ws-btn-cyber:active:not(:disabled) {
+  transform: scale(0.96) !important;
+}
+
+.ws-btn-ghost,
+.ws-btn-secondary {
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(8px) !important;
+  transition: all 0.25s ease !important;
+}
+
+.ws-btn-ghost:hover:not(:disabled),
+.ws-btn-secondary:hover:not(:disabled) {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  background: rgba(99, 102, 241, 0.12) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ---------- Floating Sidebar & Topbar ---------- */
+.ws-sidebar {
+  background: rgba(10, 13, 20, 0.92) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-right: 1px solid rgba(99, 102, 241, 0.18) !important;
+}
+
+.ws-topbar {
+  background: rgba(10, 13, 20, 0.86) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.18) !important;
+}
+
+.ws-nav-item {
+  transition: all 0.22s ease !important;
+}
+
+.ws-nav-item:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: #ffffff !important;
+  transform: translateX(4px);
+}
+
+.ws-nav-item.active {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.22), rgba(56, 189, 248, 0.08)) !important;
+  border: 1px solid rgba(99, 102, 241, 0.4) !important;
+  color: #818cf8 !important;
+  box-shadow: 0 2px 14px rgba(99, 102, 241, 0.2) !important;
+}
+
+.ws-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: #6366f1;
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 10px #6366f1;
+}
+
+/* ---------- Stat Cards & Metric Values ---------- */
+.ws-metric-value,
+.ws-summary-value {
+  font-family: 'JetBrains Mono Variable', monospace !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: #ffffff !important;
+}
+
+/* ---------- Badges & Tags Elevation ---------- */
+.ws-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  border-radius: 6px !important;
+  font-family: 'JetBrains Mono Variable', monospace !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+.ws-badge-ready {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2) !important;
+}
+
+.ws-badge-warning {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+.ws-badge-muted {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+/* ---------- Form Controls Modernization ---------- */
+.ws-select,
+select,
+input:not([type=checkbox]):not([type=radio]),
+.ws-input {
+  background: rgba(13, 16, 26, 0.85) !important;
+  border: 1px solid rgba(99, 102, 241, 0.25) !important;
+  color: #f1f5f9 !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-family: inherit !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  outline: none !important;
+}
+
+.ws-select:focus,
+select:focus,
+input:not([type=checkbox]):not([type=radio]):focus,
+.ws-input:focus {
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.4) !important;
+}
+
+/* ---------- Tables: High-Tech View ---------- */
+.ws-table-wrap {
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ws-table tr:hover td {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+/* ---------- Scrollbars ---------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(7, 8, 12, 0.7);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.6);
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes cyberFadeIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes neonPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; filter: drop-shadow(0 0 10px #6366f1); }
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+@keyframes saas-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes saas-toast-slide-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 3D Lip Wireframe Canvas */
+.cyber-3d-lip-hud canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Interactive Neural Synapse Canvas */
+.neural-synapse-visualizer canvas {
+  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
+}
+
+/* External Examiner Navigator HUD */
+.ws-examiner-hud {
+  background: #0e121c !important;
+  border-bottom: 1px solid #1f2536 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65) !important;
+}
+
+.ws-examiner-dot.is-active {
+  background: #6366f1 !important;
+  box-shadow: 0 0 12px #6366f1 !important;
+  transform: scale(1.3);
+}
+
+/* Accessibility Focus Rings & Mobile Touch Targets */
+.workspace :focus-visible {
+  outline: 2px solid var(--ws-accent) !important;
+  outline-offset: 2px !important;
+}
+
+@media (max-width: 768px) {
+  .ws-icon-button { min-width: 44px; min-height: 44px; }
+  .ws-nav-item { min-height: 44px; }
+  .ws-btn { min-height: 44px; }
+}

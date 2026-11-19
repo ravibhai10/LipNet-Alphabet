@@ -85,6 +85,16 @@ class BatchTrainer:
         self.executor=ThreadPoolExecutor(max_workers=1,thread_name_prefix='feedback-training')
         self.lock=threading.Lock()
 
+    def restart_executor(self):
+        if self.executor._shutdown:
+            if self.lock.locked():
+                raise RuntimeError('A stopped worker is still draining; restart the process before new work.')
+            self.executor=ThreadPoolExecutor(max_workers=1,thread_name_prefix='feedback-training')
+
+    def close(self):
+        # Native computation cannot be killed safely; it retains its resource lock.
+        self.executor.shutdown(wait=False,cancel_futures=True)
+
     def create(self, version_id, actor):
         version=self.store.version(version_id)
         if version['task'] not in TASK_LABELS or version['labels']!=TASK_LABELS[version['task']]:
@@ -172,7 +182,7 @@ class BatchTrainer:
         if digest(path.read_bytes())!=champion_meta['checkpoint_sha256']:raise ValueError('Champion integrity failed.')
         champion=torch.load(path,map_location='cpu',weights_only=True)
         base=baseline_adapter('isolated_word').load().service.model
-        output=self.store.root/'runs/adaptive'/identifier;output.mkdir(parents=True,exist_ok=False)
+        output=self.store.directory/'derivatives'/identifier;output.mkdir(parents=True,exist_ok=False)
         (output/'dataset.json').write_bytes(canonical(version))
         with _training_encoder_lock():
             x,y,_=self.features(version,'train',base.encoder,output)
@@ -234,6 +244,7 @@ class BatchTrainer:
         (output/'comparison.json').write_bytes(canonical(comparison));(output/'config.json').write_bytes(canonical(configuration))
         (output/'history.json').write_bytes(canonical({'optimizer_iterations':classifier.n_iter_.tolist(),
             'validation_top1_accuracy':challenger_report['top1_accuracy'],'validation_macro_f1':challenger_report['macro_f1']}))
+        if version.get('record_ids'): self.store.version(version['id'])
         with self.store.db() as db:
             db.execute('INSERT INTO models VALUES(?,?,?)',(identifier,'isolated_word',json.dumps(value)))
             self.store.event(db,identifier,'training-worker','challenger_saved',{'checkpoint_sha256':value['checkpoint_sha256']})
@@ -317,7 +328,8 @@ class BatchTrainer:
                               checkpoint_sha256=model['checkpoint_sha256'],test_used_for_selection=False)
                 with (output/'test_report.json').open('xb') as stream:stream.write(canonical(report))
             model['test_report']=report
-            interpreter=self.store.root/'.venv-word-recognition/Scripts/python.exe'
+            import os, sys
+            interpreter=Path(os.environ.get('LIPNET_REGRESSION_PYTHON', sys.executable))
             if not interpreter.is_file():raise RuntimeError('Verified regression environment is unavailable.')
             with (output/'regression.txt').open('w',encoding='utf-8') as stream:
                 result=subprocess.run([str(interpreter),'-m','pytest','tests','pipeline/eval/tests','pipeline/grid/tests','pipeline/avhubert/tests'],

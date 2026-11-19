@@ -53,9 +53,11 @@ def predict(store,identifier='capture-01',accepted='hello',owner='owner'):
 def approved(store,source,identifier,label,speaker):
     row={**source,'speaker_id':speaker}
     # Distinct original evidence for each synthetic fixture; no source duplication hidden.
-    frame=cv2.imdecode(np.frombuffer(base64.b64decode(row['frames'][0].split(',')[1]),np.uint8),cv2.IMREAD_COLOR)
-    frame[0,0]=np.frombuffer(bytes.fromhex(digest(identifier.encode()))[:3],np.uint8)
-    row['frames']=[*row['frames']];row['frames'][0]='data:image/png;base64,'+base64.b64encode(cv2.imencode('.png',frame)[1]).decode()
+    rng=np.random.default_rng(int(digest(identifier.encode())[:16],16))
+    # Different lighting and whole-frame texture; a one-pixel change is a near duplicate.
+    level=40+int(digest(identifier.encode())[16:20],16)%160
+    row['frames']=['data:image/png;base64,'+base64.b64encode(cv2.imencode('.png',
+        rng.integers(max(0,level-30),min(255,level+30),(128,128,3),dtype=np.uint8))[1]).decode() for _ in range(8)]
     save(store,row,identifier);predict(store,identifier,accepted=label)
     store.feedback(identifier,'owner','correct',label,[label])
     return store.review(identifier,'reviewer','APPROVED','Reviewed fixture for software test')
@@ -166,7 +168,8 @@ def test_decoded_duplicates_with_different_png_encoding(store,source):
 def test_withdraw_deletes_media_and_preserves_audit(store,source):
     save(store,source);predict(store);store.feedback('capture-01','owner','correct','hello',['hello'])
     assert store.withdraw('capture-01','owner')['media_deleted']
-    assert store.inspect('capture-01')['prediction']['candidate']=='hello'
+    assert store.inspect('capture-01')['prediction'] is None
+    assert any(e['action']=='withdraw' for e in store.inspect('capture-01')['audit'])
     assert 'quality' not in store.inspect('capture-01')['metadata']
     with pytest.raises(LookupError):store.blob('capture-01','media')
     with pytest.raises(ValueError):store.feedback('capture-01','owner','correct','hello',['hello'])
@@ -184,6 +187,9 @@ def test_expire_uncommitted(store,source):
     save(store,source)
     with store.db() as db:
         db.execute('UPDATE captures SET created=?',((datetime.now(timezone.utc)-timedelta(days=31)).isoformat(),))
+    assert store.expire_uncommitted()['expired']==0  # 31 days is inside the approved 90-day policy.
+    with store.db() as db:
+        db.execute('UPDATE retention SET expires=?',((datetime.now(timezone.utc)-timedelta(seconds=1)).isoformat(),))
     assert store.expire_uncommitted()['expired']==1
     assert store.stats()['statuses']=={'WITHDRAWN':1}
 
@@ -361,9 +367,10 @@ def test_global_speaker_assignment_cannot_change_between_versions(store,source):
 def test_private_database_cannot_use_legacy_video_download(tmp_path,monkeypatch):
     import app.main as main
     monkeypatch.setattr(main,'PROJECT_ROOT',tmp_path)
+    monkeypatch.setenv('LIPNET_REVIEW_TOKEN','r'*40)
     path=tmp_path/'data/adaptive_private/feedback.sqlite3';path.parent.mkdir(parents=True);path.write_bytes(b'private')
     with TestClient(main.app) as client:
-        assert client.get('/api/video/data/adaptive_private/feedback.sqlite3').status_code==404
+        assert client.get('/api/video/data/adaptive_private/feedback.sqlite3',headers={'Authorization':'Bearer '+'r'*40}).status_code==404
 
 
 def test_alphabet_checkpoint_contract_rejects_word_labels():
@@ -416,7 +423,7 @@ def test_batch_challenger_fits_only_train_valid_and_preserves_champion(store,mon
     candidate=ModelRegistry(store).model('synthetic-challenger')
     assert candidate['test_report'] is None and candidate['training_configuration']['test_used_for_selection'] is False
     assert not candidate['comparison']['eligible']  # no independent negative evidence
-    output=store.root/'runs/adaptive/synthetic-challenger'
+    output=store.directory/'derivatives/synthetic-challenger'
     assert all((output/name).is_file() for name in ['head.pt','final.pt','config.json','history.json','comparison.json'])
     with store.db() as db:assert db.execute('SELECT model FROM champions').fetchone()[0]=='avhubert-miracl8-preserved'
     trainer.executor.shutdown(wait=True)

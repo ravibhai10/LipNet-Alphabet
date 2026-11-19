@@ -42,7 +42,8 @@ def load_json(path):
 
 def read_rows(path):
     with Path(path).open(encoding="utf-8") as stream:
-        return [json.loads(line) for line in stream if line.strip()]
+        from pipeline.paths import relocate_row
+        return [relocate_row(json.loads(line)) for line in stream if line.strip()]
 
 
 def write_rows(path, rows):

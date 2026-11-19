@@ -39,7 +39,7 @@ class AVHubertWordClassifier:
         if sha256(ENCODER)!=head['contract']['encoder_sha256'] or sha256(ROOT/'frontend/public/models/face_landmarker.task')!=head['contract']['landmarker_sha256']:raise ValueError('Encoder/landmarker fingerprint mismatch.')
         policy=json.loads((self.path.parent/'rejection_policy.json').read_text())
         if policy['head_sha256']!=sha256(self.path) or not 0<=policy['threshold']<=1 or not 0<=policy['margin']<=1:raise ValueError('Confidence-policy checkpoint mismatch.')
-        encoder=self._provided_encoder or AVHubertLoader(threads=1,low_memory=True).load()
+        encoder=self._provided_encoder or AVHubertLoader(threads=__import__('app.settings',fromlist=['settings']).settings().cpu_threads,low_memory=True).load()
         if encoder.preprocessing()['image_crop_size']!=88 or encoder.preprocessing()['image_mean']!=.421 or encoder.preprocessing()['image_std']!=.165:raise ValueError('Publisher encoder normalization changed.')
         # Initialize CPU kernels before the first live utterance. This discarded
         # zero-input warm-up is a performance operation, never recognition evidence.

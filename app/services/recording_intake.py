@@ -10,7 +10,7 @@ from pipeline.word_recognition.common import sha256
 from pipeline.word_recognition.personal_data import validate_clip, WORDS
 
 
-def save_bundle(root: Path, clips: list[dict], vocabulary: list[str]) -> dict:
+def save_bundle(root: Path, clips: list[dict], vocabulary: list[str], *, owner: str | None = None) -> dict:
     if not clips:
         raise ValueError('No recorded clips provided. Record and confirm the spoken label first.')
     if len(clips) > 1000:
@@ -44,6 +44,13 @@ def save_bundle(root: Path, clips: list[dict], vocabulary: list[str]) -> dict:
     directory.mkdir(parents=True, exist_ok=True)
     with (directory / (bundle_id + '.json')).open('xb') as stream:
         stream.write(payload)
+    if owner is not None:
+        from pipeline.adaptive.store import FeedbackStore
+        from pipeline.adaptive.lifecycle import register_file
+        try: register_file(FeedbackStore(root), bundle_id, directory / (bundle_id + '.json'), owner)
+        except BaseException:
+            (directory / (bundle_id + '.json')).unlink(missing_ok=True)
+            raise
     return {'status': 'validation_required', 'success': False, 'model_activated': False,
             'bundle_id': bundle_id, 'bundle_sha256': hashlib.sha256(payload).hexdigest(),
             'clips_processed': len(clips), 'vocabulary': words,

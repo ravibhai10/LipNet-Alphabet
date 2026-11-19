@@ -1,0 +1,900 @@
+{
+  "state": "Current progress report; implementation and verification gaps remain explicit. No mission-completion claim.",
+  "findings": [
+    {
+      "id": "01",
+      "root_cause": "Studio export lacked authorization",
+      "files_changed": [
+        "app/security.py"
+      ],
+      "actual_correction": "Reviewer authorization before route/body parsing",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Mounted router alone must also include the shared security middleware.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "02",
+      "root_cause": "Server recording accepted arbitrary output directory",
+      "files_changed": [
+        "app/main.py"
+      ],
+      "actual_correction": "Reject caller output directory and use managed private export path",
+      "tests": "tests/test_live_assistant_api.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Legacy camera exports still need full retention/lineage migration.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "03",
+      "root_cause": "Dataset validation fabricated success",
+      "files_changed": [
+        "app/services/evidence_registry.py",
+        "app/services/dataset_service.py"
+      ],
+      "actual_correction": "Inspect manifest paths, IDs, declared split and hash groups; report undecoded media honestly",
+      "tests": "tests/test_backend_contract.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Whole-corpus decoding and byte rehash are not performed by this structural endpoint.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "04",
+      "root_cause": "Unknown evaluation silently returned a default",
+      "files_changed": [
+        "app/services/evidence_registry.py",
+        "app/main.py"
+      ],
+      "actual_correction": "Exact registered IDs and unavailable/malformed evidence states",
+      "tests": "tests/test_backend_contract.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Historical report availability is separate from scientific validity.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "05",
+      "root_cause": "Top-five metric displayed as top-three",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Return top5_accuracy and null top3 when unmeasured",
+      "tests": "tests/test_backend_contract.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Frontend rendering requires coordinated review.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "06",
+      "root_cause": "Diagnostic sentence output presented as benchmark",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Archive constant-hypothesis diagnostic without recognition score",
+      "tests": "tests/test_recognition_capabilities.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Sentence track remains unavailable; no new decoder/evidence supplied.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "07",
+      "root_cause": "Incorrect MIRACL test-speaker attribution",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Read test identities from immutable feature manifest rather than hardcoded names",
+      "tests": "tests/test_backend_contract.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Source manifest authenticity beyond supplied provenance remains external.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "08",
+      "root_cause": "Architecture descriptions did not match checkpoints",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Describe framewise CNN/BiLSTM, Conv3D/BiGRU and frozen encoder heads separately",
+      "tests": "tests/test_backend_contract.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Historical documents preserved; new errata is authoritative for this mission.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "09",
+      "root_cause": "Presence incorrectly represented runtime loading",
+      "files_changed": [
+        "app/main.py"
+      ],
+      "actual_correction": "Inventory separates file availability and loaded service state",
+      "tests": "tests/test_live_assistant_api.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Readiness denotes loadability and compatibility only; recognition reliability remains separate.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "10",
+      "root_cause": "CLI mouth crop omitted return",
+      "files_changed": [
+        "alphabet/infer.py"
+      ],
+      "actual_correction": "Preserved prior working-tree return correction",
+      "tests": "tests/test_cli.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "User-authored preexisting correction was preserved.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "11",
+      "root_cause": "CLI long clip sampling omitted return",
+      "files_changed": [
+        "alphabet/infer.py"
+      ],
+      "actual_correction": "Preserved prior working-tree return correction",
+      "tests": "tests/test_cli.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "No protected architecture change.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "12",
+      "root_cause": "Docker image omitted pipeline and src",
+      "files_changed": [
+        "Dockerfile.backend",
+        ".dockerignore"
+      ],
+      "actual_correction": "Copy required code; remove COPY of excluded runs directory; mount reference runs read-only where possible",
+      "tests": "Docker runtime procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Docker executable unavailable; clean build/runtime not executed.",
+      "status": "Fixed, Verification Blocked",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "13",
+      "root_cause": "Read-only data mount conflicted with writes",
+      "files_changed": [
+        "docker-compose.yml"
+      ],
+      "actual_correction": "Dedicated writable adaptive-private mount and explicit private credentials mount",
+      "tests": "Docker runtime procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Legacy stores and UID permissions still require container runtime validation.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "14",
+      "root_cause": "Proxy body size and deadline disagreed",
+      "files_changed": [
+        "frontend/nginx.conf"
+      ],
+      "actual_correction": "90 MiB ceiling; 30-second body/send and 35-second API read timeout",
+      "tests": "Docker runtime procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Actual Nginx/container test unavailable.",
+      "status": "Fixed, Verification Blocked",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "15",
+      "root_cause": "Legacy sensitive endpoints unauthenticated",
+      "files_changed": [
+        "app/security.py"
+      ],
+      "actual_correction": "Reviewer-only legacy recording/training/video access with fail-closed configuration",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Supported localhost/single-process profile; offline helper calls are not HTTP authorization boundaries.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "16",
+      "root_cause": "Twenty-word head absent or unsupported",
+      "files_changed": [
+        "app/expanded_word_routes.py"
+      ],
+      "actual_correction": "Preserve newly supplied research head; disable HTTP inference by default",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Explicit opt-in is research only; no webcam reliability claim.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "17",
+      "root_cause": "Alphabet reliability lacked independent evidence",
+      "files_changed": [
+        "engineering/20261117/VALIDATION_PROTOCOL.md"
+      ],
+      "actual_correction": "Keep experimental classification and specify fresh participant acceptance protocol",
+      "tests": "External validation procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "No new consenting participants; no fabricated results.",
+      "status": "Cannot Be Fixed Within Current Scope",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "18",
+      "root_cause": "W absent from GRID-derived alphabet data",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Report missing class and block complete A-Z claims",
+      "tests": "tests/test_backend_contract.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Authentic consenting W examples and evaluation unavailable.",
+      "status": "Cannot Be Fixed Within Current Scope",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "19",
+      "root_cause": "LRW fixture clips duplicated across classes",
+      "files_changed": [
+        "pipeline/lrw/loader.py",
+        "tests/test_lrw_vocab.py"
+      ],
+      "actual_correction": "Reject known fixture hash in real-data loader; dimension tests explicitly use mocks",
+      "tests": "tests/test_lrw_vocab.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Genuine LRW500 benchmark still requires licensed data.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "20",
+      "root_cause": "Legacy manifests reference missing videos",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Expose missing paths rather than fabricate data or silently replace manifest",
+      "tests": "tests/test_backend_contract.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Missing authentic source files cannot be recreated as real evidence.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "21",
+      "root_cause": "Historical test speakers were exposed",
+      "files_changed": [
+        "pipeline/adaptive/lifecycle.py",
+        "pipeline/adaptive/store.py"
+      ],
+      "actual_correction": "Quarantine historical evaluation identities; forbid reuse as fresh training/test participants",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Identity aliases still require independent reviewer checks; no fresh participants.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "22",
+      "root_cause": "Unknown-word rejection unproven",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Co-report historical raw accuracy, accepted accuracy, coverage and false acceptance",
+      "tests": "tests/test_reliability.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Historical phrase negatives do not prove independent isolated OOV or webcam rejection.",
+      "status": "Cannot Be Fixed Within Current Scope",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "23",
+      "root_cause": "JPEG training and raw deployed inputs differed",
+      "files_changed": [
+        "pipeline/adaptive/models.py",
+        "pipeline/adaptive/training.py"
+      ],
+      "actual_correction": "One versioned JPEG75 preprocessing operation for adaptive features and inference",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Shared versioned JPEG75 conversion is used by supported adaptive paths; actual trained-candidate HTTP/browser acceptance remains pending.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "24",
+      "root_cause": "Global adaptive champions pooled users",
+      "files_changed": [
+        "pipeline/adaptive/models.py",
+        "app/adaptive_routes.py"
+      ],
+      "actual_correction": "Owner-scoped champion keys and candidate ownership validation",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Global unvalidated personal service is archived from serving. Legacy imported models must be migrated before any owner-scoped deployment.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "25",
+      "root_cause": "Integration gate checked only finite metric",
+      "files_changed": [
+        "pipeline/adaptive/integration.py"
+      ],
+      "actual_correction": "Run actual candidate adapter on immutable validation ROI and bind model/version/vocabulary",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Real HTTP and browser activation integration has not been verified.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "26",
+      "root_cause": "Live research feature modules were random",
+      "files_changed": [
+        "app/services/live_pipeline.py"
+      ],
+      "actual_correction": "Require explicit trained representation bundle and restore module states strictly",
+      "tests": "tests/test_live_pipeline.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "No complete compatible trained representation bundle; live research path must remain unavailable.",
+      "status": "Fixed, Verification Blocked",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "27",
+      "root_cause": "Frontend vulnerable dependency tree",
+      "files_changed": [
+        "frontend/package.json",
+        "frontend/package-lock.json"
+      ],
+      "actual_correction": "Updated pinned build tooling and source-map override",
+      "tests": "npm audit; npm run build",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Audit is time-specific; zero vulnerabilities in executed audit.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "28",
+      "root_cause": "Encoder runtime dependency conflicts",
+      "files_changed": [
+        "pipeline/word_recognition/requirements.txt"
+      ],
+      "actual_correction": "Recorded separate environments and exact pip-check failures",
+      "tests": "pip check",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Encoder environment has seven missing/incompatible dependency reports; clean encoder installation not verified.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "29",
+      "root_cause": "Similarity report invented percentage/compliance",
+      "files_changed": [
+        "scripts/build_plagiarism_report.py"
+      ],
+      "actual_correction": "Replace invented percentage and compliance with not-assessed labels",
+      "tests": "tests/test_services.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "No institutional similarity service available; original historical output preserved.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "30",
+      "root_cause": "Frontend readiness ignored actual state",
+      "files_changed": [
+        "engineering/20261117/FRONTEND_CONTRACT.md"
+      ],
+      "actual_correction": "Publish readiness requirements; preserve Antigravity ownership",
+      "tests": "Frontend tests/build",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Antigravity frontend continues to change; real-browser integration against the contract remains pending.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "31",
+      "root_cause": "Private stores entered git/container contexts",
+      "files_changed": [
+        ".gitignore",
+        ".dockerignore"
+      ],
+      "actual_correction": "Exclude adaptive, studio, collection, credentials and environment directories",
+      "tests": "Static context inspection",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Validated explicit private roots stay outside public corpus roots; deployment operators must still protect unmanaged external copies.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "32",
+      "root_cause": "Image bounds checked after native decode",
+      "files_changed": [
+        "app/services/image_validation.py",
+        "pipeline/adaptive/quality.py"
+      ],
+      "actual_correction": "Validate PNG/JPEG header dimensions before cv2 allocation",
+      "tests": "tests/test_browser_inference.py; tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Native video decoder allocation needs stronger isolation; total decoded-pixel budget is still limited indirectly by frame bounds.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "33",
+      "root_cause": "Token hash served as data identity",
+      "files_changed": [
+        "app/security.py"
+      ],
+      "actual_correction": "Persistent principal ID maps rotating token digests to stable owner",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Reviewer credential storage needs operator filesystem access controls.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "34",
+      "root_cause": "Failed final test consumed irreversible access locks",
+      "files_changed": [
+        "pipeline/adaptive/training.py",
+        "pipeline/adaptive/store.py"
+      ],
+      "actual_correction": "Persist immutable attempt binding and allow same-candidate resume",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Same-candidate binding and persisted test ownership verified; complete crash-window fault injection remains pending.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "35",
+      "root_cause": "Jobs disappeared or stayed running after restart",
+      "files_changed": [
+        "app/services/job_manager.py",
+        "app/services/private_maintenance.py",
+        "pipeline/adaptive/lifecycle.py"
+      ],
+      "actual_correction": "Persist research jobs and mark running/queued attempts interrupted at startup",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Recovery requires one supported backend worker; interrupted computation is not resumed automatically.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "36",
+      "root_cause": "Withdrawal broke champion without fallback",
+      "files_changed": [
+        "pipeline/adaptive/lifecycle.py",
+        "pipeline/adaptive/models.py"
+      ],
+      "actual_correction": "Invalidate downstream models and replace pointers with preserved reference; prevent invalid rollback",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Registry invalidation/fallback and deletion tested; atomic withdrawal coordination with an in-flight training commit remains unresolved.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "37",
+      "root_cause": "Participant aliases could leak between splits",
+      "files_changed": [
+        "pipeline/adaptive/lifecycle.py"
+      ],
+      "actual_correction": "Reviewer permission record and verified single participant for personal cross-session datasets",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Software cannot establish real-world identity; reviewers must resolve aliases.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "38",
+      "root_cause": "Near-duplicate samples escaped exact hashes",
+      "files_changed": [
+        "pipeline/adaptive/quality_policy.py",
+        "pipeline/adaptive/store.py"
+      ],
+      "actual_correction": "Versioned thumbnail MAE screen quarantines similar samples for reviewer rationale",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Near-duplicate threshold is a tested engineering quarantine heuristic, not independently calibrated recognition evidence.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "39",
+      "root_cause": "Source video not bound to sampled PNGs",
+      "files_changed": [
+        "pipeline/adaptive/quality_policy.py",
+        "pipeline/adaptive/lifecycle.py"
+      ],
+      "actual_correction": "Timestamp/frame correspondence check; freeze requires original source video",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Positive and mismatched MP4 correspondence were exercised; codec/timing screen is heuristic and not capture-device attestation.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "40",
+      "root_cause": "Reads unnecessarily reserved SQLite writer lock",
+      "files_changed": [
+        "pipeline/adaptive/store.py"
+      ],
+      "actual_correction": "Deferred BEGIN for read contexts; write reservation only for mutations",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Remaining registry read helpers can be narrowed further; one-process deployment assumed.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "41",
+      "root_cause": "Browser deadline ended at response headers",
+      "files_changed": [
+        "engineering/20261117/FRONTEND_CONTRACT.md"
+      ],
+      "actual_correction": "Specify full body consumption deadline and cancellation contract",
+      "tests": "Frontend tests/build",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Current response wrapper only wraps json/text; clone/blob/stream paths need frontend-owner tests.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "42",
+      "root_cause": "Expanded/LRW inference lacked deadline",
+      "files_changed": [
+        "app/expanded_word_routes.py",
+        "app/lrw500_routes.py"
+      ],
+      "actual_correction": "Bound HTTP worker response with shared CPU admission",
+      "tests": "tests/test_expanded_words.py; tests/test_lrw500_live.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Native kernels finish after timeout while retaining capacity; explicit slow-worker tests remain.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "43",
+      "root_cause": "IndexedDB lost updates across tabs",
+      "files_changed": [
+        "engineering/20261117/FRONTEND_CONTRACT.md"
+      ],
+      "actual_correction": "Specify transactional compare-and-write and cross-tab retention handling",
+      "tests": "Antigravity browser procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Browser owner has not supplied verified multi-tab implementation.",
+      "status": "Fixed, Verification Blocked",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "44",
+      "root_cause": "Manifests embedded developer absolute paths",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Read-only relocation of known legacy prefixes for evidence inspection",
+      "tests": "tests/test_backend_contract.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Shared existing-path relocation added to common word-manifest reader and tested without editing originals; all remaining legacy loaders need review.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "45",
+      "root_cause": "Directory name alone enabled personal activation",
+      "files_changed": [
+        "app/services/pretrained_word_inference.py"
+      ],
+      "actual_correction": "Require protocol metadata and held-out activation receipt",
+      "tests": "tests/test_pretrained_word_service.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Global concurrent service preserved as research code but cannot serve; supported activation uses explicit evidence/owner registry.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "46",
+      "root_cause": "Service-worker cache stale or returned HTML for assets",
+      "files_changed": [
+        "engineering/20261117/FRONTEND_CONTRACT.md"
+      ],
+      "actual_correction": "Specify content/build cache version and missing-asset errors",
+      "tests": "Antigravity browser procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "Committed worker avoids HTML asset fallback but still uses constant v2 cache; browser lifecycle unverified.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "47",
+      "root_cause": "Server camera ignored requested settings",
+      "files_changed": [
+        "app/services/live_pipeline.py",
+        "app/main.py"
+      ],
+      "actual_correction": "Validate/apply camera arguments; keep server-camera explicit opt-in",
+      "tests": "tests/test_camera_service.py; tests/test_live_pipeline.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Physical webcam configuration smoke not performed.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "48",
+      "root_cause": "Configuration and provenance fragmented",
+      "files_changed": [
+        "app/settings.py",
+        "start_server.bat"
+      ],
+      "actual_correction": "Validated shared retention/resource settings and explicit reference backend",
+      "tests": "tests/test_config.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Some legacy config consumers and hardcoded time/resource policy remain.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X01",
+      "root_cause": "Collection called training or automatic activation",
+      "files_changed": [
+        "app/services/recording_intake.py"
+      ],
+      "actual_correction": "Collection response says validation_required and model_activated false",
+      "tests": "tests/test_reliability.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Compatibility route remains collection-only and authenticated; original-video governance requires migration to adaptive captures.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X02",
+      "root_cause": "Adaptive model silently selected",
+      "files_changed": [
+        "pipeline/adaptive/models.py",
+        "app/adaptive_routes.py"
+      ],
+      "actual_correction": "Reference default; adaptive requires explicit selection and exact version",
+      "tests": "tests/test_adaptive_feedback.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Reference default, explicit adaptive selection and cross-owner refusal tested; UI presentation remains coordinated acceptance work.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X03",
+      "root_cause": "Rejection metrics selectively reported",
+      "files_changed": [
+        "app/services/evidence_registry.py"
+      ],
+      "actual_correction": "Expose raw accuracy, accepted-subset accuracy, coverage and false acceptance together",
+      "tests": "tests/test_reliability.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Historical input scope must remain visible in frontend presentation.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X04",
+      "root_cause": "Alphabet checkpoint semantics risked modification",
+      "files_changed": [
+        "alphabet/infer.py",
+        "engineering/20261117/artifact-comparison.json"
+      ],
+      "actual_correction": "Preserve weights and architecture; compare hashes against baseline",
+      "tests": "Artifact SHA-256 comparison",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "All 10120 baseline artifacts unchanged at recorded check time.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X05",
+      "root_cause": "Recording systems lacked unified governance",
+      "files_changed": [
+        "app/services/private_maintenance.py",
+        "pipeline/adaptive/lifecycle.py"
+      ],
+      "actual_correction": "Managed adaptive lifecycle plus legacy bundle expiry registration",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Existing legacy records and camera exports require non-destructive migration.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X06",
+      "root_cause": "Retention/quota absent or inconsistent",
+      "files_changed": [
+        "app/settings.py",
+        "pipeline/adaptive/store.py",
+        "pipeline/adaptive/lifecycle.py"
+      ],
+      "actual_correction": "90-day configurable retention, adaptive BLOB quota, retryable deletions and operator report",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Managed source/collection/backup expiry and quotas implemented; offline browser copies, unregistered legacy media and candidate-growth quota remain unresolved.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X07",
+      "root_cause": "Consent checkbox treated as identity proof",
+      "files_changed": [
+        "pipeline/adaptive/lifecycle.py"
+      ],
+      "actual_correction": "Separate collector consent from reviewer permission/participant record",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "No device attestation or real-world identity proof; independent reviewer needed.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X08",
+      "root_cause": "Unsafe checkpoint pickle loading",
+      "files_changed": [
+        "pipeline/avhubert/loader.py",
+        "pipeline/avhubert/low_memory.py"
+      ],
+      "actual_correction": "Restricted head loading and exact trusted encoder hash before legacy unpickle",
+      "tests": "Selected-model smoke procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Other offline loader paths and publisher checkpoint compatibility require final audit.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X09",
+      "root_cause": "CPU work unbounded or competing",
+      "files_changed": [
+        "app/services/job_manager.py",
+        "app/services/word_compute.py"
+      ],
+      "actual_correction": "Count queued/running capacity, preserve capacity through cancellation and share word lock",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Global prototype fitting removed from HTTP path; resource locks/queued admission tested. Multiworker admission and all legacy consumers remain unsupported.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X10",
+      "root_cause": "Shutdown and restart incomplete",
+      "files_changed": [
+        "app/services/private_maintenance.py",
+        "app/main.py"
+      ],
+      "actual_correction": "Stop maintenance and live pipeline; recover durable attempts on startup",
+      "tests": "tests/test_engineering_resolution.py",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Maintenance/live shutdown and trainer executor close/reopen tested; native kernels must drain and multiworker coordination remains unsupported.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X11",
+      "root_cause": "Docs contradicted runtime/scientific limits",
+      "files_changed": [
+        "engineering/20261117/README.md"
+      ],
+      "actual_correction": "Publish current evidence, limitations and historical errata without altering originals",
+      "tests": "Documentation inspection",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Current README/report and historical errata supplied; browser presentation and remaining engineering gaps still need coordinated reconciliation.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X12",
+      "root_cause": "Dataset license/consent unclear",
+      "files_changed": [
+        "engineering/20261117/VALIDATION_PROTOCOL.md"
+      ],
+      "actual_correction": "Require permission references, source license checks and separate private/public policies",
+      "tests": "External validation procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands. This suite does not establish the external/runtime/browser condition described in the limitation.",
+      "remaining_limitation": "No institutional/license authority or new consent records provided.",
+      "status": "Cannot Be Fixed Within Current Scope",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X13",
+      "root_cause": "No external acceptance procedure",
+      "files_changed": [
+        "engineering/20261117/VALIDATION_PROTOCOL.md"
+      ],
+      "actual_correction": "Fresh-participant, preregistered held-out and webcam acceptance checklist",
+      "tests": "Protocol document inspection",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "Execution remains blocked by participant availability; protocol is not validation evidence.",
+      "status": "Fixed and Verified",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    },
+    {
+      "id": "X14",
+      "root_cause": "API schemas/migration incomplete",
+      "files_changed": [
+        "engineering/20261117/FRONTEND_CONTRACT.md"
+      ],
+      "actual_correction": "Describe auth, recording/model lifecycles, errors and frontend handoff",
+      "tests": "API snapshot procedure",
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "executed_result": "716 passed, 3 skipped in 163.61s; see verification.json for intermediate failures and independent frontend/model commands.",
+      "remaining_limitation": "72-era endpoint inventory refreshed with current schema and middleware auth; adaptive prediction is typed. Some legacy success responses remain untyped and browser integration untested.",
+      "status": "Partially Fixed",
+      "tests_added": "See tests/test_engineering_resolution.py for new security/privacy/lifecycle/model-isolation fixtures; existing regression coverage elsewhere. No independent recognition evidence."
+    }
+  ]
+}

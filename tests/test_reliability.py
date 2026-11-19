@@ -71,10 +71,11 @@ def test_intake_rejects_duplicate_pixels_wrong_labels_and_session_leakage(collec
 def test_personal_api_reports_pending_validation_and_preserves_active_service(collection_root,monkeypatch):
     root,row=collection_root;monkeypatch.setattr(main,'PROJECT_ROOT',root)
     service=main.word_inference
+    monkeypatch.setenv('LIPNET_REVIEW_TOKEN','r'*40)
     with TestClient(main.app) as client:
-        result=client.post('/api/word/train-personal',json={'clips':[row],'vocabulary':['hello']})
+        result=client.post('/api/word/train-personal',headers={'Authorization':'Bearer '+'r'*40},json={'clips':[row],'vocabulary':['hello']})
         assert result.status_code==202 and result.json()['model_activated'] is False
-        assert client.post('/api/word/train-personal',json={'clips':[]}).status_code==422
+        assert client.post('/api/word/train-personal',headers={'Authorization':'Bearer '+'r'*40},json={'clips':[]}).status_code==422
     assert main.word_inference is service
 
 

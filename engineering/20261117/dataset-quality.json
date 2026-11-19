@@ -1,0 +1,67 @@
+{
+  "scope": "Current structural checks and source-byte fixture hashes; no full-corpus decode or recognition measurement",
+  "grid": [
+    {
+      "check": "manifest_entries",
+      "passed": true,
+      "message": "32891 records parsed; not a media-decode result.",
+      "severity": "error"
+    },
+    {
+      "check": "duplicate_recording_ids",
+      "passed": true,
+      "message": "Record identifiers checked.",
+      "severity": "error"
+    },
+    {
+      "check": "missing_files",
+      "passed": true,
+      "message": "0 missing paths; 0 invalid paths/bounds.",
+      "severity": "error"
+    },
+    {
+      "check": "train_test_leakage",
+      "passed": true,
+      "message": "Declared participant assignments checked.",
+      "severity": "error"
+    },
+    {
+      "check": "source_leakage",
+      "passed": true,
+      "message": "Declared source-hash groups checked; bytes not rehashed.",
+      "severity": "error"
+    },
+    {
+      "check": "letters",
+      "passed": false,
+      "message": "Missing A-Z labels: W",
+      "severity": "warning"
+    },
+    {
+      "check": "video_integrity",
+      "passed": false,
+      "message": "Not measured: structural validation does not decode media.",
+      "severity": "warning"
+    }
+  ],
+  "legacy_lrw_manifests": {
+    "train": {
+      "rows": 500,
+      "missing_paths": 485
+    },
+    "valid": {
+      "rows": 500,
+      "missing_paths": 485
+    },
+    "test": {
+      "rows": 500,
+      "missing_paths": 485
+    }
+  },
+  "lrw_raw_clips": 45,
+  "lrw_unique_byte_hashes": 1,
+  "lrw_hash_counts": {
+    "33be06600bab2ee0d28aeca31c467074278e83ad31311e1526e2687e2412db8c": 45
+  },
+  "independent_participant_validation": "unavailable; no new consenting participants"
+}

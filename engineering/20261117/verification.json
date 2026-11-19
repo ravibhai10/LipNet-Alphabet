@@ -1,0 +1,351 @@
+{
+  "recorded_at": "2026-11-17T13:29:00.360615+00:00",
+  "source_baseline": "bf0f9af3",
+  "branch": "engineering-resume-20261117",
+  "checks": [
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_adaptive_feedback.py tests/test_backend_contract.py tests/test_reliability.py -q",
+      "log": ".qa\\engineering_resume_20261117\\targeted-01.txt",
+      "result": "2 failed, 67 passed in 46.54s",
+      "log_sha256": "bb964f0a8addac5216784e6a819c5a1f83e85e412efcc35615598f740f1e3d19"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider -o faulthandler_timeout=90 tests/test_engineering_resolution.py tests/test_adaptive_feedback.py tests/test_backend_contract.py tests/test_reliability.py -q",
+      "log": ".qa\\engineering_resume_20261117\\targeted-02.txt",
+      "result": "80 passed in 42.47s",
+      "log_sha256": "a45c3d300d67ece83ad6d1f593eb56e4269e329347903f0003844cb29e3d9e05"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider -o faulthandler_timeout=120 tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "log": ".qa\\engineering_resume_20261117\\backend-full-01.txt",
+      "result": "3 failed, 702 passed, 3 skipped in 77.75s (0:01:17)",
+      "log_sha256": "6428c1e00df8d901fff4199731311b97cec5feb220c1d6d21b8b1257238a067b"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_engineering_resolution.py tests/test_lrw_vocab.py tests/test_services.py -q",
+      "log": ".qa\\engineering_resume_20261117\\regression-03.txt",
+      "result": "41 passed, 2 skipped in 7.91s",
+      "log_sha256": "768f0e0bbbcfd15077ee2e2771024edbd8e6cf06e28cdaabc06c02026f7bc4a5"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "log": ".qa\\engineering_resume_20261117\\backend-full-02.txt",
+      "result": "706 passed, 3 skipped in 102.67s (0:01:42)",
+      "log_sha256": "9a405a726f2b3f93dba8160dbf1041593623b45208697c9d1b83ea63a7cd9573"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_engineering_resolution.py tests/test_adaptive_feedback.py tests/test_browser_inference.py tests/test_pretrained_words.py tests/test_recognition_capabilities.py -q",
+      "log": ".qa\\engineering_resume_20261117\\targeted-04.txt",
+      "result": "1 failed, 85 passed, 1 warning in 79.39s (0:01:19)",
+      "log_sha256": "a905f8c63fbcddaa88b120b3945203f68a01889beace993bdaca52ce03289765"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_engineering_resolution.py tests/test_adaptive_feedback.py tests/test_browser_inference.py tests/test_pretrained_words.py tests/test_recognition_capabilities.py -q",
+      "log": ".qa\\engineering_resume_20261117\\targeted-05.txt",
+      "result": "92 passed in 46.99s",
+      "log_sha256": "8ac29250cb37519c1f4cd42f077a9b8d0e5162c181efa3c6e800a3aefbb119be"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests pipeline/eval/tests pipeline/grid/tests pipeline/avhubert/tests -q",
+      "log": ".qa\\engineering_resume_20261117\\backend-full-03.txt",
+      "result": "716 passed, 3 skipped in 163.61s (0:02:43)",
+      "log_sha256": "e5b7a2394450b2529378b95195bd7d3ee1c894176bfa3211b6ffe9f2ec3c7de0"
+    },
+    {
+      "command": "npm --prefix frontend ci --ignore-scripts",
+      "log": ".qa\\engineering_resume_20261117\\frontend-clean-install.txt",
+      "last_lines": [
+        "",
+        "added 45 packages, and audited 46 packages in 45s",
+        "",
+        "13 packages are looking for funding",
+        "  run `npm fund` for details",
+        "",
+        "found 0 vulnerabilities"
+      ],
+      "log_sha256": "ddabd35e105816b03adcd8312355e09b5dc0974a1b74a319d5c08318b8f5a767"
+    },
+    {
+      "command": "npm --prefix frontend run build",
+      "log": ".qa\\engineering_resume_20261117\\frontend-build-02.txt",
+      "last_lines": [
+        "dist/assets/App-BKnx49HU.css                                       24.74 kB \u2502 gzip:   5.31 kB",
+        "dist/assets/equations-BQV7d2LE.css                                 30.67 kB \u2502 gzip:   8.26 kB",
+        "dist/assets/index-BWkH-Nn8.css                                    109.39 kB \u2502 gzip:  23.63 kB",
+        "dist/assets/App-B3szJ892.js                                        25.83 kB \u2502 gzip:   7.70 kB",
+        "dist/assets/SciencePage-Dxcp64bp.js                                74.82 kB \u2502 gzip:  19.82 kB",
+        "dist/assets/ResearchApp-DAmmTHEx.js                                79.90 kB \u2502 gzip:  20.35 kB",
+        "dist/assets/useGsapScene-3cRq8Bhs.js                              117.43 kB \u2502 gzip:  46.39 kB",
+        "dist/assets/vision_bundle-CnW0heXi.js                             135.04 kB \u2502 gzip:  40.01 kB",
+        "dist/assets/equations-DdLowczr.js                                 262.08 kB \u2502 gzip:  78.72 kB",
+        "dist/assets/index-PCgrAtD8.js                                     519.00 kB \u2502 gzip: 151.35 kB",
+        "",
+        "\u2713 built in 1.35s"
+      ],
+      "log_sha256": "94aaac401645e7b7d1c8e8d472ba60fafb3eab65ccc94a33a42a70739466d3a2"
+    },
+    {
+      "command": "npm --prefix frontend run test:adaptive",
+      "log": ".qa\\engineering_resume_20261117\\frontend-adaptive-02.txt",
+      "last_lines": [
+        "\u2714 unknown stays explicit; task labels cannot cross (0.2705ms)",
+        "\u2714 uncertain result cannot be confirmed (0.22ms)",
+        "\u2714 complete chronological source window accepts genuine sample timestamps (0.4614ms)",
+        "\u2714 invalid, incomplete, stalled or oversized source windows fail (0.396ms)",
+        "\u2139 tests 6",
+        "\u2139 suites 0",
+        "\u2139 pass 6",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 503.4929"
+      ],
+      "log_sha256": "5e253fb54f46c53db712604f9fd7d6215c04f2c9b10e3008d9d230c94e32d487"
+    },
+    {
+      "command": "npm --prefix frontend run test:live",
+      "log": ".qa\\engineering_resume_20261117\\frontend-live-02.txt",
+      "last_lines": [
+        "\u2714 words require two accepted windows from the same utterance (7.0472ms)",
+        "\u2714 rejected predictions never confirm or accumulate (0.4015ms)",
+        "\u2714 a changed word starts a new consensus (0.3453ms)",
+        "\u2714 utterance changes and face-loss reset discard previous confirmation (0.2529ms)",
+        "\u2139 tests 41",
+        "\u2139 suites 0",
+        "\u2139 pass 41",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 20680.0172"
+      ],
+      "log_sha256": "ab57cb33ba420b341515e8b3a192e2ec2367aad9aa5a8faa5d801b06a5282e53"
+    },
+    {
+      "command": "npm --prefix frontend run test:math",
+      "log": ".qa\\engineering_resume_20261117\\frontend-math.txt",
+      "last_lines": [
+        "\u2714 visualFeatures renders accessible mathematical notation without parser errors (0.5058ms)",
+        "\u2714 attention renders accessible mathematical notation without parser errors (18.7471ms)",
+        "\u2714 wordLogits renders accessible mathematical notation without parser errors (2.375ms)",
+        "\u2714 fusion renders accessible mathematical notation without parser errors (0.6673ms)",
+        "\u2139 tests 26",
+        "\u2139 suites 0",
+        "\u2139 pass 26",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 1480.8816"
+      ],
+      "log_sha256": "45af102173bff162f98d49caa4e53503ea4ab6a77729f720da4dfc3e3b9fd51e"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -m pip check",
+      "log": ".qa\\engineering_resume_20261117\\word-pip-check.txt",
+      "last_lines": [
+        "No broken requirements found."
+      ],
+      "log_sha256": "6326999b2d47daff6338070efad9139a62dd802f33019eab621859ade33fc907"
+    },
+    {
+      "command": ".\\.venv-avhubert-cpu\\Scripts\\python.exe -m pip check",
+      "log": ".qa\\engineering_resume_20261117\\encoder-pip-check.txt",
+      "last_lines": [
+        "sacrebleu 2.6.0 requires lxml, which is not installed.",
+        "sacrebleu 2.6.0 requires tabulate, which is not installed.",
+        "fairseq 1.0.0a0+afc77bd has requirement hydra-core<1.1, but you have hydra-core 1.3.8.",
+        "fairseq 1.0.0a0+afc77bd has requirement omegaconf<2.1, but you have omegaconf 2.3.1.",
+        "jax 0.10.2 has requirement numpy>=2.0, but you have numpy 1.26.4.",
+        "jaxlib 0.10.2 has requirement numpy>=2.0, but you have numpy 1.26.4.",
+        "ml-dtypes 0.6.0 has requirement numpy>=2.0.0, but you have numpy 1.26.4."
+      ],
+      "log_sha256": "e78eb206d10df7102a87ee724bab4997729d1aec0409dfd44cf459b5c0e8e779"
+    },
+    {
+      "command": ".\\.venv-word-recognition\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_engineering_resolution.py -q",
+      "result": "23 passed in 15.34s",
+      "log": ".qa\\engineering_resume_20261117\\isolation-final.txt",
+      "log_sha256": "7bff2d3cfb2bf50410aa3e5b8fbe84601274cfa395dd197a9167a40c70540408"
+    }
+  ],
+  "npm_audit": {
+    "auditReportVersion": 2,
+    "vulnerabilities": {},
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "dependencies": {
+        "prod": 25,
+        "dev": 53,
+        "optional": 34,
+        "peer": 0,
+        "peerOptional": 0,
+        "total": 77
+      }
+    }
+  },
+  "model_smoke": {
+    "scope": "Real selected eight-word model smoke on one historical TRAIN ROI; not recognition/generalization evidence",
+    "source_id": "miracl:F01:words:02:01",
+    "source_roi_sha256": "745cb3899cb4381b543628d1984045fe32abdc648fb33ce84355186aa25f306d",
+    "selected_checkpoint": "runs\\word_accuracy\\avhubert_miracl8_v1\\head.pt",
+    "model_version": "bc07a9eca0979e556af573a387733396a891fe41faa10715c9f4d323e9c4cc74",
+    "result": {
+      "task": "isolated_word",
+      "predicted_word": "choose",
+      "word": "choose",
+      "display_word": "choose",
+      "confidence": 0.9964902997016907,
+      "uncertain": false,
+      "top_predictions": [
+        {
+          "word": "choose",
+          "prob": 0.9964902997016907
+        },
+        {
+          "word": "connection",
+          "prob": 0.001996680861338973
+        },
+        {
+          "word": "stop",
+          "prob": 0.0007442370988428593
+        },
+        {
+          "word": "next",
+          "prob": 0.0002620961458887905
+        },
+        {
+          "word": "previous",
+          "prob": 0.0002465152065269649
+        }
+      ],
+      "all_probabilities": [
+        {
+          "word": "choose",
+          "prob": 0.9964902997016907
+        },
+        {
+          "word": "connection",
+          "prob": 0.001996680861338973
+        },
+        {
+          "word": "hello",
+          "prob": 3.815962918451987e-05
+        },
+        {
+          "word": "navigation",
+          "prob": 2.325596688024234e-05
+        },
+        {
+          "word": "next",
+          "prob": 0.0002620961458887905
+        },
+        {
+          "word": "previous",
+          "prob": 0.0002465152065269649
+        },
+        {
+          "word": "start",
+          "prob": 0.0001987587020266801
+        },
+        {
+          "word": "stop",
+          "prob": 0.0007442370988428593
+        }
+      ],
+      "diagnostics": {
+        "margin": 0.9944936037063599,
+        "entropy": 0.02781626194368693,
+        "confidence_threshold": 0.95,
+        "rejection_status": "ACCEPTED",
+        "temporal_consensus": {
+          "confirmed": true,
+          "views": [
+            {
+              "bounds": [
+                0,
+                25
+              ],
+              "candidate": "choose",
+              "confidence": 0.9985017776489258,
+              "margin": 0.9972311854362488,
+              "accepted": true
+            },
+            {
+              "bounds": [
+                2,
+                27
+              ],
+              "candidate": "choose",
+              "confidence": 0.9989520311355591,
+              "margin": 0.9981455206871033,
+              "accepted": true
+            },
+            {
+              "bounds": [
+                4,
+                29
+              ],
+              "candidate": "choose",
+              "confidence": 0.9988906979560852,
+              "margin": 0.9983626008033752,
+              "accepted": true
+            }
+          ],
+          "method": "three_overlapping_feature_windows",
+          "independent_examples": false,
+          "calibrated": false
+        }
+      },
+      "temporal": {
+        "received_frames": 29,
+        "model_target_frames": 29,
+        "input_spatial": [
+          96,
+          96
+        ]
+      },
+      "latency_ms": 17727.03,
+      "model_name": "AV-HuBERT whole-word research head",
+      "model_version": "bc07a9eca0979e556af573a387733396a891fe41faa10715c9f4d323e9c4cc74",
+      "timings_ms": {
+        "preprocessing": 12.934600003063679,
+        "feature_extraction": 713.6574999894947,
+        "classification": 5.0888999830931425,
+        "jpeg_decode_and_readiness": 16994.697300018743
+      },
+      "vocabulary": [
+        "choose",
+        "connection",
+        "hello",
+        "navigation",
+        "next",
+        "previous",
+        "start",
+        "stop"
+      ],
+      "audio_inference": false,
+      "webcam_accuracy_validated": false
+    },
+    "elapsed_including_load_seconds": 17.72726139985025,
+    "hardware": {
+      "platform": "Windows-10-10.0.26300-SP0",
+      "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+      "logical_cpus": 4
+    },
+    "memory_measurement": null
+  },
+  "docker": "not available; build and runtime not executed",
+  "independent_participants": "not available; no results invented",
+  "browser_acceptance": "not executed; frontend-owner integration pending",
+  "clean_encoder_install": "not verified; existing runtime has dependency conflicts",
+  "ongoing_frontend_edits": "Frontend files were edited concurrently; Node/build results are for the recorded execution state, not later edits."
+}

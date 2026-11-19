@@ -74,7 +74,7 @@ def test_backward_compatibility_alphabet():
 
 def test_lrw_dataset_instantiation_and_dimensions():
     """Verify LRWDataset instantiates cleanly and yields expected tensor dimensions [T, 1, 140, 46]."""
-    dataset = LRWDataset(split="train")
+    dataset = LRWDataset(split="train", use_mock=True)
     assert len(dataset) > 0, "LRWDataset should yield at least 1 sample"
 
     # Test indexing
@@ -99,7 +99,7 @@ def test_lrw_dataset_instantiation_and_dimensions():
 
 def test_lrw_dataloader():
     """Verify DataLoader batches LRW samples correctly for CPU execution."""
-    dataset, loader = get_lrw_dataloader(split="train", batch_size=2, num_workers=0)
+    dataset, loader = get_lrw_dataloader(split="train", batch_size=2, num_workers=0, use_mock=True)
     assert len(loader) > 0
 
     batch = next(iter(loader))

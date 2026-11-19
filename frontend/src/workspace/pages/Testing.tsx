@@ -106,7 +106,7 @@ export function TestingPage() {
 
       {tab === 'benchmarks' ? (
         <div>
-          <section className="ws-card" style={{ marginBottom: '24px' }}>
+          <section className="ws-card ws-card-glow ws-hud-bracket" style={{ marginBottom: '24px' }}>
             <div className="ws-card-head">
               <div>
                 <p className="ws-kicker">Benchmark Selector</p>

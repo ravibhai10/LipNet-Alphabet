@@ -14,7 +14,7 @@ import logging
 import threading
 import traceback
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -29,6 +29,7 @@ class JobState(str, Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
+    INTERRUPTED = "INTERRUPTED"
 
 
 @dataclass
@@ -59,11 +60,33 @@ class JobManager:
 
     MAX_WORKERS = 1
 
-    def __init__(self):
+    def __init__(self, directory=None, max_workers=1):
+        if not 1 <= max_workers <= 4: raise ValueError("Worker limit must be between one and four.")
+        self.MAX_WORKERS = max_workers
+        self.directory = Path(directory) if directory else None
         self._lock = threading.Lock()
         self._jobs: Dict[str, Job] = {}
         self._workers: Dict[str, threading.Thread] = {}
         self._cancelled: set = set()
+        if self.directory:
+            self.directory.mkdir(parents=True, exist_ok=True)
+            for path in self.directory.glob('*.json'):
+                value = json.loads(path.read_text(encoding='utf-8'))
+                value['state'] = JobState(value['state'])
+                job = Job(**value)
+                if job.state in {JobState.RUNNING, JobState.QUEUED}:
+                    job.state = JobState.INTERRUPTED
+                    job.error = 'Process stopped; submit a new explicit attempt.'
+                self._jobs[job.job_id] = job
+                self._persist(job)
+
+    def _persist(self, job):
+        if self.directory:
+            import os
+            target = self.directory / (job.job_id + '.json')
+            temporary = target.with_suffix('.tmp')
+            temporary.write_text(json.dumps(asdict(job), default=str, allow_nan=False), encoding='utf-8')
+            os.replace(temporary, target)
 
     def submit(
         self,
@@ -75,15 +98,16 @@ class JobManager:
         """Submit a job. Returns job_id. Raises RuntimeError if at capacity."""
         kwargs = kwargs or {}
         with self._lock:
-            running = [j for j in self._jobs.values() if j.state == JobState.RUNNING]
+            running = [j for j in self._jobs.values() if j.state in {JobState.RUNNING, JobState.QUEUED}]
             if len(running) >= self.MAX_WORKERS:
                 raise RuntimeError(
                     f"Worker pool at capacity ({self.MAX_WORKERS} job(s) running). "
                     "Wait for the current job to finish before submitting a new one."
                 )
-            job_id = str(uuid.uuid4())[:8]
+            job_id = uuid.uuid4().hex
             job = Job(job_id=job_id, name=name)
             self._jobs[job_id] = job
+            self._persist(job)
             thread = threading.Thread(
                 target=self._worker, args=(job_id, target, args, kwargs),
                 daemon=True, name=f"job-{job_id}",
@@ -101,6 +125,7 @@ class JobManager:
             job.finished_at = datetime.utcnow().isoformat()
             return
         job.state = JobState.RUNNING
+        self._persist(job)
         job.started_at = datetime.utcnow().isoformat()
         try:
             result = target(*args, **kwargs)
@@ -119,6 +144,7 @@ class JobManager:
                 logger.exception("Job %s failed", job_id)
         finally:
             job.finished_at = datetime.utcnow().isoformat()
+            self._persist(job)
 
     def cancel(self, job_id: str) -> bool:
         """Request cancellation. Returns True if the job was found and cancelled."""
@@ -129,9 +155,11 @@ class JobManager:
             if job.state in (JobState.COMPLETED, JobState.FAILED, JobState.CANCELLED):
                 return False
             self._cancelled.add(job_id)
-            if job.state == JobState.RUNNING:
+            # A running native worker retains its capacity until it exits.
+            if job.state == JobState.QUEUED:
                 job.state = JobState.CANCELLED
                 job.finished_at = datetime.utcnow().isoformat()
+                self._persist(job)
             return True
 
     def get(self, job_id: str) -> Optional[Job]:
@@ -166,5 +194,6 @@ _job_manager: Optional[JobManager] = None
 def get_job_manager() -> JobManager:
     global _job_manager
     if _job_manager is None:
-        _job_manager = JobManager()
+        from app.settings import settings
+        _job_manager = JobManager(settings().private_root / 'research_jobs')
     return _job_manager

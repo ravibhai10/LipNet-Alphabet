@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { buildManifest, createSplits, datasetOverview, datasetRecordings, getWorkspaceError, validateDataset, type DatasetOverview, type DatasetRecording, type DatasetValidation } from "../api"
+import { LRW500Explorer } from "../components/LRW500Explorer"
+import { LatentConstellation } from "../../visualizations/LatentConstellation"
 import { API_BASE } from "../../lib/api"
 import { Icon } from "../Icon"
 
@@ -396,6 +398,10 @@ export function DatasetPage() {
           )}
         </section>
       </div>
+      <div style={{ marginTop: '24px', marginBottom: '24px' }}>
+        <LatentConstellation height={520} />
+      </div>
+      <LRW500Explorer />
     </div>
   )
 }

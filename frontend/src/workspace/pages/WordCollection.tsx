@@ -402,7 +402,7 @@ export function WordCollectionPage() {
       )}
 
       <div className="wc-layout">
-        <section className="ws-card">
+        <section className="ws-card ws-card-glow ws-hud-bracket">
           <div className="wc-fields">
             <label>Participant ID
               <input disabled={locked || live} value={speaker} onChange={e => setSpeaker(e.target.value)} maxLength={80} />
@@ -442,7 +442,7 @@ export function WordCollectionPage() {
           {lm.error && <p className="wc-error" role="alert">{lm.error}</p>}
         </section>
 
-        <section className="ws-card wc-prompt">
+        <section className="ws-card wc-prompt ws-card-glow ws-hud-bracket">
           <span className="ws-kicker">SAY THIS COMPLETE WORD</span>
           <h2 style={{ fontSize: '32px', color: '#10b981', margin: '8px 0 16px 0' }}>{label}</h2>
 

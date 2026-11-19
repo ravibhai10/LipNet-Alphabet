@@ -34,6 +34,8 @@ def decode_original_video(encoded, geometry):
         path=Path(directory)/('original'+suffix);path.write_bytes(raw)
         cap=cv2.VideoCapture(str(path));count=0;fps=float(cap.get(cv2.CAP_PROP_FPS))
         try:
+            if (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))) != geometry:
+                raise ValueError('Video header geometry differs from bounded source geometry.')
             while True:
                 ok,frame=cap.read()
                 if not ok:break
@@ -89,6 +91,7 @@ def validate_capture(row, root: Path, tracker=track_frames):
         raise ValueError('At least eight actual source samples per second are required.')
     images, raw_frames = [], []
     geometry = None
+    decoded_pixels = 0
     for encoded in frames:
         if not encoded.startswith('data:image/png;base64,') or len(encoded) > 4_000_000:
             raise ValueError('Supply bounded, original lossless PNG frames.')
@@ -104,6 +107,9 @@ def validate_capture(row, root: Path, tracker=track_frames):
         if geometry and geometry != (width, height):
             raise ValueError('Source geometry changed during recording.')
         geometry = (width, height)
+        decoded_pixels += width * height
+        if decoded_pixels > 24_000_000:
+            raise ValueError('Capture exceeds 24 million decoded source pixels; use fewer or smaller frames.')
         image = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_COLOR)
         if image is None or image.shape != (height, width, 3):
             raise ValueError('Source PNG cannot be decoded at its stated geometry.')

@@ -31,6 +31,7 @@ interface BackendContextValue {
   setRecognitionMode: (m: RecognitionMode) => void
   wordHealth: WordHealth
   expandedHealth: WordHealth
+  personalHealth: WordHealth
   lrwHealth: WordHealth
   refresh: () => void
   predict: (frames: string[], signal?: AbortSignal) => Promise<Prediction | null>
@@ -40,8 +41,9 @@ const BackendContext = createContext<BackendContextValue>({
   status: 'idle', inferenceReady: false, predictionError: null,
   datasetStats: null, lastPrediction: null, setLastPrediction: () => {},
   lastWordPrediction: null, setLastWordPrediction: () => {},
-  recognitionMode: 'alphabet', setRecognitionMode: () => {},
+  recognitionMode: 'word', setRecognitionMode: () => {},
   lrwHealth: { model_loaded: false, inference_ready: false, model_kind: 'LRW 500', vocabulary: [] },
+  personalHealth: { model_loaded: false, inference_ready: false, model_kind: 'Personal Adapted', vocabulary: [] },
   wordHealth: { model_loaded: false, inference_ready: false, model_kind: 'Unavailable', vocabulary: [] },
   expandedHealth: { model_loaded: false, inference_ready: false, model_kind: 'Combined 20 words', vocabulary: [] },
   refresh: () => {}, predict: async () => null, predictWord: async () => null,
@@ -53,8 +55,9 @@ export function BackendProvider({ children }: { children: ReactNode }) {
   })
   const [lrwHealth, setLrwHealth] = useState<WordHealth>({ model_loaded: false, inference_ready: false, model_kind: 'LRW 500', vocabulary: [] })
   const [expandedHealth, setExpandedHealth] = useState<WordHealth>({ model_loaded: false, inference_ready: false, model_kind: 'Combined 20 words', vocabulary: [] })
-  const [recognitionMode, setRecognitionModeState] = useState<RecognitionMode>('alphabet')
-  const modeRef = useRef<RecognitionMode>('alphabet'); modeRef.current = recognitionMode
+  const [personalHealth, setPersonalHealth] = useState<WordHealth>({ model_loaded: false, inference_ready: false, model_kind: 'Personal Adapted', vocabulary: [] })
+  const [recognitionMode, setRecognitionModeState] = useState<RecognitionMode>('word')
+  const modeRef = useRef<RecognitionMode>('word'); modeRef.current = recognitionMode
   const modeChosen = useRef(false)
   const [datasetStats, setDatasetStats] = useState<Record<string, number> | null>(null)
   const [lastPrediction, setLastPrediction] = useState<Prediction | null>(null)
@@ -96,6 +99,8 @@ export function BackendProvider({ children }: { children: ReactNode }) {
       const expanded = await probeWordHealth(controller.signal, 'expanded')
       if (controller.signal.aborted || !activeRef.current) return
       setExpandedHealth(expanded)
+      const personal = await probeWordHealth(controller.signal, 'personal')
+      if (!controller.signal.aborted && activeRef.current) setPersonalHealth(personal)
       if (info.status === 'online') {
         const stats = await fetchDatasetStats(controller.signal)
         if (!controller.signal.aborted && activeRef.current) setDatasetStats(stats)
@@ -186,6 +191,7 @@ export function BackendProvider({ children }: { children: ReactNode }) {
     setRecognitionMode,
     wordHealth,
     expandedHealth,
+    personalHealth,
     lrwHealth,
     refresh,
     predict,
@@ -199,6 +205,7 @@ export function BackendProvider({ children }: { children: ReactNode }) {
     recognitionMode,
     wordHealth,
     expandedHealth,
+    personalHealth,
     lrwHealth,
     refresh,
     predict,

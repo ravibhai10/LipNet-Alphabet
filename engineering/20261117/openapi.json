@@ -1,0 +1,4632 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Visual Speech AI",
+    "description": "Research system for visual speech decoding of spoken alphabet letters",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/recognition/capabilities": {
+      "get": {
+        "tags": [
+          "recognition evidence"
+        ],
+        "summary": "Recognition Capabilities",
+        "operationId": "recognition_capabilities_api_recognition_capabilities_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/word/lrw500/health": {
+      "get": {
+        "summary": "Lrw500 Health",
+        "operationId": "lrw500_health_api_word_lrw500_health_get",
+        "parameters": [
+          {
+            "name": "load",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Load"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/predict/word/lrw500": {
+      "post": {
+        "summary": "Predict Lrw500",
+        "operationId": "predict_lrw500_api_predict_word_lrw500_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LRW500Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/word/expanded/health": {
+      "get": {
+        "summary": "Expanded Word Health",
+        "operationId": "expanded_word_health_api_word_expanded_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/predict/word/expanded": {
+      "post": {
+        "summary": "Predict Expanded Word Route",
+        "operationId": "predict_expanded_word_route_api_predict_word_expanded_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpandedWordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/studio/config": {
+      "get": {
+        "tags": [
+          "recording studio"
+        ],
+        "summary": "Studio Config",
+        "operationId": "studio_config_api_studio_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/studio/inventory": {
+      "get": {
+        "tags": [
+          "recording studio"
+        ],
+        "summary": "Studio Inventory",
+        "operationId": "studio_inventory_api_studio_inventory_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/studio/bundles": {
+      "post": {
+        "tags": [
+          "recording studio"
+        ],
+        "summary": "Save Studio Bundle",
+        "operationId": "save_studio_bundle_api_studio_bundles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioBundle"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/studio/export/{task}": {
+      "get": {
+        "tags": [
+          "recording studio"
+        ],
+        "summary": "Export Studio Task",
+        "operationId": "export_studio_task_api_studio_export__task__get",
+        "parameters": [
+          {
+            "name": "task",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/adaptive/config": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Config",
+        "operationId": "config_api_adaptive_config_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/captures": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Capture",
+        "operationId": "capture_api_adaptive_captures_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Capture"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 94371840
+      }
+    },
+    "/api/adaptive/captures/{identifier}/predict": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Predict",
+        "operationId": "predict_api_adaptive_captures__identifier__predict_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 94371840
+      }
+    },
+    "/api/adaptive/captures/{identifier}/feedback": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Feedback",
+        "operationId": "feedback_api_adaptive_captures__identifier__feedback_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Feedback"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 94371840
+      }
+    },
+    "/api/adaptive/captures/{identifier}/withdraw": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Withdraw",
+        "operationId": "withdraw_api_adaptive_captures__identifier__withdraw_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 94371840
+      }
+    },
+    "/api/adaptive/records": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Records",
+        "operationId": "records_api_adaptive_records_get",
+        "parameters": [
+          {
+            "name": "task",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "alphabet_recognition",
+                    "isolated_word"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Task"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Label"
+            }
+          },
+          {
+            "name": "speaker",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Speaker"
+            }
+          },
+          {
+            "name": "session",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session"
+            }
+          },
+          {
+            "name": "verdict",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Verdict"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/records/{identifier}": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Inspect",
+        "operationId": "inspect_api_adaptive_records__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/records/{identifier}/frames/{index}": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Frame",
+        "operationId": "frame_api_adaptive_records__identifier__frames__index__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Index"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/records/{identifier}/original-video": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Original Video",
+        "operationId": "original_video_api_adaptive_records__identifier__original_video_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/records/{identifier}/source": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Source",
+        "operationId": "source_api_adaptive_records__identifier__source_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/stats": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Stats",
+        "operationId": "stats_api_adaptive_stats_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/hard-examples": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Hard Examples",
+        "operationId": "hard_examples_api_adaptive_hard_examples_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/records/{identifier}/review": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Review",
+        "operationId": "review_api_adaptive_records__identifier__review_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Review"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/datasets": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Dataset",
+        "operationId": "dataset_api_adaptive_datasets_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Version"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/datasets/{identifier}": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Dataset Manifest",
+        "operationId": "dataset_manifest_api_adaptive_datasets__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/adaptive/training/jobs": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Train",
+        "operationId": "train_api_adaptive_training_jobs_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Training"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/training/jobs/{identifier}": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Job",
+        "operationId": "job_api_adaptive_training_jobs__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/adaptive/models": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Models",
+        "operationId": "models_api_adaptive_models_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector"
+      }
+    },
+    "/api/adaptive/models/{identifier}/comparison": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Comparison",
+        "operationId": "comparison_api_adaptive_models__identifier__comparison_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/adaptive/models/{identifier}/final-evaluation": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Final Evaluation",
+        "operationId": "final_evaluation_api_adaptive_models__identifier__final_evaluation_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/models/{identifier}/deploy": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Deploy",
+        "operationId": "deploy_api_adaptive_models__identifier__deploy_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Deployment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/models/{task}/rollback": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Rollback",
+        "operationId": "rollback_api_adaptive_models__task__rollback_post",
+        "parameters": [
+          {
+            "name": "task",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "alphabet_recognition",
+                "isolated_word"
+              ],
+              "type": "string",
+              "title": "Task"
+            }
+          },
+          {
+            "name": "owner",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Owner"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/retention/expire": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Expire",
+        "operationId": "expire_api_adaptive_retention_expire_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/participants/verify": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Verify Participant",
+        "operationId": "verify_participant_api_adaptive_participants_verify_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Participant"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/captures/{identifier}/renew": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Renew",
+        "operationId": "renew_api_adaptive_captures__identifier__renew_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Renewal"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 94371840
+      }
+    },
+    "/api/adaptive/retention/report": {
+      "get": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Retention Report",
+        "operationId": "retention_report_api_adaptive_retention_report_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/adaptive/retention/backups": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Register Backup",
+        "operationId": "register_backup_api_adaptive_retention_backups_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagedBackup"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/predict": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Selected Prediction",
+        "operationId": "selected_prediction_api_adaptive_predict_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Selection"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdaptivePrediction"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "collector",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/adaptive/models/{identifier}/probe": {
+      "post": {
+        "tags": [
+          "private adaptive feedback"
+        ],
+        "summary": "Candidate Probe",
+        "operationId": "candidate_probe_api_adaptive_models__identifier__probe_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,80}$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Api Health",
+        "operationId": "api_health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/model/availability": {
+      "get": {
+        "summary": "Availability",
+        "operationId": "availability_api_model_availability_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evidence": {
+      "get": {
+        "summary": "Project Evidence",
+        "operationId": "project_evidence_api_evidence_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dataset/stats": {
+      "get": {
+        "summary": "Dataset Stats",
+        "description": "Return dataset statistics from the active dataset.",
+        "operationId": "dataset_stats_api_dataset_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/overview": {
+      "get": {
+        "summary": "Dataset Overview",
+        "description": "Return overview statistics matching index.html format.",
+        "operationId": "dataset_overview_api_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recordings/{letter}": {
+      "get": {
+        "summary": "List Recordings For Letter",
+        "description": "List all recordings available for a specific letter.",
+        "operationId": "list_recordings_for_letter_api_recordings__letter__get",
+        "parameters": [
+          {
+            "name": "letter",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Letter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/video/{video_path}": {
+      "get": {
+        "summary": "Serve Video",
+        "description": "Safely stream a recording video to the frontend.",
+        "operationId": "serve_video_api_video__video_path__get",
+        "parameters": [
+          {
+            "name": "video_path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Video Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/recording/{letter}/{speaker}/{session}/{recording_id}": {
+      "get": {
+        "summary": "Get Recording Meta",
+        "description": "Retrieve full metadata for a specific recording.",
+        "operationId": "get_recording_meta_api_recording__letter___speaker___session___recording_id__get",
+        "parameters": [
+          {
+            "name": "letter",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Letter"
+            }
+          },
+          {
+            "name": "speaker",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Speaker"
+            }
+          },
+          {
+            "name": "session",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session"
+            }
+          },
+          {
+            "name": "recording_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Recording Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/predict": {
+      "post": {
+        "summary": "Predict Route",
+        "operationId": "predict_route_api_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/word/health": {
+      "get": {
+        "summary": "Word Health",
+        "description": "Return readiness and vocabulary for the independently selected word model.",
+        "operationId": "word_health_api_word_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/word/train-personal": {
+      "post": {
+        "summary": "Train Personal Words",
+        "description": "Stage consented collection bytes; fitting and promotion are separate operations.",
+        "operationId": "train_personal_words_api_word_train_personal_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalTrainRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/word/personal/health": {
+      "get": {
+        "summary": "Personal Word Health",
+        "operationId": "personal_word_health_api_word_personal_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/predict/word/personal": {
+      "post": {
+        "summary": "Predict Personal Word Route",
+        "operationId": "predict_personal_word_route_api_predict_word_personal_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/predict/word": {
+      "post": {
+        "summary": "Predict Word Route",
+        "operationId": "predict_word_route_api_predict_word_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/models": {
+      "get": {
+        "summary": "List Available Models",
+        "description": "List operational ML tracks and supported vocabularies.",
+        "operationId": "list_available_models_api_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dataset/validate": {
+      "get": {
+        "summary": "Dataset Validate",
+        "operationId": "dataset_validate_api_dataset_validate_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dataset/build-manifest": {
+      "post": {
+        "summary": "Dataset Build Manifest",
+        "operationId": "dataset_build_manifest_api_dataset_build_manifest_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/dataset/create-splits": {
+      "post": {
+        "summary": "Dataset Create Splits",
+        "operationId": "dataset_create_splits_api_dataset_create_splits_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/training/check": {
+      "get": {
+        "summary": "Training Precheck",
+        "operationId": "training_precheck_api_training_check_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/training/start": {
+      "post": {
+        "summary": "Training Start",
+        "operationId": "training_start_api_training_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/training/status/{job_id}": {
+      "get": {
+        "summary": "Training Status",
+        "operationId": "training_status_api_training_status__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/training/cancel/{job_id}": {
+      "post": {
+        "summary": "Training Cancel",
+        "operationId": "training_cancel_api_training_cancel__job_id__post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/training/checkpoints": {
+      "get": {
+        "summary": "Training Checkpoints",
+        "operationId": "training_checkpoints_api_training_checkpoints_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/inference/checkpoints": {
+      "get": {
+        "summary": "Inference Checkpoints",
+        "operationId": "inference_checkpoints_api_inference_checkpoints_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluations": {
+      "get": {
+        "summary": "List Evaluations",
+        "operationId": "list_evaluations_api_evaluations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluation/{eval_path}": {
+      "get": {
+        "summary": "Get Evaluation Metrics",
+        "operationId": "get_evaluation_metrics_api_evaluation__eval_path__get",
+        "parameters": [
+          {
+            "name": "eval_path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Eval Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/experiments": {
+      "get": {
+        "summary": "Experiments",
+        "operationId": "experiments_api_experiments_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/live/start": {
+      "post": {
+        "summary": "Live Start",
+        "operationId": "live_start_api_live_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LiveStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/live/stop": {
+      "post": {
+        "summary": "Live Stop",
+        "operationId": "live_stop_api_live_stop_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/live/state": {
+      "get": {
+        "summary": "Live State",
+        "operationId": "live_state_api_live_state_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/api/live/save_recording": {
+      "post": {
+        "summary": "Live Save",
+        "operationId": "live_save_api_live_save_recording_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LiveSaveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          },
+          "408": {
+            "description": "Upload deadline exceeded"
+          },
+          "413": {
+            "description": "Streaming body limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer",
+        "x-upload-deadline-seconds": 30,
+        "x-upload-limit-bytes": 16777216
+      }
+    },
+    "/api/live/cameras": {
+      "get": {
+        "summary": "Live Cameras",
+        "description": "Probe OpenCV for available camera indices (best-effort).\n\nThe actual device-open check lives in CameraService.start() which\nsurfaces CameraUnavailableError. This endpoint only returns indices\nto try.",
+        "operationId": "live_cameras_api_live_cameras_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private credential"
+          },
+          "403": {
+            "description": "Role does not permit this operation"
+          },
+          "503": {
+            "description": "Access configuration or operation unavailable"
+          }
+        },
+        "security": [
+          {
+            "PrivateBearer": []
+          }
+        ],
+        "x-minimum-role": "reviewer"
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdaptivePrediction": {
+        "properties": {
+          "task": {
+            "type": "string",
+            "enum": [
+              "isolated_word",
+              "alphabet_recognition"
+            ],
+            "title": "Task"
+          },
+          "prediction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prediction"
+          },
+          "candidate": {
+            "type": "string",
+            "title": "Candidate"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          },
+          "top_k": {
+            "items": {
+              "$ref": "#/components/schemas/RankedLabel"
+            },
+            "type": "array",
+            "title": "Top K"
+          },
+          "model_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Model Id"
+          },
+          "model_version": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Model Version"
+          },
+          "vocabulary": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Vocabulary"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PREDICTED",
+              "UNCERTAIN"
+            ],
+            "title": "Status"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "confidence_calibrated": {
+            "type": "boolean",
+            "const": false,
+            "title": "Confidence Calibrated",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "task",
+          "prediction",
+          "candidate",
+          "confidence",
+          "top_k",
+          "model_id",
+          "model_version",
+          "vocabulary",
+          "status"
+        ],
+        "title": "AdaptivePrediction"
+      },
+      "Capture": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Id"
+          },
+          "task": {
+            "type": "string",
+            "enum": [
+              "alphabet_recognition",
+              "isolated_word"
+            ],
+            "title": "Task"
+          },
+          "speaker_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Speaker Id"
+          },
+          "session_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Session Id"
+          },
+          "recorded_at": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Recorded At"
+          },
+          "capture_kind": {
+            "type": "string",
+            "enum": [
+              "physical_webcam",
+              "webcam_replay"
+            ],
+            "title": "Capture Kind"
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent"
+          },
+          "frames": {
+            "items": {
+              "type": "string",
+              "maxLength": 4000000
+            },
+            "type": "array",
+            "maxItems": 76,
+            "minItems": 8,
+            "title": "Frames"
+          },
+          "timestamps_ms": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 76,
+            "minItems": 8,
+            "title": "Timestamps Ms"
+          },
+          "original_video": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 25165824
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Video"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "task",
+          "speaker_id",
+          "session_id",
+          "recorded_at",
+          "capture_kind",
+          "consent",
+          "frames",
+          "timestamps_ms"
+        ],
+        "title": "Capture"
+      },
+      "Deployment": {
+        "properties": {
+          "approved": {
+            "type": "boolean",
+            "const": true,
+            "title": "Approved"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "approved"
+        ],
+        "title": "Deployment"
+      },
+      "ExpandedWordRequest": {
+        "properties": {
+          "frames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 76,
+            "minItems": 8,
+            "title": "Frames"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frames"
+        ],
+        "title": "ExpandedWordRequest"
+      },
+      "Feedback": {
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "correct",
+              "incorrect"
+            ],
+            "title": "Verdict"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Label"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "verdict",
+          "label"
+        ],
+        "title": "Feedback"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LRW500Request": {
+        "properties": {
+          "frames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 76,
+            "minItems": 8,
+            "title": "Frames"
+          },
+          "input_kind": {
+            "type": "string",
+            "enum": [
+              "webcam",
+              "aligned_mouth"
+            ],
+            "title": "Input Kind",
+            "default": "webcam"
+          },
+          "convention": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Convention"
+          },
+          "landmarks": {
+            "items": {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "maxItems": 76,
+            "title": "Landmarks"
+          },
+          "timestamps_ms": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 76,
+            "title": "Timestamps Ms"
+          },
+          "face_counts": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 76,
+            "title": "Face Counts"
+          },
+          "final": {
+            "type": "boolean",
+            "title": "Final",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "frames",
+          "convention"
+        ],
+        "title": "LRW500Request"
+      },
+      "LiveSaveRequest": {
+        "properties": {
+          "out_dir": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Out Dir"
+          }
+        },
+        "type": "object",
+        "title": "LiveSaveRequest"
+      },
+      "LiveStartRequest": {
+        "properties": {
+          "ckpt_dir": {
+            "type": "string",
+            "title": "Ckpt Dir"
+          },
+          "camera_index": {
+            "type": "integer",
+            "title": "Camera Index",
+            "default": 0
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width",
+            "default": 640
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height",
+            "default": 480
+          },
+          "fps": {
+            "type": "integer",
+            "title": "Fps",
+            "default": 25
+          }
+        },
+        "type": "object",
+        "required": [
+          "ckpt_dir"
+        ],
+        "title": "LiveStartRequest"
+      },
+      "ManagedBackup": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Id"
+          },
+          "owner": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Owner"
+          },
+          "source_record": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Source Record"
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Filename"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "owner",
+          "source_record",
+          "filename"
+        ],
+        "title": "ManagedBackup"
+      },
+      "Participant": {
+        "properties": {
+          "owner": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Owner"
+          },
+          "participant_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Participant Id"
+          },
+          "permission_record": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Permission Record"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "owner",
+          "participant_id",
+          "permission_record"
+        ],
+        "title": "Participant"
+      },
+      "PersonalTrainRequest": {
+        "properties": {
+          "speaker_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Speaker Id",
+            "default": "participant01"
+          },
+          "clips": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Clips"
+          },
+          "vocabulary": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "title": "Vocabulary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "clips"
+        ],
+        "title": "PersonalTrainRequest"
+      },
+      "PredictRequest": {
+        "properties": {
+          "frames": {
+            "items": {
+              "type": "string",
+              "maxLength": 200000,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 76,
+            "minItems": 8,
+            "title": "Frames"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frames"
+        ],
+        "title": "PredictRequest"
+      },
+      "RankedLabel": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "score"
+        ],
+        "title": "RankedLabel"
+      },
+      "Renewal": {
+        "properties": {
+          "consent": {
+            "type": "boolean",
+            "const": true,
+            "title": "Consent"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "consent"
+        ],
+        "title": "Renewal"
+      },
+      "Review": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "REJECTED",
+              "QUARANTINED"
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision",
+          "reason"
+        ],
+        "title": "Review"
+      },
+      "Selection": {
+        "properties": {
+          "task": {
+            "type": "string",
+            "enum": [
+              "alphabet_recognition",
+              "isolated_word"
+            ],
+            "title": "Task"
+          },
+          "capture_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Capture Id"
+          },
+          "selection": {
+            "type": "string",
+            "enum": [
+              "reference",
+              "adaptive"
+            ],
+            "title": "Selection",
+            "default": "reference"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "task",
+          "capture_id"
+        ],
+        "title": "Selection"
+      },
+      "StudioBundle": {
+        "properties": {
+          "clips": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Clips"
+          },
+          "configuration_sha256": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Configuration Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "clips",
+          "configuration_sha256"
+        ],
+        "title": "StudioBundle"
+      },
+      "Training": {
+        "properties": {
+          "dataset_version": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Dataset Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dataset_version"
+        ],
+        "title": "Training"
+      },
+      "TrainingStartRequest": {
+        "properties": {
+          "epochs": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 1.0,
+            "title": "Epochs",
+            "default": 30
+          },
+          "batch_size": {
+            "type": "integer",
+            "maximum": 256.0,
+            "minimum": 1.0,
+            "title": "Batch Size",
+            "default": 16
+          },
+          "lr": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Lr",
+            "default": 0.001
+          }
+        },
+        "type": "object",
+        "title": "TrainingStartRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "Version": {
+        "properties": {
+          "task": {
+            "type": "string",
+            "enum": [
+              "alphabet_recognition",
+              "isolated_word"
+            ],
+            "title": "Task"
+          },
+          "owner": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$",
+            "title": "Owner"
+          },
+          "assignments": {
+            "patternProperties": {
+              "^[A-Za-z0-9_-]{1,80}$": {
+                "type": "string",
+                "enum": [
+                  "train",
+                  "valid",
+                  "test"
+                ]
+              }
+            },
+            "type": "object",
+            "maxProperties": 1000,
+            "minProperties": 3,
+            "title": "Assignments"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "task",
+          "owner",
+          "assignments"
+        ],
+        "title": "Version"
+      }
+    },
+    "securitySchemes": {
+      "PrivateBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Persistent credential. Stable principal IDs own private data; never place tokens in URLs."
+      }
+    }
+  },
+  "x-limitations": [
+    "Some legacy responses are not yet fully typed.",
+    "WebSocket transport is lifecycle-only and is not a recognition decoder."
+  ]
+}

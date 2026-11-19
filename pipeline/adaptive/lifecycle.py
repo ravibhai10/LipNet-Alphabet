@@ -15,6 +15,10 @@ from .store import now
 
 def initialize(db):
     db.executescript('''
+      CREATE TABLE IF NOT EXISTS backup_sources(file TEXT PRIMARY KEY, record TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS private_files(id TEXT PRIMARY KEY, path TEXT NOT NULL UNIQUE,
+        owner TEXT NOT NULL, expires TEXT NOT NULL, state TEXT NOT NULL, error TEXT);
+      CREATE TABLE IF NOT EXISTS test_claims(record TEXT PRIMARY KEY, model TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS retention(record TEXT PRIMARY KEY, expires TEXT NOT NULL, renewed TEXT);
       CREATE TABLE IF NOT EXISTS participants(owner TEXT NOT NULL, id TEXT NOT NULL, verified_by TEXT NOT NULL,
         permission TEXT NOT NULL, PRIMARY KEY(owner,id));
@@ -53,6 +57,7 @@ def freeze_personal(store, task, labels, owner, assignments, actor, minimum_per_
                 raise ValueError('Reviewer-verified participant identity and permission are required.')
             if row['speaker'] in store.historical_evaluation_speakers():
                 raise ValueError('Previously exposed historical evaluation participants are ineligible.')
+            store.row(db, row['id'], owner)  # Expired data never enters a frozen manifest.
             meta = json.loads(row['metadata'])
             if meta.get('warnings') or not meta.get('original_video') or row['rois'] is None:
                 raise ValueError('Only passing source-video-bound recordings can enter personal training.')
@@ -113,6 +118,7 @@ def renew(store, identifier, owner, consent):
 
 
 def invalidate(db, store, identifier):
+    db.execute("UPDATE private_files SET expires=? WHERE id IN (SELECT file FROM backup_sources WHERE record=?)", (now(),identifier))
     versions = {r[0] for r in db.execute('SELECT id,payload FROM versions') if identifier in json.loads(r[1])['record_ids']}
     affected = []
     for row in db.execute('SELECT id,task,payload FROM models').fetchall():
@@ -139,8 +145,8 @@ def cleanup(store):
                 record = db.execute('SELECT payload FROM models WHERE id=?', (item['id'],)).fetchone()
             if record:
                 model = json.loads(record[0]); path = (store.root / model['checkpoint']).resolve()
-                allowed = [(store.directory / 'derivatives').resolve(), (store.root / 'runs/adaptive').resolve()]
-                if not any(path.is_relative_to(base) for base in allowed):
+                allowed = [store.directory.resolve() / 'derivatives' / item['id'], store.root.resolve() / 'runs/adaptive' / item['id']]
+                if path.parent not in allowed:
                     raise ValueError('Deletion target is outside managed private derivatives; reference files protected.')
                 directory = path.parent
                 # Refuse symlink escapes; delete only regular contents of this model's directory.
@@ -156,6 +162,8 @@ def cleanup(store):
             with store.db() as db:
                 db.execute("UPDATE cleanup SET status='RETRY',error='Cleanup failed; operator review required.' WHERE id=?", (item['id'],))
 
+    expire_files(store)
+
 
 def maintenance(store):
     with store.db(write=False) as db:
@@ -163,11 +171,85 @@ def maintenance(store):
     for identifier in identifiers:
         store.withdraw(identifier, 'retention-worker', reviewer=True)
     cleanup(store)
+    expire_files(store)
+    result = report(store)
+    result['expired'] = len(identifiers)
+    return result
+
+
+def private_file_bytes(store, db):
+    size = 0
+    for row in db.execute("SELECT path FROM private_files WHERE state!='DELETED'"):
+        path = store.root / row[0]
+        if path.is_file() and not path.is_symlink():
+            size += path.stat().st_size
+    derivatives = store.directory / 'derivatives'
+    if derivatives.is_dir() and not derivatives.is_symlink():
+        size += sum(p.stat().st_size for p in derivatives.rglob('*') if p.is_file() and not p.is_symlink())
+    return size
+
+
+def register_file(store, identifier, path, owner):
+    path = Path(path).resolve()
+    allowed = (store.root / 'data/personal_recordings').resolve()
+    if path.parent != allowed or path.suffix != '.json' or path.is_symlink():
+        raise ValueError('Only a new managed collection bundle can be registered.')
+    with store.db() as db:
+        from app.settings import settings
+        used = db.execute('SELECT COALESCE(SUM(length(media)+length(rois)),0) FROM captures').fetchone()[0]
+        if used + private_file_bytes(store, db) + path.stat().st_size > settings().private_quota_bytes:
+            raise ValueError('Private storage quota exceeded.')
+        db.execute('INSERT INTO private_files VALUES(?,?,?,?,?,NULL)',
+                   (identifier, str(path.relative_to(store.root.resolve())), owner, expiry(), 'RETAINED'))
+        store.event(db, identifier, owner, 'collection_retained', {'expires_in_days': __import__('app.settings', fromlist=['settings']).settings().retention_days})
+
+
+def register_backup(store, identifier, owner, source, filename):
+    path = (store.directory / 'backups' / filename)
+    if path.is_symlink() or not path.resolve().is_relative_to(store.directory.resolve()/'backups') or not path.is_file():
+        raise ValueError('Backup must be an existing regular file inside the managed private backups directory.')
+    with store.db() as db:
+        store.row(db, source, owner)
+        expiration = db.execute('SELECT expires FROM retention WHERE record=?', (source,)).fetchone()
+        db.execute('INSERT INTO private_files VALUES(?,?,?,?,?,NULL)',
+                   (identifier, str(path.resolve().relative_to(store.root.resolve())), owner, expiration[0], 'RETAINED'))
+        db.execute('INSERT INTO backup_sources VALUES(?,?)', (identifier, source))
+        store.event(db, identifier, owner, 'eligible_backup_registered', {'source_record': source, 'expires': expiration[0]})
+    return {'id': identifier, 'source_record': source, 'expires_at': expiration[0]}
+
+
+def expire_files(store):
+    with store.db(write=False) as db:
+        files = [dict(r) for r in db.execute("SELECT * FROM private_files WHERE expires<=? AND state!='DELETED'", (now(),))]
+    for row in files:
+        try:
+            path = store.root / row['path']
+            allowed = (store.root / 'data/personal_recordings').resolve()
+            backup_root = store.directory.resolve() / 'backups'
+            collection = path.resolve().parent == allowed and path.suffix == '.json'
+            backup = path.resolve().is_relative_to(backup_root) and path.resolve() != backup_root
+            if path.is_symlink() or not (collection or backup):
+                raise ValueError('Unsafe managed file target.')
+            path.unlink(missing_ok=True)
+            with store.db() as db:
+                db.execute("UPDATE private_files SET state='DELETED',error=NULL WHERE id=?", (row['id'],))
+                store.event(db, row['id'], 'retention-worker', 'collection_deleted', {'reason': 'expiry'})
+        except Exception:
+            with store.db() as db:
+                db.execute("UPDATE private_files SET state='RETRY',error='Deletion requires operator review.' WHERE id=?", (row['id'],))
+
+
+def report(store):
     with store.db(write=False) as db:
         pending = db.execute("SELECT COUNT(*) FROM cleanup WHERE status!='DELETED'").fetchone()[0]
         retained = db.execute("SELECT COUNT(*),COALESCE(SUM(length(media)+length(rois)),0) FROM captures WHERE status!='WITHDRAWN'").fetchone()
-    return {'expired': len(identifiers), 'cleanup_pending': pending, 'retained_records': retained[0],
-            'media_bytes': retained[1], 'backup_policy': 'Only explicitly managed backups can be erased; unmanaged copies require operator deletion.',
+        files = [dict(r) for r in db.execute('SELECT id,expires,state,error FROM private_files')]
+        overdue = db.execute("SELECT COUNT(*) FROM captures c JOIN retention r ON c.id=r.record WHERE r.expires<=? AND c.status!='WITHDRAWN'", (now(),)).fetchone()[0]
+    return {'cleanup_pending': pending, 'retained_records': retained[0], 'expired_pending': overdue,
+            'media_bytes': retained[1], 'sqlite_file_bytes': (store.directory/'feedback.sqlite3').stat().st_size,
+            'managed_collections': files,
+            'backup_policy': 'Unmanaged copies require operator deletion; no erasure attestation.',
+            'legacy_policy': 'Existing unregistered legacy bundles require consent/ownership migration before use.',
             'browser_policy': 'Client must expire its own copies; offline browser erasure cannot be attested by server.'}
 
 

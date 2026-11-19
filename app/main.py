@@ -51,6 +51,8 @@ app = FastAPI(
     version="1.0.0",
 )
 app.include_router(recognition_capabilities_router)
+from app.context_routes import router as context_router
+app.include_router(context_router)
 from app.lrw500_routes import router as lrw500_router
 from app.expanded_word_routes import router as expanded_word_router
 from app.services.word_compute import word_cpu_lock
@@ -59,9 +61,11 @@ app.include_router(lrw500_router)
 app.include_router(expanded_word_router)
 from app.studio_routes import router as studio_router
 app.include_router(studio_router)
+from app.word_v1_routes import router as word_v1_router
+app.include_router(word_v1_router)
 from app.adaptive_routes import router as adaptive_router, PrivateBodyLimit
 app.include_router(adaptive_router)
-from app.security import RequestBoundary
+from app.security import RequestBoundary, access
 from app.settings import settings
 app.add_middleware(RequestBoundary)
 INFERENCE_TIMEOUT_SECONDS = settings().inference_timeout_seconds
@@ -69,11 +73,26 @@ INFERENCE_TIMEOUT_SECONDS = settings().inference_timeout_seconds
 
 @app.on_event('startup')
 async def preload_selected_models():
+    from app.process_lock import acquire_process_lock
+    acquire_process_lock()
     # Deployment launchers opt in. Tests and lightweight inventory commands can
     # inspect the app without allocating the large optional encoder.
+    from src.cpu_utils import configure_cpu_runtime
+    configure_cpu_runtime(settings().cpu_threads)
+    from app.services.private_maintenance import start
+    start()
     if os.environ.get('LIPNET_PRELOAD_MODELS') == '1':
         await asyncio.to_thread(browser_inference.load)
         await asyncio.to_thread(word_inference.load)
+
+
+@app.on_event('shutdown')
+def stop_services():
+    from app.services.private_maintenance import stop
+    from app.process_lock import release_process_lock
+    stop()
+    shutdown_live_pipeline()
+    release_process_lock()
 
 
 async def bounded_inference(handler, request):
@@ -253,15 +272,13 @@ async def list_recordings_for_letter(letter: str):
 @app.get("/api/video/{video_path:path}")
 async def serve_video(video_path: str):
     """Safely stream a recording video to the frontend."""
-    candidate = (RECORDINGS_ROOT / video_path).resolve()
-    if not (candidate.is_file() and _is_safe_subpath(candidate, RECORDINGS_ROOT)):
-        candidate = (PROJECT_ROOT / video_path).resolve()
-        if not (candidate.is_file() and any(_is_safe_subpath(candidate, b) for b in [RECORDINGS_ROOT, PROJECT_ROOT / "data"])):
-            candidate = (PROJECT_ROOT / "data" / video_path).resolve()
-            if not (candidate.is_file() and any(_is_safe_subpath(candidate, b) for b in [RECORDINGS_ROOT, PROJECT_ROOT / "data"])):
-                raise HTTPException(status_code=404, detail="Video file not found")
-    if _is_safe_subpath(candidate, PROJECT_ROOT / 'data' / 'adaptive_private'):
-        raise HTTPException(status_code=404, detail="Video file not found")
+    # Private stores have their own owner-checked routes. No generic data-root access.
+    roots = [RECORDINGS_ROOT, PROJECT_ROOT / 'data/external', PROJECT_ROOT / 'data/grid_raw']
+    candidates = [RECORDINGS_ROOT / video_path, PROJECT_ROOT / video_path, PROJECT_ROOT / 'data' / video_path]
+    candidate = next((p.resolve() for p in candidates if p.is_file() and
+                      any(_is_safe_subpath(p, root) for root in roots)), None)
+    if candidate is None:
+        raise HTTPException(status_code=404, detail='Video file not found')
     if candidate.suffix.lower() not in {'.mp4', '.avi', '.mov', '.webm', '.mpg', '.mpeg'}:
         raise HTTPException(status_code=404, detail="Video file not found")
     media_type = "video/mp4" if candidate.suffix.lower() == ".mp4" else "video/mpeg"
@@ -319,16 +336,27 @@ class PersonalTrainRequest(BaseModel):
 
 
 @app.post("/api/word/train-personal", status_code=202)
-def train_personal_words(req: PersonalTrainRequest):
-    """Stage validated recordings; training/evaluation never mutates a live model."""
+def train_personal_words(req: PersonalTrainRequest, user=Depends(access)):
+    """Stage consented collection bytes; fitting and promotion are separate operations."""
     from app.services.recording_intake import save_bundle
     try:
-        return save_bundle(PROJECT_ROOT, req.clips, req.vocabulary)
+        return save_bundle(PROJECT_ROOT, req.clips, req.vocabulary, owner=user['actor'])
     except (ValueError, TypeError, KeyError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
-        logging.getLogger(__name__).exception("Recording intake failed")
-        raise HTTPException(status_code=500, detail="Could not save recordings. Export locally and retry.") from exc
+        logging.getLogger(__name__).exception('Recording intake failed')
+        raise HTTPException(status_code=503, detail='Recording intake unavailable. Keep a local export and retry.') from exc
+
+
+@app.get("/api/word/personal/health")
+def personal_word_health():
+    return {'model_loaded': False, 'inference_ready': False, 'vocabulary': [],
+            'research_only': True, 'reason': 'Unvalidated global personal adapter is archived. Use owner-scoped /api/adaptive models after review, held-out evaluation and explicit approval.'}
+
+
+@app.post('/api/predict/word/personal')
+async def predict_personal_word_route(req: PredictRequest):
+    raise HTTPException(503, 'Personal adapter unavailable: migrate to explicitly selected owner-scoped /api/adaptive/predict.')
 
 
 @app.post("/api/predict/word")
@@ -390,6 +418,15 @@ def list_available_models():
                 "reason": "Decoder utilities exist, but no trained visual-only sentence checkpoint is verified.",
                 "modality": "video_only"
             },
+            "neural_v1": {
+                "name": "Neural Visual Speech Engine (Track A - LRW-500)",
+                "task": "isolated_word",
+                "vocabulary_size": 500,
+                "ready": True,
+                "endpoint": "/api/v1/predict/word",
+                "ws_stream": "/ws/live-speech",
+                "health_endpoint": "/api/v1/word/health",
+            },
             "lrw500": {
                 "name": "Publisher ResNet18 + DC-TCN (research)",
                 "task": "isolated_word", "vocabulary_size": 500,
@@ -397,6 +434,16 @@ def list_available_models():
                 "endpoint": "/api/predict/word/lrw500",
                 "local_accuracy": None, "webcam_accuracy_validated": False,
                 "note": "Separate from the eight-word MIRACL benchmark. Lazy loading; query health for current readiness."
+            },
+            "personal_word_recognition": {
+                "name": "Personal Adaptive Classifier (Track A-Personal)",
+                "task": "isolated_word",
+                "ready": False,
+                "classes": [],
+                "vocabulary_size": 0,
+                "endpoint": "/api/predict/word/personal",
+                "health_endpoint": "/api/word/personal/health",
+                "note": "Archived unvalidated global adapter; use approved owner-scoped adaptive models."
             }
         }
     }
@@ -539,6 +586,8 @@ class TrainingStartRequest(BaseModel):
 
 @app.post("/api/training/start")
 def training_start(req: TrainingStartRequest):
+    if os.environ.get('LIPNET_ENABLE_RESEARCH_TRAINING') != '1':
+        raise HTTPException(503, 'Legacy research training is disabled; use immutable owner-scoped adaptive datasets.')
     jm = get_job_manager()
     ts = get_training_service()
     if jm.is_running():
@@ -547,6 +596,9 @@ def training_start(req: TrainingStartRequest):
     if not check.passed:
         raise HTTPException(status_code=409, detail="; ".join(check.errors))
     cfg = ts.get_config()
+    # Never reuse the protected historical run directory for new research fitting.
+    import uuid
+    cfg.training.checkpoint_dir = str(settings().private_root / 'research_candidates' / uuid.uuid4().hex)
     ready = threading.Event()
     holder = {}
 
@@ -901,13 +953,17 @@ async def root():
 
 
 # SPA catch-all must be LAST — must not match /api/* or /health
-@app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
+@app.api_route("/{full_path:path}", methods=["GET", "HEAD"], include_in_schema=False)
 async def spa_fallback(full_path: str):
     if full_path == "api" or full_path.startswith(("api/", "ws/")):
         raise HTTPException(status_code=404, detail="API endpoint not found.")
     return _spa_response(full_path)
 
 
+from app.api_contract import install as install_api_contract
+install_api_contract(app)
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8000, workers=1, reload=False)

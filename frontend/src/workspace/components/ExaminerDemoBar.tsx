@@ -23,12 +23,12 @@ export const EXAMINER_STEPS: DemoStep[] = [
   },
   {
     id: 2,
-    title: 'Real-Time Vision Pipeline',
+    title: 'Word-First Live Studio & Tape',
     path: '/demo/live',
-    mode: 'alphabet',
-    timeEstimate: '1.5 min',
-    examinerFocus: 'MediaPipe Landmarks & 96px Mouth Bounding',
-    talkingPoint: 'Vision-only silent speech. On-device 478 landmarks, eye-axis roll angle compensation, aperture ratio.'
+    mode: 'word',
+    timeEstimate: '2.0 min',
+    examinerFocus: 'AV-HuBERT 103M + Live Transcript Tape & TTS',
+    talkingPoint: 'Word-level visual speech with continuous Transcript Composer tape, Top-5 beam search alternative popover, and Web Speech API audio synthesis.'
   },
   {
     id: 3,

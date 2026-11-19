@@ -61,6 +61,7 @@ data/processed/grid_multispeaker*/
 data/processed/grid_whole_words/
 data/processed/multidataset/
 data/processed/lrw_official*/
+data/processed/expansion_v1/
 data/grid/
 data/grid_raw/
 scripts/wget-logs/
@@ -80,3 +81,5 @@ data/adaptive_private/
 data/studio_v2/
 data/personal_recordings/
 test_recordings/
+
+.access/

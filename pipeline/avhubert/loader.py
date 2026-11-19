@@ -54,6 +54,9 @@ class AVHubertLoader:
                 return self
             self.ckpt_path = self._resolve_ckpt()
             try:
+                from pipeline.word_recognition.common import sha256
+                if sha256(self.ckpt_path) != 'dee8b0651dbea3a21cda0f2c52b956e3a878d5f6ee503d427d6a4044bb95c9cc':
+                    raise ModelUnavailableError('Encoder is not the registered trusted publisher checkpoint.')
                 # Import fairseq BEFORE adding the sibling user module directory:
                 # the checkout also contains a namespace directory named fairseq.
                 import fairseq

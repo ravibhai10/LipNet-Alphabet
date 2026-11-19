@@ -1,9 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { BackendProvider, useBackend } from '../hooks/useBackend'
+import { ToastProvider } from '../ui/Toast'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { WorkspaceTopbar } from './WorkspaceTopbar'
 import { ExaminerDemoBar } from './components/ExaminerDemoBar'
+import { QuantumParticleField } from '../visualizations/QuantumParticleField'
+import { CyberCommandPalette } from './components/CyberCommandPalette'
+import { CyberTelemetryHUD } from './components/CyberTelemetryHUD'
 
 const titles: Record<string, string> = {
   '/demo/overview': 'Overview',
@@ -20,12 +24,19 @@ const titles: Record<string, string> = {
 }
 
 export function WorkspaceShell() {
-  return <BackendProvider><WorkspaceContent /></BackendProvider>
+  return (
+    <BackendProvider>
+      <ToastProvider>
+        <WorkspaceContent />
+      </ToastProvider>
+    </BackendProvider>
+  )
 }
 
 function WorkspaceContent() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
       return (localStorage.getItem('lipnet.theme') as 'dark' | 'light') || 'dark'
@@ -59,6 +70,17 @@ function WorkspaceContent() {
   }, [location.pathname])
 
   useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setCommandPaletteOpen(prev => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [])
+
+  useEffect(() => {
     if (!mobileOpen) return
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -81,13 +103,15 @@ function WorkspaceContent() {
         <a href="#workspace-main" className="skip-link">Skip to workspace</a>
         {mobileOpen && <button className="ws-mobile-backdrop" onClick={closeMobile} aria-label="Close navigation" />}
         <WorkspaceSidebar collapsed={collapsed} mobileOpen={mobileOpen} onClose={closeMobile} onToggle={toggle} />
-        <div className="ws-main-column">
+        <div className="ws-main-column" style={{ position: 'relative' }}>
+          {theme === 'dark' && <QuantumParticleField particleCount={24} />}
           <WorkspaceTopbar
             module={titles[location.pathname] ?? 'Research workspace'}
             mobileOpen={mobileOpen}
             onMenuToggle={() => setMobileOpen(o => !o)}
             theme={theme}
             onToggleTheme={toggleTheme}
+            onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           />
           <ExaminerDemoBar />
           {status === 'offline' && <div className="ws-reconnect-banner" role="alert">
@@ -102,6 +126,13 @@ function WorkspaceContent() {
               <span>Observe. Understand. Decode.</span>
             </footer>
           </main>
+          <CyberCommandPalette
+            isOpen={commandPaletteOpen}
+            onClose={() => setCommandPaletteOpen(false)}
+            onToggleTheme={toggleTheme}
+            onRefreshBackend={refresh}
+          />
+          <CyberTelemetryHUD />
         </div>
       </div>
   )

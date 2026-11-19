@@ -13,3 +13,15 @@ runs
 *.ckpt
 *.tar
 *.zip
+
+# Credentials and biometric/private stores never enter the build context.
+.venv*/
+.codex/
+.qa/
+data/adaptive_private/
+data/studio_v2/
+data/personal_recordings/
+alphabet_dataset/recordings/
+*.sqlite3*
+*.pth
+.access/

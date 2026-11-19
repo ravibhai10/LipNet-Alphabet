@@ -89,10 +89,10 @@ class FeedbackStore:
 
     def save_capture(self, identifier, owner, request_hash, meta, media, rois):
         from app.settings import settings
-        from .lifecycle import expiry
+        from .lifecycle import expiry, private_file_bytes
         with self.db() as db:
             used = db.execute('SELECT COALESCE(SUM(length(media)+length(rois)),0) FROM captures').fetchone()[0]
-            if used + len(media) + len(rois) > settings().private_quota_bytes:
+            if used + private_file_bytes(self, db) + len(media) + len(rois) > settings().private_quota_bytes:
                 raise ValueError('Private media quota exceeded. Expire or withdraw existing recordings first.')
             prior = db.execute('SELECT * FROM captures WHERE id=?', (identifier,)).fetchone()
             if prior:
@@ -199,8 +199,16 @@ class FeedbackStore:
                 raise ValueError('A previously evaluated test speaker remains quarantined from the independent feedback protocol.')
             if decision == 'APPROVED' and (not row['verdict'] or row['verdict'] == 'unknown'):
                 raise ValueError('Approval requires a verified label and passing recording quality. UNKNOWN records are negative evaluation only. Rerecord failed quality.')
-            if decision == 'APPROVED':
+            if decision == 'APPROVED' and meta.get('warnings'):
+                if len(reason.strip()) < 20:
+                    raise ValueError('Resolving quality quarantine requires a detailed reviewer rationale.')
+                meta['resolved_quality_warnings'] = {'warnings': meta['warnings'], 'reviewer': actor, 'reason': reason}
                 meta['warnings'] = []
+            if decision == 'REJECTED':
+                meta = {'warnings': [], 'capture_kind': 'deleted', 'frame_count': 0,
+                        'captured_fps': None, 'duration_ms': None, 'original_video': None,
+                        'deletion_reason': 'reviewer_rejected', 'deleted_at': now()}
+                db.execute('UPDATE captures SET media=NULL,rois=NULL,prediction=NULL,verdict=NULL,label=NULL WHERE id=?', (identifier,))
             db.execute('UPDATE captures SET status=?,reason=?,metadata=? WHERE id=?', (decision, reason, json.dumps(meta), identifier))
             self.event(db, identifier, actor, 'review', {'decision': decision, 'reason': reason})
             return self.public(self.row(db, identifier))
@@ -216,12 +224,10 @@ class FeedbackStore:
                 # immutable training lineage remain; no frame or landmark copy stays in metadata.
                 from .lifecycle import invalidate
                 affected = invalidate(db, self, identifier)
-                meta = json.loads(row['metadata']) if row['metadata'] else {}
-                meta.pop('quality', None)
-                meta.update({'warnings': [], 'capture_kind': 'deleted', 'frame_count': 0,
-                             'captured_fps': None, 'duration_ms': None, 'original_video': None,
-                             'deletion_reason': 'withdrawal_or_expiry', 'deleted_at': now()})
-                db.execute("UPDATE captures SET status='WITHDRAWN',media=NULL,rois=NULL,metadata=?,source=?,pixels=? WHERE id=?",
+                meta = {'warnings': [], 'capture_kind': 'deleted', 'frame_count': 0,
+                        'captured_fps': None, 'duration_ms': None, 'original_video': None,
+                        'deletion_reason': 'withdrawal_or_expiry', 'deleted_at': now()}
+                db.execute("UPDATE captures SET status='WITHDRAWN',media=NULL,rois=NULL,prediction=NULL,verdict=NULL,label=NULL,metadata=?,source=?,pixels=? WHERE id=?",
                            (json.dumps(meta), 'deleted:'+identifier, 'deleted:'+identifier, identifier))
                 self.event(db, identifier, actor, 'withdraw', {'included_in_manifest': included, 'requires_model_review': included})
             return {'id': identifier, 'status': 'WITHDRAWN', 'media_deleted': True, 'requires_model_review': included}
@@ -352,20 +358,23 @@ class FeedbackStore:
             for row in records:
                 locked=db.execute('SELECT version FROM test_locks WHERE record=?',(row['id'],)).fetchone()
                 resumable=resume_model is not None and db.execute('SELECT 1 FROM attempts WHERE model=?',(resume_model,)).fetchone() is not None
-                if locked and not (resumable and locked[0]==identifier):
-                    raise FileExistsError('The held-out recording was already accessed by final evaluation.')
+                claimant=db.execute('SELECT model FROM test_claims WHERE record=?',(row['id'],)).fetchone()
+                if locked and not (resumable and locked[0]==identifier and claimant and claimant[0]==resume_model):
+                    raise FileExistsError('The held-out recording was already accessed by another final evaluation.')
                 speaker=db.execute('SELECT version FROM evaluation_speakers WHERE speaker=?',(identity(row),)).fetchone()
                 if speaker and speaker[0]!=identifier:
                     raise FileExistsError('This held-out speaker was already evaluated in another version.')
             for row in records:
+                db.execute('INSERT OR IGNORE INTO test_claims VALUES(?,?)',(row['id'],resume_model or 'legacy:'+identifier))
                 db.execute('INSERT OR IGNORE INTO test_locks VALUES(?,?,?)',(row['id'],identifier,now()))
                 db.execute('INSERT OR IGNORE INTO evaluation_speakers VALUES(?,?,?)',(identity(row),identifier,now()))
             self.event(db,identifier,actor,'claim_final_test',{'recordings':len(records),'purpose':'one final report; not selection'})
         return {'claimed':len(records),'dataset_version':identifier}
 
-    def expire_uncommitted(self, actor='retention', days=30):
-        cutoff = (datetime.now(timezone.utc)-timedelta(days=days)).isoformat()
-        with self.db() as db:
-            identifiers = [r[0] for r in db.execute("SELECT id FROM captures WHERE created<? AND status NOT IN ('TRAINING_INCLUDED','WITHDRAWN')", (cutoff,))]
-        for identifier in identifiers: self.withdraw(identifier,actor,reviewer=True)
-        return {'expired':len(identifiers), 'retention_days':days}
+    def expire_uncommitted(self, actor='retention', days=None):
+        # Compatibility entry point delegates to the single validated retention policy.
+        from app.settings import settings
+        if days is not None and days != settings().retention_days:
+            raise ValueError('Set LIPNET_RETENTION_DAYS; per-call retention overrides are unsupported.')
+        from .lifecycle import maintenance
+        return maintenance(self)

@@ -1,0 +1,367 @@
+{
+  "baseline": "bf0f9af3",
+  "files": [
+    {
+      "path": ".dockerignore",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": ".gitignore",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "Dockerfile.backend",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "README.md",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app.tar.gz",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "app/adaptive_routes.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app/adaptive_schemas.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "app/api_contract.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "app/expanded_word_routes.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app/main.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app/security.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app/services/browser_inference.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app/services/job_manager.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app/services/personal_adapter_service.py",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "app/services/private_maintenance.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "app/services/recording_intake.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app/services/word_inference.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "app/settings.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "docker-compose.yml",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "engineering/20261117/DEPLOYMENT.md",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/ENDPOINTS.md",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/FINDINGS.md",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/FRONTEND_CONTRACT.md",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/README.md",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/SECURITY_PRIVACY.md",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/VALIDATION_PROTOCOL.md",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/artifact-comparison.json",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/changed-files.json",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/dataset-quality.json",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/final-audit.json",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/findings.json",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/model-evidence.json",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/openapi.json",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "engineering/20261117/verification.json",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "frontend/nginx.conf",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/hooks/useBackend.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/lib/api.ts",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/live-demo/useDemoPipeline.ts",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/live-demo/wordAssistant.ts",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/styles/cyber-workspace.css",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "frontend/src/visualizations/VisualSpeechEqualizer.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "frontend/src/workspace/components/CyberTargetReticle.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "frontend/src/workspace/components/DecodedWordReveal.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "frontend/src/workspace/components/WordAssistant.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/workspace/pages/Documentation.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/workspace/pages/LiveDemo.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "frontend/src/workspace/pages/Overview.tsx",
+      "origin": "preserved concurrent frontend/service edit",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "pipeline/adaptive/alphabet_training.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "pipeline/adaptive/lifecycle.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "pipeline/adaptive/quality.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "pipeline/adaptive/store.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "pipeline/adaptive/training.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "pipeline/avhubert/loader.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "pipeline/paths.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "pipeline/word_recognition/common.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "pipeline/word_recognition/pretrained_inference.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "scripts/configure_local_access.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "start_server.bat",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "tests/test_adaptive_feedback.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "tests/test_engineering_resolution.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": false
+    },
+    {
+      "path": "tests/test_lrw_vocab.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    },
+    {
+      "path": "tests/test_reliability.py",
+      "origin": "resumed engineering implementation/documentation",
+      "tracked_before_resume": true
+    }
+  ],
+  "prior_committed_implementation": [
+    ".gitignore",
+    "Dockerfile.backend",
+    "alphabet/infer.py",
+    "app/adaptive_routes.py",
+    "app/expanded_word_routes.py",
+    "app/main.py",
+    "app/security.py",
+    "app/services/browser_inference.py",
+    "app/services/dataset_service.py",
+    "app/services/evidence_registry.py",
+    "app/services/image_validation.py",
+    "app/services/inference_service.py",
+    "app/services/live_pipeline.py",
+    "app/services/pretrained_word_inference.py",
+    "app/services/recording_studio.py",
+    "app/services/word_inference.py",
+    "app/settings.py",
+    "app/studio_routes.py",
+    "audit_extracted.txt",
+    "audit_findings_full.txt",
+    "docker-compose.yml",
+    "frontend/nginx.conf",
+    "frontend/package-lock.json",
+    "frontend/package.json",
+    "frontend/public/sw.js",
+    "frontend/src/lib/api.ts",
+    "frontend/src/live-demo/wordCollection.ts",
+    "frontend/src/workspace/WorkspaceShell.tsx",
+    "frontend/src/workspace/WorkspaceSidebar.tsx",
+    "frontend/src/workspace/pages/Testing.tsx",
+    "frontend/src/workspace/pages/WordCollection.tsx",
+    "pipeline/adaptive/alphabet_training.py",
+    "pipeline/adaptive/integration.py",
+    "pipeline/adaptive/lifecycle.py",
+    "pipeline/adaptive/models.py",
+    "pipeline/adaptive/quality.py",
+    "pipeline/adaptive/quality_policy.py",
+    "pipeline/adaptive/store.py",
+    "pipeline/adaptive/training.py",
+    "pipeline/avhubert/low_memory.py",
+    "pipeline/lrw/loader.py",
+    "pipeline/lrw_tcn/inference.py",
+    "pipeline/word_recognition/personal_data.py",
+    "scripts/build_plagiarism_report.py",
+    "start_server.bat"
+  ]
+}

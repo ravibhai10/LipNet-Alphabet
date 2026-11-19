@@ -22,7 +22,7 @@ try {
     $env:LIPNET_WORD_BACKEND = 'avhubert'
     $env:LIPNET_AVHUBERT_WORD_HEAD = $headPath
     $env:LIPNET_PRELOAD_MODELS = '1'
-    & (Join-Path $repositoryPath '.venv-avhubert-cpu/Scripts/python.exe') -m uvicorn app.main:app --host 127.0.0.1 --port $Port
+    & (Join-Path $repositoryPath '.venv-avhubert-cpu/Scripts/python.exe') scripts/run_backend.py --host 127.0.0.1 --port $Port
     if ($LASTEXITCODE -ne 0) { throw "Word research server exited with code $LASTEXITCODE." }
 } finally {
     $env:LIPNET_WORD_BACKEND = $previousWordBackend

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import type { AssistantState, WordAssistant as Controller } from '../../live-demo/wordAssistant'
 import { WORD_LIMITS } from '../../live-demo/wordAssistant'
 import { Icon } from '../Icon'
+import { DecodedWordReveal } from './DecodedWordReveal'
+import { ContextInterpretation } from './ContextInterpretation'
 
 interface Props {
   state: AssistantState
@@ -77,9 +79,13 @@ export function WordAssistantPanel({
         <span className="ws-eyebrow">
           {state.phase === 'PROCESSING' ? 'ANALYZING LIP MOVEMENTS (AV-HuBERT L9)' : result ? 'LAST PREDICTION' : 'DELIBERATE WORD CAPTURE'}
         </span>
-        <p className="ws-assistant-word" aria-live="polite">
-          {result ? result.word ?? 'Uncertain' : '—'}
-        </p>
+        <div className="ws-assistant-word" aria-live="polite" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '68px', padding: '6px 0' }}>
+          <DecodedWordReveal
+            targetWord={result ? result.word ?? 'Uncertain' : null}
+            isProcessing={state.phase === 'PROCESSING'}
+            isUncertain={result?.status === 'uncertain'}
+          />
+        </div>
         <p>
           {result?.status === 'uncertain'
             ? 'Prediction uncertain. Spoken word did not clear the 0.95/0.20 confidence gate.'
@@ -100,10 +106,20 @@ export function WordAssistantPanel({
         )}
       </div>
 
+        <ContextInterpretation result={result} history={state.history} mode={state.mode} vocabulary={vocabulary} active={cameraActive && ['RESULT', 'WAITING_NEXT'].includes(state.phase)} />
+
       <dl className="ws-assistant-result-data">
         <div>
           <dt>Model confidence</dt>
-          <dd>{result ? scores(result.confidence) : '—'}</dd>
+          <dd style={{ color: result?.word ? '#10b981' : 'inherit', fontWeight: 600 }}>{result ? scores(result.confidence) : '—'}</dd>
+        </div>
+        <div>
+          <dt>Margin (Δ)</dt>
+          <dd style={{ color: result?.diagnostics?.margin && result.diagnostics.margin > 0.2 ? '#38bdf8' : 'inherit' }}>{result?.diagnostics?.margin != null ? result.diagnostics.margin.toFixed(3) : '—'}</dd>
+        </div>
+        <div>
+          <dt>Entropy (H)</dt>
+          <dd>{result?.diagnostics?.entropy != null ? `${result.diagnostics.entropy.toFixed(3)} nats` : '—'}</dd>
         </div>
         <div>
           <dt>Server inference</dt>
@@ -114,6 +130,40 @@ export function WordAssistantPanel({
           <dd>{result ? duration(result.roundTripMs) : '—'}</dd>
         </div>
       </dl>
+
+      {/* Candidate Probability Distribution (Explainable AI) */}
+      {result && result.candidates && result.candidates.length > 0 && (
+        <div style={{ margin: '14px 0 10px 0', padding: '12px 14px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '10px', border: '1px solid rgba(56, 189, 248, 0.2)', boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8' }}>
+            <span>Candidate Probability Distribution</span>
+            <span>Softmax Confidence</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {result.candidates.slice(0, 4).map((c, i) => (
+              <div key={c.word} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }}>
+                <span style={{ width: '85px', fontWeight: i === 0 ? 700 : 400, color: i === 0 && result.word ? '#10b981' : '#cbd5e1' }}>
+                  {c.word} {c.word === 'help' ? '⭐' : ''}
+                </span>
+                <div className="ws-shimmer-bar" style={{ flex: 1, height: '7px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.round(c.prob * 100)}%`,
+                    height: '100%',
+                    background: i === 0 
+                      ? (result.word ? 'linear-gradient(90deg, #10b981, #38bdf8)' : 'linear-gradient(90deg, #f59e0b, #fbbf24)') 
+                      : 'rgba(255, 255, 255, 0.2)',
+                    borderRadius: '4px',
+                    transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: i === 0 ? '0 0 10px rgba(56, 189, 248, 0.5)' : 'none'
+                  }} />
+                </div>
+                <span style={{ width: '45px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: i === 0 ? '#38bdf8' : '#94a3b8', fontWeight: i === 0 ? 600 : 400 }}>
+                  {(c.prob * 100).toFixed(1)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Human-in-the-Loop Feedback & Correction Section */}
       {result && (

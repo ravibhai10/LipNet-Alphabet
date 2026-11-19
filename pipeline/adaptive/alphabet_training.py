@@ -116,6 +116,7 @@ def train_alphabet(trainer,identifier,version):
            'deployment_status':'challenger','regression_passed':False,'created':now()}
     for name,data in [('config',configuration),('history',history),('comparison',comparison)]:
         (output/(name+'.json')).write_bytes(canonical(data))
+    if version.get('record_ids'): trainer.store.version(version['id'])
     with trainer.store.db() as db:
         db.execute('INSERT INTO models VALUES(?,?,?)',(identifier,'alphabet_recognition',json.dumps(value)))
         trainer.store.event(db,identifier,'training-worker','challenger_saved',{'checkpoint_sha256':value['checkpoint_sha256']})

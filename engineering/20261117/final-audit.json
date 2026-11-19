@@ -1,0 +1,42 @@
+{
+  "at": "2026-11-17T13:30:35.373787+00:00",
+  "head": "bf0f9af31c866b8bdb0e5098d4f5be6c34167e51",
+  "branch": "engineering-resume-20261117",
+  "python_syntax_checked": 302,
+  "syntax_errors": [],
+  "protected_artifact_comparison": {
+    "checked": 10120,
+    "changed": [],
+    "missing": [],
+    "baseline": "C:\\Users\\Dell\\.codex\\lipnet_safety\\20261117_124132\\artifact_hashes.json",
+    "verified_at": "2026-11-17T13:30:33.764574+00:00"
+  },
+  "engineering_diff_check": {
+    "command": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      "app",
+      "pipeline",
+      "tests",
+      "scripts",
+      "start_server.bat",
+      ".dockerignore",
+      ".gitignore",
+      "Dockerfile.backend",
+      "docker-compose.yml",
+      "frontend/nginx.conf"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  "limits": [
+    "No Docker executable: container build/runtime unverified.",
+    "Encoder dependency check fails: clean reproducibility not claimed.",
+    "No new consenting participants or independent webcam/A-Z/OOV/LRW500 accuracy evidence.",
+    "Concurrent frontend changes preserved; real-browser acceptance pending.",
+    "Some engineering gaps remain in FINDINGS.md; passing tests do not close them."
+  ],
+  "mission_complete": false
+}

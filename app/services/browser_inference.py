@@ -103,6 +103,7 @@ class BrowserInference:
         if not isinstance(frames, list) or not MIN_FRAMES <= len(frames) <= MAX_FRAMES:
             raise ValueError(f"Send between {MIN_FRAMES} and {MAX_FRAMES} mouth crops.")
         crops = []
+        decoded_pixels = 0
         for encoded in frames:
             if not isinstance(encoded, str) or not encoded or len(encoded) > MAX_ENCODED_FRAME:
                 raise ValueError("A mouth crop is missing or exceeds the allowed size.")
@@ -114,7 +115,10 @@ class BrowserInference:
             if not payload.startswith(b"\xff\xd8\xff"):
                 raise ValueError("Mouth crops must be JPEG images.")
             from app.services.image_validation import jpeg_geometry
-            jpeg_geometry(payload)
+            width, height = jpeg_geometry(payload)
+            decoded_pixels += width * height
+            if decoded_pixels > 4_000_000:
+                raise ValueError('Request exceeds four million decoded crop pixels.')
             crop = cv2.imdecode(np.frombuffer(payload, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
             if crop is None or crop.size == 0 or max(crop.shape) > 1024:
                 raise ValueError("A mouth crop has invalid dimensions.")

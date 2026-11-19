@@ -2,7 +2,7 @@
 from functools import lru_cache
 import os
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -15,6 +15,18 @@ class Settings(BaseModel):
     cpu_threads: int = Field(default=1, ge=1, le=32)
     private_root: Path = ROOT / 'data/adaptive_private'
     server_camera_enabled: bool = False
+
+
+    @field_validator('private_root')
+    @classmethod
+    def private_location(cls, value):
+        value = (ROOT / value).resolve()
+        data = (ROOT / 'data').resolve()
+        if value == data or not value.is_relative_to(data):
+            raise ValueError('Private storage must be a dedicated directory inside the repository data directory.')
+        if any(value.is_relative_to(data / name) for name in ('external', 'grid_raw', 'lrw', 'processed')):
+            raise ValueError('Private storage must not overlap public corpus directories.')
+        return value
 
 
 @lru_cache

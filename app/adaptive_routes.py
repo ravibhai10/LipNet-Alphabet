@@ -22,6 +22,8 @@ from pipeline.adaptive.models import ModelRegistry, TASK_LABELS
 from pipeline.adaptive.training import BatchTrainer
 from pipeline.adaptive import lifecycle
 
+from app.adaptive_schemas import AdaptivePrediction
+
 router=APIRouter(prefix='/api/adaptive',tags=['private adaptive feedback'])
 store=FeedbackStore(); registry=ModelRegistry(store); trainer=BatchTrainer(store)
 _capture_lock=threading.Lock()
@@ -262,7 +264,7 @@ def deploy(identifier:Identifier,request:Deployment,user=Depends(reviewer)):
 
 
 @router.post('/models/{task}/rollback')
-def rollback(task:Task,user=Depends(reviewer)):return call(registry.rollback,task,user['actor'])
+def rollback(task:Task,owner:Identifier,user=Depends(reviewer)):return call(registry.rollback,task,user['actor'],owner)
 
 
 @router.post('/retention/expire')
@@ -291,7 +293,19 @@ def renew(identifier:Identifier,request:Renewal,user=Depends(access)):
 
 @router.get('/retention/report')
 def retention_report(user=Depends(reviewer)):
-    return call(lifecycle.maintenance,store)
+    return call(lifecycle.report,store)
+
+
+class ManagedBackup(Strict):
+    id: Identifier
+    owner: Identifier
+    source_record: Identifier
+    filename: str=Field(min_length=1,max_length=255)
+
+
+@router.post('/retention/backups',status_code=201)
+def register_backup(request:ManagedBackup,user=Depends(reviewer)):
+    return call(lifecycle.register_backup,store,request.id,request.owner,request.source_record,request.filename)
 
 
 class Selection(Strict):
@@ -300,7 +314,7 @@ class Selection(Strict):
     selection: Literal['reference','adaptive']='reference'
 
 
-@router.post('/predict')
+@router.post('/predict',response_model=AdaptivePrediction)
 async def selected_prediction(request:Selection,user=Depends(access)):
     def work():
         from app.services.word_compute import word_cpu_lock

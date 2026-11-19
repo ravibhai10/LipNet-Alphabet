@@ -1,7 +1,7 @@
 import type { WordPrediction } from '../lib/api'
 import type { WordCapture } from './wordCapture'
 
-export type WordMode = 'word' | 'expanded' | 'lrw500'
+export type WordMode = 'word' | 'expanded' | 'personal' | 'lrw500'
 export type AssistantPhase = 'IDLE' | 'CAMERA_STARTING' | 'READY' | 'CAPTURING' | 'PROCESSING' | 'RESULT' | 'WAITING_NEXT' | 'RETRY' | 'ERROR' | 'STOPPING'
 export type Feedback = 'correct' | 'incorrect' | null
 export interface WordResult {
@@ -11,6 +11,7 @@ export interface WordResult {
   captureMs: number; frameCount: number; retryOf: number | null
   candidates: { word: string; prob: number }[]
   performance?: WordPrediction['performance']
+  diagnostics?: WordPrediction['diagnostics']
 }
 export interface SessionTotals {
   attempts: number; predictions: number; available: number; uncertain: number
@@ -26,6 +27,7 @@ export interface AssistantState {
 export const WORD_LIMITS = {
   word: { minFrames: 8, maxFrames: 76, maxDurationMs: 5000 },
   expanded: { minFrames: 8, maxFrames: 76, maxDurationMs: 5000 },
+  personal: { minFrames: 8, maxFrames: 76, maxDurationMs: 5000 },
   lrw500: { minFrames: 12, maxFrames: 76, maxDurationMs: 3000 },
 } as const
 export const initialAssistant = (): AssistantState => ({
@@ -186,7 +188,8 @@ export class WordAssistant {
         roundTripMs: Math.max(0, this.now() - began), at: (this.deps.wallTime ?? Date.now)(),
         status: rejected ? 'uncertain' : 'available', feedback: null,
         captureMs: Math.max(0, began - (captured.captureStartedAt ?? began)), frameCount: clip.length,
-        retryOf: captured.retryOf, candidates: response.top_predictions.slice(0, 5), performance: response.performance }
+        retryOf: captured.retryOf, candidates: response.top_predictions.slice(0, 5), performance: response.performance,
+        diagnostics: response.diagnostics }
       this.send({ type: 'RESOLVED', result }); this.send({ type: 'WAIT' })
     }).catch(error => {
       if (token === this.epoch && !controller.signal.aborted) this.fail(error instanceof Error ? error.message : 'Analysis failed. Retry your word.', true)

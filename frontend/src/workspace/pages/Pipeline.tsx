@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useBackend } from "../../hooks/useBackend"
 import { PipelineFlow, REFERENCE_STAGES } from "../PipelineFlow"
+import { NeuralSynapseVisualizer } from "../components/NeuralSynapseVisualizer"
 import { Icon } from "../Icon"
 
 type ArchitectureTrack = "alphabet" | "avhubert" | "ctc"
@@ -64,6 +65,10 @@ export function PipelinePage() {
         <span className="ws-metric-value" style={{ fontSize: "28px" }}>{modelLoaded === undefined ? "Unknown" : modelLoaded ? "Loaded" : "Not loaded"}</span>
         <span className="ws-note">26-class letter classification</span>
       </div>
+    </div>
+
+    <div style={{ margin: "24px 0" }}>
+      <NeuralSynapseVisualizer />
     </div>
 
     <section className="ws-card">

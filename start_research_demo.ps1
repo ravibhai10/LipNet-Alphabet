@@ -20,7 +20,7 @@ try {
     $env:OMP_NUM_THREADS = '1'
     $env:MKL_NUM_THREADS = '1'
     Write-Host "Private research demo: http://127.0.0.1:$Port/demo/live"
-    & $pythonPath -m uvicorn app.main:app --host 127.0.0.1 --port $Port --workers 1
+    & $pythonPath scripts/run_backend.py --host 127.0.0.1 --port $Port
     if ($LASTEXITCODE -ne 0) { throw "Research server exited with code $LASTEXITCODE. Use an unused port; existing servers are not stopped." }
 } finally {
     $env:LIPNET_WORD_BACKEND = $savedBackend

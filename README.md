@@ -5,9 +5,11 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
 [![License: Research](https://img.shields.io/badge/license-Research-green.svg)](DESIGN.md)
 
-LipNet AI is a visual speech research presentation with an experimental A–Z camera demo and a separate technical workspace. The active browser model is the saved **CNN-BiLSTM alphabet classifier on Windows CPU**, not the research Conformer below. Confidence scores are uncalibrated; no independent webcam accuracy or new accuracy gain has been established.
+The supported reference demonstration is the preserved **eight-word AV-HuBERT classifier on Windows CPU**. Alphabet and LRW500 remain experimental. Twenty-word capabilities are preserved as research and serving is disabled by default; sentence recognition has no verified trained decoder. Model loading and software tests do not establish independent webcam accuracy.
 
-The official AV-HuBERT encoder is present and has encoded a real video on CPU. Its supervised A–Z head is not trained. The current corpus has 1,000 GRID sentences from one speaker and 45 generated LRW fixtures, with no registered authentic alphabet recordings. Those inputs cannot establish a speaker-independent A–Z benchmark.
+The current structural audit finds 32,891 GRID letter records, with W missing, and 45 local LRW clips with one identical byte hash. Each legacy LRW split references 485 missing files. These fixtures cannot establish a genuine LRW500 benchmark or complete A?Z reliability. Historical reports retain their original scope.
+
+**Current engineering status:** [17 November mission report](engineering/20261117/README.md), [all 62 findings](engineering/20261117/FINDINGS.md), [API migration contract](engineering/20261117/FRONTEND_CONTRACT.md), and [deployment instructions](engineering/20261117/DEPLOYMENT.md). The mission remains in progress; external participant, browser integration, clean encoder-runtime and Docker verification limits are explicit.
 
 Start with [Project status](PROJECT_STATUS.md), [Model availability and API contract](MODEL_AVAILABILITY.md), [Validation report](VALIDATION_REPORT.md), and the [data/training/evaluation guide](ACCURACY_PIPELINE.md).
 
@@ -19,10 +21,10 @@ The default `/` route tells six scenes: the problem, movement over time, the act
 
 Run commands individually from `C:\Users\Dell\Downloads\LipNet-Alphabet-main\LipNet-Alphabet-main`. Use the existing environments and dependencies; GPU, WSL, Linux, and Docker are unnecessary.
 
-Start the backend in one PowerShell terminal:
+Start the backend through the supported single-process launcher in one PowerShell terminal:
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+.\start_server.bat
 ```
 
 Start the frontend in another terminal, with its working directory set to `frontend`:
@@ -129,13 +131,9 @@ pip install -e .
 
 ### 2. Alternative single-origin built frontend
 
-Run the startup script:
+Run the supported single-process backend:
 ```bash
 start_server.bat
-```
-Or start via uvicorn directly:
-```bash
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 - **Web App**: Open [http://localhost:8000](http://localhost:8000) after building `frontend` with `npm run build`. Use the Windows CPU setup above for development.
 - **Interactive OpenAPI/Swagger Docs**: Open [http://localhost:8000/docs](http://localhost:8000/docs)

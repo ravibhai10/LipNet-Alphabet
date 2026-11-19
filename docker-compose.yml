@@ -1,13 +1,17 @@
 services:
   backend:
+    container_name: lipnet-backend
     build:
       context: .
       dockerfile: Dockerfile.backend
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       PYTHONUNBUFFERED: "1"
+      LIPNET_ACCESS_FILE: /run/lipnet/access.json
+      LIPNET_CPU_THREADS: "1"
     volumes:
+      - ./.access:/run/lipnet:ro
       - ./models:/app/models:ro
       - ./data:/app/data:ro
       - ./data/adaptive_private:/app/data/adaptive_private:rw
@@ -38,5 +42,5 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "80:80"
+      - "127.0.0.1:8080:80"
     restart: unless-stopped

@@ -364,7 +364,7 @@ export function useDemoPipeline(options: { manualWords?: boolean } = {}) {
     modelLoaded:backend.inferenceReady,inferenceReady:backend.inferenceReady,inferenceReason:backend.inferenceReason,modelKind:backend.modelKind,
     predictionError:backend.predictionError,predicting:manualWords ? assistant.state.phase === 'PROCESSING' : predicting,running,readout,history,pipelineError,clearHistory,
     assistant:manualWords ? assistant : null, canCaptureWord, beginWord, capturedFrames: capturedClip,
-    recognitionMode:backend.recognitionMode,setRecognitionMode:backend.setRecognitionMode,wordHealth:backend.wordHealth,expandedHealth:backend.expandedHealth,lrwHealth:backend.lrwHealth,showOverlay,setShowOverlay,
+    recognitionMode:backend.recognitionMode,setRecognitionMode:backend.setRecognitionMode,wordHealth:backend.wordHealth,expandedHealth:backend.expandedHealth,personalHealth:backend.personalHealth,lrwHealth:backend.lrwHealth,showOverlay,setShowOverlay,
     overlayRef,appearanceRef,geometryRef,motionRef,bufferStripRef,sequence:manualWords ? { ...WORD_LIMITS[backend.recognitionMode === 'alphabet' ? 'word' : backend.recognitionMode], stride: 1 } : backend.recognitionMode === 'lrw500' ? {maxFrames:76,minFrames:12,stride:8} : LIVE_SEQUENCE,start,stop,reset,
   }
 }

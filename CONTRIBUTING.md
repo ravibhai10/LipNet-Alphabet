@@ -51,7 +51,5 @@ Start the interactive UI with:
 ```bash
 # Windows
 start_server.bat
-# or
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 Navigate to `http://localhost:8000` to view the explorer.

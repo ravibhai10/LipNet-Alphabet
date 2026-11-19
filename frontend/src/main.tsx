@@ -8,6 +8,7 @@ import "./styles/nav-hero.css"
 import "./styles/sections.css"
 import "./styles/sections2.css"
 import "./styles/workspace.css"
+import "./styles/cyber-workspace.css"
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
